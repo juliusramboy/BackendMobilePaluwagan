@@ -2,13 +2,15 @@ package com.example.MobilePaluwagan.Entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Data
 @Entity
 @Table(name = "user_info")
 @NoArgsConstructor
 @AllArgsConstructor
-public class userInfo {
+public class UserInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")

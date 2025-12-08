@@ -1,14 +1,16 @@
 package com.example.MobilePaluwagan.Entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.jspecify.annotations.Nullable;
+import org.springframework.security.core.GrantedAuthority;
 
+@Data
 @Entity
 @Table(name = "roles")
 @NoArgsConstructor
-@AllArgsConstructor
-public class roles {
+public class Role implements GrantedAuthority {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "role_person") // for tagname
@@ -18,4 +20,8 @@ public class roles {
     @Column(name = "role_name")
     private String roleName;
 
+    @Override
+    public String getAuthority() {
+        return roleName;
+    }
 }
