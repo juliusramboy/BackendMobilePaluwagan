@@ -34,9 +34,10 @@ public class RegisterService {
 
         Role defaultRole = roleRepo.findById(2)
                 .orElseThrow(() -> new RuntimeException("Default role not found"));
+        
 
         User user = new User();
-        user.setUsername(register.getUsername());
+        user.setEmail(register.getEmail());
         user.setPassword(encoder.encode(register.getPassword()));
         user.setRole(defaultRole);
 
@@ -47,7 +48,6 @@ public class RegisterService {
         userInfo.setFirstName(register.getFirstName());
         userInfo.setMiddleName(register.getMiddleName());
         userInfo.setLastName(register.getLastName());
-        userInfo.setEmail(register.getEmail());
         userInfo.setPhoneNumber(register.getPhoneNumber());
 
         userInfoRepo.save(userInfo);
