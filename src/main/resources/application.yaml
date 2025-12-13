@@ -2,16 +2,30 @@ spring:
   application:
     name: MobilePaluwagan
   profiles:
-    active:
-      - dev
-
+    active: dev
 
 ---
 spring:
   config:
     activate:
       on-profile: dev
+  datasource:
+    url: jdbc:mysql://localhost:3306/mobilepaluwagan
+    username: root
+    password: ""
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
 
+---
+spring:
+  config:
+    activate:
+      on-profile: backup
   datasource:
     url: jdbc:postgresql://aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?prepareThreshold=0
     username: postgres.bialnvehadzzryfbzwol

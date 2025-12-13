@@ -19,5 +19,7 @@ public class RegisterRequest {
     private String username;
     private String password;
     private Integer roleId;
+    private Long targetAmount;
+    private Long accountBalance;
 
 }
