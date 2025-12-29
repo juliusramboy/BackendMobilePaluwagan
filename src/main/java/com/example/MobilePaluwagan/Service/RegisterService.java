@@ -34,7 +34,7 @@ public class RegisterService {
 
         Role defaultRole = roleRepo.findById(2)
                 .orElseThrow(() -> new RuntimeException("Default role not found"));
-        
+
 
         User user = new User();
         user.setEmail(register.getEmail());
