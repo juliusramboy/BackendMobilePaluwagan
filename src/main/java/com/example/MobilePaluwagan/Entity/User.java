@@ -18,6 +18,11 @@ public class User {
 
     private String email;
     private String password;
+    @Column(name = "is_verified")
+    private boolean isActive;
+
+    @Transient
+    private String verificationToken;
 
 
     @ManyToOne

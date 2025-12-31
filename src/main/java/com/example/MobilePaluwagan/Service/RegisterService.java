@@ -1,17 +1,14 @@
 package com.example.MobilePaluwagan.Service;
 
 import com.example.MobilePaluwagan.DTOs.Request.RegisterRequest;
-import com.example.MobilePaluwagan.Entity.Role;
-import com.example.MobilePaluwagan.Entity.User;
-import com.example.MobilePaluwagan.Entity.UserBank;
-import com.example.MobilePaluwagan.Entity.UserInfo;
-import com.example.MobilePaluwagan.Repository.RoleRepo;
-import com.example.MobilePaluwagan.Repository.UserBankRepo;
-import com.example.MobilePaluwagan.Repository.UserInfoRepo;
-import com.example.MobilePaluwagan.Repository.UserRepo;
+import com.example.MobilePaluwagan.DTOs.Request.VerificationRequest;
+import com.example.MobilePaluwagan.Entity.*;
+import com.example.MobilePaluwagan.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 public class RegisterService {
@@ -27,6 +24,9 @@ public class RegisterService {
 
     @Autowired
     private UserBankRepo userBankRepo;
+
+    @Autowired
+    private VerificationRepo verificationRepo;
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
@@ -59,5 +59,24 @@ public class RegisterService {
 
         userBankRepo.save(userBank);
 
+        UserVerification userVerification = new UserVerification();
+        userVerification.setUserId(userdataWithId.getId());
+
+        String otpHash = "5656"; userVerification.setOtpHash(otpHash);
+        //setOtpHash(register.getOtpHash());
+        //userVerification.setExpiresAt(register.getExpiresAt());
+        userVerification.setExpiresAt(LocalDateTime.now().plusMinutes(15));
+
+        verificationRepo.save(userVerification);
+    }
+
+    public void saveOtpVerificationIfUserIsExisting(VerificationRequest otp){
+
+        UserVerification userVerification = new UserVerification();
+        userVerification.setUserId(otp.getUserId());
+        userVerification.setOtpHash(otp.getOtpHash());
+        userVerification.setExpiresAt(otp.getExpiresAt());
+
+        verificationRepo.save(userVerification);
     }
 }
