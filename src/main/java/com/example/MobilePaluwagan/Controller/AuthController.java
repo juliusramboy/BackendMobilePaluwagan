@@ -6,6 +6,7 @@ import com.example.MobilePaluwagan.DTOs.Request.RegisterRequest;
 import com.example.MobilePaluwagan.DTOs.Response.LoginResponse;
 import com.example.MobilePaluwagan.DTOs.Response.RegisterResponse;
 import com.example.MobilePaluwagan.Entity.User;
+import com.example.MobilePaluwagan.Entity.UserVerification;
 import com.example.MobilePaluwagan.Repository.UserRepo;
 import com.example.MobilePaluwagan.Repository.VerificationRepo;
 import com.example.MobilePaluwagan.Service.*;
@@ -60,7 +61,7 @@ public class AuthController {
         if(existingUser != null && !existingUser.isActive()){
             String verificationToken = JWTService.generateToken(request.getEmail());
             emailService.sendVerificationEmail(request.getEmail(), verificationToken);
-            return new ResponseEntity<>( new RegisterResponse(existingUser.getEmail(), existingUser.getId(), verificationToken,"User exists but not yet verified"), HttpStatus.BAD_REQUEST );
+            return  ResponseEntity.ok( new LoginResponse(existingUser.getEmail(), existingUser.getId() , null, "User exists but not yet verified"));
         }
         return loginService.login(request);
     }
