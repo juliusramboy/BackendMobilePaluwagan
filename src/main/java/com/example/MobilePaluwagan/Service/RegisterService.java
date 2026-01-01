@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 
 @Service
@@ -30,7 +31,7 @@ public class RegisterService {
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
-    public void register(RegisterRequest register) {
+    public String register(RegisterRequest register) {
 
         Role defaultRole = roleRepo.findById(2)
                 .orElseThrow(() -> new RuntimeException("Default role not found"));
@@ -62,14 +63,17 @@ public class RegisterService {
         UserVerification userVerification = new UserVerification();
         userVerification.setUserId(userdataWithId.getId());
 
-        String otpHash = "5656"; userVerification.setOtpHash(otpHash);
-        //setOtpHash(register.getOtpHash());
-        //userVerification.setExpiresAt(register.getExpiresAt());
+        String plainOtp = generateOtp();
+        String hashedOtp = encoder.encode(plainOtp);
+
+        userVerification.setOtpHash(hashedOtp);
         userVerification.setExpiresAt(LocalDateTime.now().plusMinutes(15));
+        userVerification.setCreatedAt(LocalDateTime.now());
 
         verificationRepo.save(userVerification);
-    }
 
+        return plainOtp;
+    }
     public void saveOtpVerificationIfUserIsExisting(VerificationRequest otp){
 
         UserVerification userVerification = new UserVerification();
@@ -79,4 +83,11 @@ public class RegisterService {
 
         verificationRepo.save(userVerification);
     }
+
+    public String generateOtp(){
+        SecureRandom random = new SecureRandom();
+        int otp = 100000 + random.nextInt(900000);
+        return String.valueOf(otp);
+    }
+
 }

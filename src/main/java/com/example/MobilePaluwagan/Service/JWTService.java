@@ -17,13 +17,13 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class JWTService {
 
-    @Value("${jwt.secret}")
-    private String secretKey;
+    //@Value("${jwt.secret}")
+    private static String secretKey = "a9f8b7c6d5e4f3g2h1i0jklmnopqrstuvwxyz123456";
 
     public static final long Expiration_time = 1000 * 60 * 60 * 24;
 
 
-    public String generateToken(String email) {
+    public static String generateToken(String email) {
         Map<String, Object>  claims = new HashMap<>();
 
         return Jwts.builder()
@@ -38,7 +38,7 @@ public class JWTService {
 
     }
 
-    private Key getKey() {
+    private static Key getKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }

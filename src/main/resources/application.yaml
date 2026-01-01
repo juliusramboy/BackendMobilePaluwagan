@@ -6,6 +6,20 @@ spring:
 
 ---
 spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: intrudoorcaps@gmail.com
+    password: wtpy blxx uwnv rcim
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+---
+spring:
   config:
     activate:
       on-profile: dev

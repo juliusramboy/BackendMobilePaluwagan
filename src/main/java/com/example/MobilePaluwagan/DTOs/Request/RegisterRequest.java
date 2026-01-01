@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RegisterRequest {
-
+    private Long userId;
     private String firstName;
     private String middleName;
     private String lastName;
@@ -27,5 +27,6 @@ public class RegisterRequest {
 
     private String otpHash;
     private LocalDateTime expiresAt;
+    private LocalDateTime createAt;
 
 }

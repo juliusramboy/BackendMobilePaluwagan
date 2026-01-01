@@ -15,4 +15,5 @@ public class VerificationRequest {
     private Long userId;
     private String otpHash;
     private LocalDateTime expiresAt;
+    private LocalDateTime createAt;
 }
