@@ -49,6 +49,7 @@ public class RegisterService {
         userInfo.setFirstName(register.getFirstName());
         userInfo.setMiddleName(register.getMiddleName());
         userInfo.setLastName(register.getLastName());
+        userInfo.setSuffix(register.getSuffix());
         userInfo.setPhoneNumber(register.getPhoneNumber());
 
         userInfoRepo.save(userInfo);

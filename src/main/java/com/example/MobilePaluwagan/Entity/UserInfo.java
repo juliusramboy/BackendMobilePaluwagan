@@ -29,4 +29,7 @@ public class UserInfo {
 
     @Column(name = "phone_number")
     private String phoneNumber;
+
+    @Column(name = "suffix")
+    private String suffix;
 }
