@@ -3,7 +3,9 @@ package com.example.MobilePaluwagan.Service;
 import com.example.MobilePaluwagan.DTOs.Request.LoginRequest;
 import com.example.MobilePaluwagan.DTOs.Response.LoginResponse;
 import com.example.MobilePaluwagan.Entity.User;
+import com.example.MobilePaluwagan.Entity.UserVerification;
 import com.example.MobilePaluwagan.Repository.UserRepo;
+import com.example.MobilePaluwagan.Repository.VerificationRepo;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +15,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Service
@@ -23,6 +27,10 @@ public class LoginService {
 
     @Autowired
     private UserRepo userRepo;
+    @Autowired
+    private VerificationRepo verificationRepo;
+
+    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
     private final JWTService jwtService;
     private final AuthenticationManager authenticationManager;
@@ -37,6 +45,25 @@ public class LoginService {
                             ));
 
             if (authentication.isAuthenticated()) {
+                User user = userRepo.findByEmail(request.getEmail());
+                if (user == null){
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED) .body(new LoginResponse("failed - user not found", null, null));
+                }
+
+                UserVerification userVerification = verificationRepo.findByUserId(user.getId());
+                if(userVerification == null){
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED) .body(new LoginResponse("failed - OTP not found", null, null));
+                }
+                if (userVerification.getExpiresAt().isBefore(LocalDateTime.now())){
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED) .body(new LoginResponse("failed - OTP expired", null, null));
+                }
+                boolean isValidOtp = encoder.matches(request.getOtp(), userVerification.getOtpHash());
+                if (!isValidOtp){
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED) .body(new LoginResponse("failed - invalid OTP", null, null));
+                }
+
+                verificationRepo.delete(userVerification);
+
                 String token = String.valueOf(jwtService.generateToken(request.getEmail()));
                 Date expiryDate = new Date(System.currentTimeMillis() + JWTService.Expiration_time);
 
@@ -48,6 +75,8 @@ public class LoginService {
                 return ResponseEntity.ok(response);
 
             };
+
+
 
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED) .body(new LoginResponse("failed", null, null));
 

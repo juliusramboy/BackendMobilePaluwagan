@@ -1,6 +1,7 @@
 package com.example.MobilePaluwagan.Controller;
 
 import com.example.MobilePaluwagan.DTOs.Request.LoginRequest;
+import com.example.MobilePaluwagan.DTOs.Request.OtpLoginRequest;
 import com.example.MobilePaluwagan.DTOs.Request.OtpRequest;
 import com.example.MobilePaluwagan.DTOs.Request.RegisterRequest;
 import com.example.MobilePaluwagan.DTOs.Response.LoginResponse;
@@ -13,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("api/auth")
@@ -57,6 +60,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
         User existingUser = userRepo.findByEmail(request.getEmail());
+
         if(existingUser != null && !existingUser.isActive()){
             String verificationToken = JWTService.generateToken(request.getEmail());
             emailService.sendVerificationEmail(request.getEmail(), verificationToken);
@@ -90,6 +94,18 @@ public class AuthController {
         }else{
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("failed to re-send the OTP in your email");
+        }
+    }
+
+    @PostMapping("/login-send-otp")
+    public ResponseEntity<String> sendOtpLogin(@RequestBody OtpLoginRequest request) {
+        boolean emailSent = authOtpService.sendOtpLogin(request.getEmail());
+
+        if (emailSent) {
+            return ResponseEntity.ok("OTP sent successfully to your email");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Failed to send OTP. User not found or not active.");
         }
     }
 }

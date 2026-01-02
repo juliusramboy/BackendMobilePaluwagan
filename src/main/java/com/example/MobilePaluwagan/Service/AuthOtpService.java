@@ -65,9 +65,6 @@ public class AuthOtpService {
                     verificationRepo.delete(verification);
                 }
 
-                String verificationToken = JWTService.generateToken(user.getEmail());
-
-
                 String plainNewOtp = registerService.generateOtp();
                 String hashedNewOtp = encoder.encode(plainNewOtp);
 
@@ -80,7 +77,41 @@ public class AuthOtpService {
 
                 verificationRepo.save(userVerification);
 
-                emailService.sendVerificationEmail(user.getEmail(), plainNewOtp);
+                emailService.resendVerificationEmail(user.getEmail(), plainNewOtp);
+
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean sendOtpLogin(String email){
+
+        User isPresent = userRepo.findByEmail(email);
+
+        if(isPresent != null){
+            User user = isPresent;
+
+            if(user.isActive()){
+                UserVerification verification = verificationRepo.findByUserId(user.getId());
+
+                if(verification != null){
+                    verificationRepo.delete(verification);
+                }
+
+                String plainNewOtp = registerService.generateOtp();
+                String hashedNewOtp = encoder.encode(plainNewOtp);
+
+
+                UserVerification userVerification = new UserVerification();
+                userVerification.setUserId(user.getId());
+                userVerification.setOtpHash(hashedNewOtp);
+                userVerification.setExpiresAt(LocalDateTime.now().plusMinutes(5));
+                userVerification.setCreatedAt(LocalDateTime.now());
+
+                verificationRepo.save(userVerification);
+
+                emailService.sendOtpInLogin(user.getEmail(), plainNewOtp);
 
                 return true;
             }
