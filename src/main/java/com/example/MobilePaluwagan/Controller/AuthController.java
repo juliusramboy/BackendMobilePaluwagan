@@ -6,7 +6,6 @@ import com.example.MobilePaluwagan.DTOs.Request.RegisterRequest;
 import com.example.MobilePaluwagan.DTOs.Response.LoginResponse;
 import com.example.MobilePaluwagan.DTOs.Response.RegisterResponse;
 import com.example.MobilePaluwagan.Entity.User;
-import com.example.MobilePaluwagan.Entity.UserVerification;
 import com.example.MobilePaluwagan.Repository.UserRepo;
 import com.example.MobilePaluwagan.Repository.VerificationRepo;
 import com.example.MobilePaluwagan.Service.*;
@@ -47,10 +46,10 @@ public class AuthController {
             String verificationToken = registerService.register(request);
             return new ResponseEntity<>( new RegisterResponse(existingUser.getEmail(),  existingUser.getId(),verificationToken,"User already signup and verified email"), HttpStatus.CONFLICT);
         } else {
-            String verificationToken = registerService.register(request);
+            String verificationOtp = registerService.register(request);
             User newUser = userRepo.findByEmail(request.getEmail());
-            emailService.sendVerificationEmail(request.getEmail(), verificationToken);
-            return ResponseEntity.ok( new RegisterResponse(request.getEmail(), newUser.getId(),verificationToken,"User registered successfully: ") );
+            emailService.sendVerificationEmail(request.getEmail(), verificationOtp);
+            return ResponseEntity.ok( new RegisterResponse(request.getEmail(), newUser.getId(),verificationOtp,"User registered successfully: ") );
         }
 
     }
@@ -75,11 +74,22 @@ public class AuthController {
             User user = userRepo.findById(userId).orElseThrow();
             String sessionToken = JWTService.generateToken(String.valueOf(user.getEmail()));
             return ResponseEntity.ok("OTP verified successfully " + sessionToken);
-
-        }else {
+        }else{
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Invalid or expired OTP");
         }
+    }
 
+    @PostMapping("/resend-email/{userId}")
+    public ResponseEntity<?> resendMail(@PathVariable Long userId){
+
+        boolean isResend = authOtpService.resendEmail(userId);
+
+        if(isResend){
+            return ResponseEntity.ok("Successfully re-send the OTP in your email");
+        }else{
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("failed to re-send the OTP in your email");
+        }
     }
 }

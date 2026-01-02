@@ -68,14 +68,14 @@ public class RegisterService {
         String hashedOtp = encoder.encode(plainOtp);
 
         userVerification.setOtpHash(hashedOtp);
-        userVerification.setExpiresAt(LocalDateTime.now().plusMinutes(15));
+        userVerification.setExpiresAt(LocalDateTime.now().plusMinutes(5));
         userVerification.setCreatedAt(LocalDateTime.now());
 
         verificationRepo.save(userVerification);
 
         return plainOtp;
     }
-    public void saveOtpVerificationIfUserIsExisting(VerificationRequest otp){
+    public void resendOtp(VerificationRequest otp){
 
         UserVerification userVerification = new UserVerification();
         userVerification.setUserId(otp.getUserId());

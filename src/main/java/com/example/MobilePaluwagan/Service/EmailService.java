@@ -24,6 +24,12 @@ public class EmailService {
         sendEmail(email, verificationToken, subject, null, msg);
     }
 
+    public void resendVerificationEmail(String email, String verificationToken){
+        String subject = "Email Verification";
+        String msg = "Click the button below to verify your email address";
+        sendEmail(email, verificationToken, subject, null, msg);
+    }
+
     public void sendForgotPasswordEmail(String email, String resetToken){
         String subject = "Password Reset Request";
         String msg = "Click the button below to reset your password";

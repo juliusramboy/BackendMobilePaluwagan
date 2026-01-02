@@ -22,7 +22,7 @@ public class User {
     private boolean isActive;
 
     @Transient
-    private String verificationToken;
+    private String verificationOtp;
 
 
     @ManyToOne
