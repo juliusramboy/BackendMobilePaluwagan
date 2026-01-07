@@ -1,6 +1,7 @@
 package com.example.MobilePaluwagan.Service;
 
 import com.example.MobilePaluwagan.DTOs.Request.OtpRequest;
+import com.example.MobilePaluwagan.DTOs.Response.OtpResponse;
 import com.example.MobilePaluwagan.Entity.User;
 import com.example.MobilePaluwagan.Entity.UserVerification;
 import com.example.MobilePaluwagan.Repository.UserRepo;
@@ -85,7 +86,7 @@ public class AuthOtpService {
         return false;
     }
 
-    public boolean sendOtpLogin(String email){
+    public OtpResponse sendOtpLogin(String email){
 
         User isPresent = userRepo.findByEmail(email);
 
@@ -113,10 +114,10 @@ public class AuthOtpService {
 
                 emailService.sendOtpInLogin(user.getEmail(), plainNewOtp);
 
-                return true;
+                return new OtpResponse("OTP sent successfully to your email", user.getId());
             }
         }
-        return false;
+        return new OtpResponse("User not found with this email.", null);
     }
 
 

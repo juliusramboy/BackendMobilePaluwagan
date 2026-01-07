@@ -1,10 +1,8 @@
 package com.example.MobilePaluwagan.Controller;
 
-import com.example.MobilePaluwagan.DTOs.Request.LoginRequest;
-import com.example.MobilePaluwagan.DTOs.Request.OtpLoginRequest;
-import com.example.MobilePaluwagan.DTOs.Request.OtpRequest;
-import com.example.MobilePaluwagan.DTOs.Request.RegisterRequest;
+import com.example.MobilePaluwagan.DTOs.Request.*;
 import com.example.MobilePaluwagan.DTOs.Response.LoginResponse;
+import com.example.MobilePaluwagan.DTOs.Response.OtpResponse;
 import com.example.MobilePaluwagan.DTOs.Response.RegisterResponse;
 import com.example.MobilePaluwagan.Entity.User;
 import com.example.MobilePaluwagan.Repository.UserRepo;
@@ -107,14 +105,42 @@ public class AuthController {
     }
 
     @PostMapping("/login-send-otp")
-    public ResponseEntity<String> sendOtpLogin(@RequestBody OtpLoginRequest request) {
-        boolean emailSent = authOtpService.sendOtpLogin(request.getEmail());
+    public ResponseEntity<OtpResponse> sendOtpLogin(@RequestBody OtpLoginRequest request) {
+        OtpResponse response = authOtpService.sendOtpLogin(request.getEmail());
 
-        if (emailSent) {
-            return ResponseEntity.ok("OTP sent successfully to your email");
+        if (response.getUserId() != null) {
+            return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Failed to send OTP. User not found or not active.");
+                    .body(response);
         }
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<OtpResponse> forgotpassword(@RequestBody OtpLoginRequest request) {
+        OtpResponse response = authOtpService.sendOtpLogin(request.getEmail());
+
+        if (response.getUserId() != null) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(response);
+        }
+    }
+
+    @PostMapping("/verify-forgotPass")
+    public ResponseEntity<String> verifyOtpForgot(@RequestBody OtpVerifyForgotRequest request) {
+        try {
+            registerService.forgotPassword(request);
+            return ResponseEntity.ok("Successfully changed your password");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while changing the password");
+        }
+    }
+
+
 }

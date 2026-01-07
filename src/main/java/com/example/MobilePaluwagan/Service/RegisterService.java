@@ -1,5 +1,6 @@
 package com.example.MobilePaluwagan.Service;
 
+import com.example.MobilePaluwagan.DTOs.Request.OtpVerifyForgotRequest;
 import com.example.MobilePaluwagan.DTOs.Request.RegisterRequest;
 import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.*;
@@ -103,6 +104,40 @@ public class RegisterService {
         SecureRandom random = new SecureRandom();
         int otp = 100000 + random.nextInt(900000);
         return String.valueOf(otp);
+    }
+
+    public void forgotPassword(OtpVerifyForgotRequest request) {
+        // Find the verification record
+        UserVerification userVerification = verificationRepo.findByUserId(Long.valueOf(request.getUserId()));
+
+        if (userVerification == null) {
+            throw new IllegalArgumentException("User verification not found");
+        }
+
+        // Verify OTP using BCrypt matcher
+        if (!encoder.matches(request.getOtp(), userVerification.getOtpHash())) {
+            throw new IllegalArgumentException("Invalid OTP");
+        }
+
+        // Check if OTP is expired (if you have expiration logic)
+        if (userVerification.getExpiresAt() != null &&
+                userVerification.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("OTP has expired");
+        }
+
+        // Find the actual user
+        User user = userRepo.findById(Long.valueOf(request.getUserId()))
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // Update the password
+        String encodedPassword = encoder.encode(request.getPassword());
+        user.setPassword(encodedPassword);
+        userRepo.save(user);
+
+        // Delete the OTP verification record after successful password change
+        verificationRepo.delete(userVerification);
+
+        System.out.println("Password successfully changed for user: " + user.getId());
     }
 
 }
