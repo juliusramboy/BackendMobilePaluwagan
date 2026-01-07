@@ -1,7 +1,6 @@
 package com.example.MobilePaluwagan.Service;
 
 import com.example.MobilePaluwagan.DTOs.Request.RegisterRequest;
-import com.example.MobilePaluwagan.DTOs.Request.VerificationRequest;
 import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +43,10 @@ public class RegisterService {
 
         User userdataWithId = userRepo.save(user);
 
+
+        UserVerification userVerification = new UserVerification();
+        userVerification.setUserId(userdataWithId.getId());
+
         UserInfo userInfo = new UserInfo();
         userInfo.setUserId(userdataWithId.getId());
         userInfo.setFirstName(register.getFirstName());
@@ -61,9 +64,6 @@ public class RegisterService {
 
         userBankRepo.save(userBank);
 
-        UserVerification userVerification = new UserVerification();
-        userVerification.setUserId(userdataWithId.getId());
-
         String plainOtp = generateOtp();
         String hashedOtp = encoder.encode(plainOtp);
 
@@ -75,14 +75,28 @@ public class RegisterService {
 
         return plainOtp;
     }
-    public void resendOtp(VerificationRequest otp){
+
+    public String resendOtp(Long userId) {
+        UserVerification old = verificationRepo.findByUserId(userId);
+        if(old != null) verificationRepo.delete(old);
+
+        return generateAndSaveOtp(userId);
+    }
+
+
+    private String generateAndSaveOtp(Long userId) {
+        String plainOtp = generateOtp();
+        String hashedOtp = encoder.encode(plainOtp);
 
         UserVerification userVerification = new UserVerification();
-        userVerification.setUserId(otp.getUserId());
-        userVerification.setOtpHash(otp.getOtpHash());
-        userVerification.setExpiresAt(otp.getExpiresAt());
+        userVerification.setUserId(userId);
+        userVerification.setOtpHash(hashedOtp);
+        userVerification.setExpiresAt(LocalDateTime.now().plusMinutes(5));
+        userVerification.setCreatedAt(LocalDateTime.now());
 
         verificationRepo.save(userVerification);
+
+        return plainOtp;
     }
 
     public String generateOtp(){

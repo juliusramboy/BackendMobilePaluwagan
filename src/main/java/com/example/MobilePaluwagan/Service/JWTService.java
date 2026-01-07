@@ -1,5 +1,6 @@
 package com.example.MobilePaluwagan.Service;
 
+import com.example.MobilePaluwagan.Entity.Role;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -23,9 +24,10 @@ public class JWTService {
     public static final long Expiration_time = 1000 * 60 * 60 * 24;
 
 
-    public static String generateToken(String email) {
+    public static String generateToken(String email, Long userId, String role) {
         Map<String, Object>  claims = new HashMap<>();
-
+        claims.put("userId", userId);
+        claims.put("role", role);
         return Jwts.builder()
                 .claims()
                 .add(claims)

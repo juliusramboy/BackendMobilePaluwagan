@@ -15,8 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
-
 @RestController
 @RequestMapping("api/auth")
 public class AuthController {
@@ -39,30 +37,41 @@ public class AuthController {
 
         User existingUser = userRepo.findByEmail(request.getEmail());
 
+        if (existingUser != null && !existingUser.isActive()) {
+            String verificationToken = JWTService.generateToken(request.getEmail(), existingUser.getId(), existingUser.getRole().getRoleName());
+            String otpCode = registerService.resendOtp(existingUser.getId());
 
-        if(existingUser != null && !existingUser.isActive()){
-            String verificationToken = JWTService.generateToken(request.getEmail());
-            emailService.sendVerificationEmail(existingUser.getEmail(), verificationToken);
-            return new ResponseEntity<>( new RegisterResponse(existingUser.getEmail(), existingUser.getId(), verificationToken,"User exists but not yet verified"), HttpStatus.BAD_REQUEST );
+            emailService.resendVerificationEmail(existingUser.getEmail(), otpCode);
+
+            return new ResponseEntity<>(
+                    new RegisterResponse(existingUser.getEmail(), existingUser.getId(), verificationToken, "User exists but not yet verified. Verification email resent."),
+                    HttpStatus.OK
+            );
 
         } else if (existingUser != null) {
-            String verificationToken = registerService.register(request);
-            return new ResponseEntity<>( new RegisterResponse(existingUser.getEmail(),  existingUser.getId(),verificationToken,"User already signup and verified email"), HttpStatus.CONFLICT);
+            return new ResponseEntity<>(
+                    new RegisterResponse(existingUser.getEmail(), existingUser.getId(), null, "User already registered and verified"),
+                    HttpStatus.CONFLICT
+            );
+
         } else {
             String verificationOtp = registerService.register(request);
+
             User newUser = userRepo.findByEmail(request.getEmail());
+
             emailService.sendVerificationEmail(request.getEmail(), verificationOtp);
-            return ResponseEntity.ok( new RegisterResponse(request.getEmail(), newUser.getId(),verificationOtp,"User registered successfully: ") );
+
+            return ResponseEntity.ok(
+                    new RegisterResponse(request.getEmail(), newUser.getId(), verificationOtp, "User registered successfully")
+            );
         }
-
     }
-
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
         User existingUser = userRepo.findByEmail(request.getEmail());
 
         if(existingUser != null && !existingUser.isActive()){
-            String verificationToken = JWTService.generateToken(request.getEmail());
+            String verificationToken = JWTService.generateToken(request.getEmail(), existingUser.getId(), existingUser.getRole().getRoleName());
             emailService.sendVerificationEmail(request.getEmail(), verificationToken);
             return  ResponseEntity.ok( new LoginResponse(existingUser.getEmail(), existingUser.getId() , null, "User exists but not yet verified"));
         }
@@ -76,7 +85,7 @@ public class AuthController {
 
         if(isValid){
             User user = userRepo.findById(userId).orElseThrow();
-            String sessionToken = JWTService.generateToken(String.valueOf(user.getEmail()));
+            String sessionToken = JWTService.generateToken(String.valueOf(user.getEmail()), user.getId(), user.getRole().getRoleName());
             return ResponseEntity.ok("OTP verified successfully " + sessionToken);
         }else{
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
