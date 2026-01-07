@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -17,30 +18,31 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String from;
 
-
+    @Async
     public void sendVerificationEmail(String email, String verificationToken){
         String subject = "Email Verification";
         String msg = "Click the button below to verify your email address";
         sendEmail(email, verificationToken, subject, null, msg);
     }
-
+    @Async
     public void resendVerificationEmail(String email, String verificationToken){
         String subject = "Email Verification";
         String msg = "Click the button below to verify your email address";
         sendEmail(email, verificationToken, subject, null, msg);
     }
-
+    @Async
     public void sendOtpInLogin(String email, String verificationToken){
         String subject = "Your two-factor sign in code";
         String msg = "Your two-factor sign in code";
         sendEmail(email, verificationToken, subject, null, msg);
     }
-
+    @Async
     public void sendForgotPasswordEmail(String email, String resetToken){
         String subject = "Password Reset Request";
         String msg = "Click the button below to reset your password";
         sendEmail(email, resetToken ,subject, null, msg);
     }
+
 
     private void sendEmail(String email, String token, String subject, String path, String msg){
         try{
