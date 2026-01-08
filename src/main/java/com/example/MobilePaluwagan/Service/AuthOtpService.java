@@ -117,7 +117,7 @@ public class AuthOtpService {
                 return new OtpResponse("OTP sent successfully to your email", user.getId());
             }
         }
-        return new OtpResponse("User not found with this email.", null);
+        return new OtpResponse("Please verify your account or register your account.", null);
     }
 
 

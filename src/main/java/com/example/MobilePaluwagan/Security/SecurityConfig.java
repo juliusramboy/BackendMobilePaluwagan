@@ -1,6 +1,7 @@
 package com.example.MobilePaluwagan.Security;
 
 
+import com.example.MobilePaluwagan.Filter.JwtFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +26,8 @@ public class SecurityConfig {
     @Autowired
     private UserDetailsService userDetailsService;
 
+    @Autowired
+    private JwtFilter jwtFilter;
 
 
     @Bean
@@ -33,7 +36,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(request -> request.requestMatchers("/api/auth/**").permitAll().anyRequest().authenticated());
         http.formLogin(customizer -> withDefaults());
         http.httpBasic(Customizer.withDefaults());
-
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
