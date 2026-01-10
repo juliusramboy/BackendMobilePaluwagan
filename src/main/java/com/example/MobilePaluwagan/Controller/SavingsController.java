@@ -9,10 +9,10 @@ import java.security.Principal;
 
 @RestController
 @RequestMapping("/api")
-public class DashboardController {
+public class SavingsController {
 
-    @GetMapping("/dashboard")
+    @GetMapping("/savings")
     public ResponseEntity<String> dashboard(Principal principal) {
-        return ResponseEntity.ok("Welcome to the Dashboard, " + principal.getName());
+        return ResponseEntity.ok("Welcome to the savingsPanel, " + principal.getName());
     }
 }
