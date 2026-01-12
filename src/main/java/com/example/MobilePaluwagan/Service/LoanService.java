@@ -113,9 +113,9 @@ public class LoanService {
             // Safety check
             if (remainingBalance < 0) remainingBalance = 0;
 
-            double percentRemaining = (remainingBalance / totalLoanAmount) * 100;
+            double percentPaid = (totalPaid / totalLoanAmount) * 100;
 
-            progressMessage = String.format("%.0f%%", percentRemaining);
+            progressMessage = String.format("%.0f", percentPaid);
         }
 // No "else" needed because we already set the default value to "No active loan..." above
         // Convert each list
