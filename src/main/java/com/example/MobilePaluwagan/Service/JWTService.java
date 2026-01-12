@@ -58,6 +58,15 @@ public class JWTService {
         return claimResolver.apply(claims);
     }
 
+    public Long extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get("userId", Long.class));
+    }
+
+    public String extractRole(String token) {
+        return extractClaim(token, claims -> claims.get("role", String.class));
+    }
+
+
     private Claims extraAllClaims(String token) {
         return Jwts.parser()
                 .verifyWith(getKey())
