@@ -90,6 +90,34 @@ public class LoanService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User has no loan records");
         }
 
+
+
+        // 1. Calculate Totals
+        double totalPaid = payments.stream()
+                .mapToDouble(LoanPayment::getAmountPaid)
+                .sum();
+
+        double totalLoanAmount = loans.stream()
+                .mapToDouble(Loan::getAmount)
+                .sum();
+
+// 2. Initialize Variables
+        double remainingBalance = 0.0;
+        String progressMessage = "No active loan balance";
+
+// 3. Logic
+        if (totalLoanAmount > 0) {
+            // ERROR FIX: removed "double" here so we update the outer variable
+            remainingBalance = totalLoanAmount - totalPaid;
+
+            // Safety check
+            if (remainingBalance < 0) remainingBalance = 0;
+
+            double percentRemaining = (remainingBalance / totalLoanAmount) * 100;
+
+            progressMessage = String.format("%.0f%%", percentRemaining);
+        }
+// No "else" needed because we already set the default value to "No active loan..." above
         // Convert each list
         List<LoanApplicationInfo> applicationInfos = applications.stream()
                 .filter(app -> "APPROVED".equalsIgnoreCase(app.getStatus().name()))
@@ -127,6 +155,9 @@ public class LoanService {
                 .applications(applicationInfos)
                 .loans(loanInfos)
                 .payments(paymentInfos)
+                .totalAmountPaid(BigDecimal.valueOf(totalPaid))
+                .paymentProgress(progressMessage)
+                .remainingBalance(remainingBalance)
                 .build();
     }
 
