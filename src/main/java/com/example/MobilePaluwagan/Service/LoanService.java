@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class LoanService {
@@ -34,25 +35,7 @@ public class LoanService {
     @Autowired
     private LoanPaymentRepo loanPaymentRepo;
 
-    public boolean enableLoan(Long userId){
-        UserBank userBank = userBankRepo.findByUserId(userId).orElseThrow(()
-                -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user account is not found"));
-
-
-
-        BigDecimal savings = BigDecimal.valueOf(userBank.getAccountBalance());
-        BigDecimal targetAmount = BigDecimal.valueOf(userBank.getTargetAmount());
-
-        return savings.compareTo(targetAmount.divide(BigDecimal.valueOf(2))) >= 0;
-
-    }
-
-    public String showUserDetails(Long userId){
-        UserInfo userInfo = userInfoRepo.findByUserId(userId).orElseThrow(()
-                -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User Info not found"));
-
-        return userInfo.getFirstName() + userInfo.getMiddleName() + userInfo.getLastName() + userInfo.getPhoneNumber();
-    }
+    
 
     public UserApplyLoanResponse loanApplication(Long userId, BigDecimal requestedAmount, Integer termLength){
         Long applicationNumber = generateApplicationId(userId);
@@ -81,7 +64,7 @@ public class LoanService {
     }
 
     public UserAllLoansResponse getAllTheInfo(Long userId){
-        // Get ALL records for this user
+        Optional<UserInfo> userInfo = userInfoRepo.findByUserId(userId);
         List<LoanApplication> applications = loanApplicationRepo.findAllByUserId(userId);
         List<Loan> loans = userLoanRepo.findAllByUserId(userId);
         List<LoanPayment> payments = loanPaymentRepo.findAllByUserId(userId);
@@ -91,8 +74,6 @@ public class LoanService {
         }
 
 
-
-        // 1. Calculate Totals
         double totalPaid = payments.stream()
                 .mapToDouble(LoanPayment::getAmountPaid)
                 .sum();
@@ -101,24 +82,19 @@ public class LoanService {
                 .mapToDouble(Loan::getAmount)
                 .sum();
 
-// 2. Initialize Variables
         double remainingBalance = 0.0;
         String progressMessage = "No active loan balance";
 
-// 3. Logic
         if (totalLoanAmount > 0) {
-            // ERROR FIX: removed "double" here so we update the outer variable
             remainingBalance = totalLoanAmount - totalPaid;
 
-            // Safety check
             if (remainingBalance < 0) remainingBalance = 0;
 
             double percentPaid = (totalPaid / totalLoanAmount) * 100;
 
             progressMessage = String.format("%.0f", percentPaid);
         }
-// No "else" needed because we already set the default value to "No active loan..." above
-        // Convert each list
+
         List<LoanApplicationInfo> applicationInfos = applications.stream()
                 .filter(app -> "APPROVED".equalsIgnoreCase(app.getStatus().name()))
                 .map(app -> LoanApplicationInfo.builder()
@@ -158,6 +134,7 @@ public class LoanService {
                 .totalAmountPaid(BigDecimal.valueOf(totalPaid))
                 .paymentProgress(progressMessage)
                 .remainingBalance(remainingBalance)
+                .userName(userInfo.get().getFirstName())
                 .build();
     }
 

@@ -18,4 +18,5 @@ public class UserAllLoansResponse {
     private BigDecimal totalAmountPaid;
     private String paymentProgress;
     private Double remainingBalance;
+    private String userName;
 }
