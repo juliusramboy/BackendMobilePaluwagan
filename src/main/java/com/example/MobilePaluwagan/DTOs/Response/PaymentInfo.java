@@ -16,5 +16,6 @@ public class PaymentInfo {
     private String referenceNumber;
     private BigDecimal amountPaid;
     private LocalDate paymentDate;
+    private String paymentStatus;
     private String paymentMethod;
 }

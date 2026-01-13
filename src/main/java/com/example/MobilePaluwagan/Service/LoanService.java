@@ -35,7 +35,7 @@ public class LoanService {
     @Autowired
     private LoanPaymentRepo loanPaymentRepo;
 
-    
+
 
     public UserApplyLoanResponse loanApplication(Long userId, BigDecimal requestedAmount, Integer termLength){
         Long applicationNumber = generateApplicationId(userId);
@@ -123,6 +123,7 @@ public class LoanService {
                         .amountPaid(BigDecimal.valueOf(payment.getAmountPaid()))
                         .paymentDate(payment.getPaymentDate())
                         .paymentMethod(payment.getPaymentMethod().name())
+                        .paymentStatus(payment.getStatus().name())
                         .build())
                 .toList();
 

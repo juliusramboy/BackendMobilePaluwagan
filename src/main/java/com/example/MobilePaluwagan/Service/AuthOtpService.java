@@ -3,6 +3,7 @@ package com.example.MobilePaluwagan.Service;
 import com.example.MobilePaluwagan.DTOs.Request.OtpRequest;
 import com.example.MobilePaluwagan.DTOs.Response.OtpResponse;
 import com.example.MobilePaluwagan.Entity.User;
+import com.example.MobilePaluwagan.Entity.UserInfo;
 import com.example.MobilePaluwagan.Entity.UserVerification;
 import com.example.MobilePaluwagan.Repository.UserRepo;
 import com.example.MobilePaluwagan.Repository.VerificationRepo;
@@ -45,6 +46,7 @@ public class AuthOtpService {
             User user = userRepo.findById(request.getUserId())
                     .orElseThrow(() -> new RuntimeException("User not found"));
             user.setActive(true);
+           // UserInfo userInfo
             userRepo.save(user);
 
             verificationRepo.delete(verification);

@@ -28,13 +28,7 @@ public class LoanController {
     }
 
 
-    @GetMapping("/loan/me")
-    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
-        UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
-        Long userId = userDetails.userId(); // comes from JWT claim
-        String userInfo = loanService.showName(userId);
-        return ResponseEntity.ok(userInfo);
-    }
+
 
     @PostMapping("/loan/apply")
     public ResponseEntity<UserApplyLoanResponse> applyLoan(Authentication authentication, @RequestBody LoanApplicationRequest request) {

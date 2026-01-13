@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
 @Entity
 @Table(name = "user_profile")
@@ -32,4 +34,7 @@ public class UserInfo {
 
     @Column(name = "suffix")
     private String suffix;
+
+    @Column(name = "verified_date")
+    private LocalDate verifiedDate;
 }
