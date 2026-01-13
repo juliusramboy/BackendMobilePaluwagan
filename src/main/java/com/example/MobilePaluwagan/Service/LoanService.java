@@ -75,8 +75,11 @@ public class LoanService {
 
 
         double totalPaid = payments.stream()
+                .filter(p  -> "PAID".equalsIgnoreCase(p.getStatus().name()))
                 .mapToDouble(LoanPayment::getAmountPaid)
                 .sum();
+
+
 
         double totalLoanAmount = loans.stream()
                 .mapToDouble(Loan::getAmount)

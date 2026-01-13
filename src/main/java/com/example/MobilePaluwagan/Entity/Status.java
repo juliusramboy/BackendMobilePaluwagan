@@ -6,6 +6,7 @@ public enum Status {
     REJECTED,
     PAID,
     ACTIVE,
-    SUCCESS
+    SUCCESS,
+    FAILED
 }
 
