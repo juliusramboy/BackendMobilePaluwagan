@@ -1,6 +1,7 @@
 package com.example.MobilePaluwagan.Security;
 
 
+import com.example.MobilePaluwagan.Config.JwtAuthenticationEntryPoint;
 import com.example.MobilePaluwagan.Filter.JwtFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -29,12 +30,16 @@ public class SecurityConfig {
     @Autowired
     private JwtFilter jwtFilter;
 
+    @Autowired
+    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(customizer -> customizer.disable());
         http.cors(Customizer.withDefaults());
         http.authorizeHttpRequests(request -> request.requestMatchers("/api/auth/**").permitAll().anyRequest().authenticated());
+        http.exceptionHandling(ex -> ex .authenticationEntryPoint(jwtAuthenticationEntryPoint));
         http.formLogin(customizer -> withDefaults());
         http.httpBasic(Customizer.withDefaults());
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

@@ -2,6 +2,7 @@ package com.example.MobilePaluwagan.Filter;
 
 import com.example.MobilePaluwagan.Service.JWTService;
 import com.example.MobilePaluwagan.Service.MyUserDetailsService;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,16 +35,23 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (authHeader != null && authHeader.startsWith("Bearer ")){
             token = authHeader.substring(7);
-            username = jwtService.extractUserName(token);
+
+            try {
+                username = jwtService.extractUserName(token);
+            } catch (ExpiredJwtException e) {
+                // Set attribute for AuthenticationEntryPoint to handle
+                request.setAttribute("expired", "Token has expired");
+            } catch (Exception e) {
+                request.setAttribute("invalid", "Invalid token");
+            }
         }
 
         if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
-
             UserDetails userDetails = context.getBean(MyUserDetailsService.class).loadUserByUsername(username);
 
             if (jwtService.validateToken(token, userDetails)){
                 UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails , null, userDetails.getAuthorities());
+                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
