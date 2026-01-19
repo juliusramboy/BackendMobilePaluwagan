@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface UserLoanRepo extends JpaRepository<Loan, Long> {
 
-    Optional<Loan> findByUserId(Long userId);
+    //Optional<Loan> findByUserId(Long userId);
 
     List<Loan> findAllByUserId(Long userId);
 }

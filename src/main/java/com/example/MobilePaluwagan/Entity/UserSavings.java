@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 @Data
 @Entity
 @Table(name = "user_savings")
@@ -20,15 +23,15 @@ public class UserSavings {
     @Column(name = "user_id")
     private Long userId;
 
-    @Column(name = "savings_amount")
-    private Double savingsAmount;
+    @Column(name = "amount_deposit")
+    private double amountDeposit;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status = Status.PENDING;
 
     @Column(name = "deposit_date")
-    private Double depositDate;
+    private LocalDate depositDate;
 
     @Column(name = "reference")
     private String reference;

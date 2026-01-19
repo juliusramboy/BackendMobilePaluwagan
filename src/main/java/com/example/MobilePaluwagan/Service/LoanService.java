@@ -37,7 +37,7 @@ public class LoanService {
 
 
 
-    public UserApplyLoanResponse loanApplication(Long userId, BigDecimal requestedAmount, Integer termLength){
+    public UserApplyLoanResponse loanApplication(Long userId, BigDecimal requestedAmount, LocalDate termLength){
         Long applicationNumber = generateApplicationId(userId);
 
         LoanApplication loanApplication = new LoanApplication();
@@ -142,8 +142,8 @@ public class LoanService {
                 .build();
     }
 
-    public String generateReferenceNumber(Long userId) {
-        String prefix = "REFF";
+    public String refNumberLoan(Long userId) {
+        String prefix = "LOAN";
         String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         long sequence = userId; // or use a counter from DB
         return prefix + "-" + datePart + "-" + sequence;

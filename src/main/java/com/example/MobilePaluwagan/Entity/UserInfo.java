@@ -35,6 +35,15 @@ public class UserInfo {
     @Column(name = "suffix")
     private String suffix;
 
+    @Column(name = "gender")
+    private String gender;
+
+    @Column(name = "bday")
+    private LocalDate birthDay;
+
+    @Column(name = "address")
+    private String address;
+
     @Column(name = "verified_date")
     private LocalDate verifiedDate;
 }

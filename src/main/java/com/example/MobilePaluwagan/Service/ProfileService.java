@@ -1,12 +1,17 @@
 package com.example.MobilePaluwagan.Service;
 
+import com.example.MobilePaluwagan.DTOs.Request.ProfileUpdateRequest;
+import com.example.MobilePaluwagan.DTOs.Response.ApiResponse;
 import com.example.MobilePaluwagan.DTOs.Response.UserProfileResponse;
 import com.example.MobilePaluwagan.Entity.User;
 import com.example.MobilePaluwagan.Entity.UserInfo;
 import com.example.MobilePaluwagan.Repository.UserInfoRepo;
 import com.example.MobilePaluwagan.Repository.UserRepo;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
@@ -30,6 +35,59 @@ public class ProfileService {
                 userInfo.getPhoneNumber(),
                 userInfo.getVerifiedDate(),
                 user.getEmail()
+        );
+    }
+
+    @Transactional
+    public ApiResponse<String> updateProfile(Long userId, ProfileUpdateRequest request) {
+
+
+        UserInfo user = userInfoRepo.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "User not found with id: " + userId
+                ));
+
+
+
+        if (request.getFirstName() != null) {
+            user.setFirstName(request.getFirstName());
+        }
+
+        if (request.getMiddleName() != null) {
+            user.setMiddleName(request.getMiddleName());
+        }
+
+        if (request.getLastName() != null) {
+            user.setLastName(request.getLastName());
+        }
+
+        if (request.getSuffix() != null) {
+            user.setSuffix(request.getSuffix());
+        }
+
+        if (request.getGender() != null) {
+            user.setGender(request.getGender());
+        }
+
+        if (request.getAddress() != null) {
+            user.setAddress(request.getAddress());
+        }
+
+        if (request.getPhoneNumber() != null) {
+            user.setPhoneNumber(request.getPhoneNumber());
+        }
+
+        if (request.getBday() != null) {
+            user.setBirthDay(request.getBday());
+        }
+        
+        UserInfo savedUser = userInfoRepo.save(user);
+
+        return new ApiResponse<>(
+                true,
+                "Successfully updated profile",
+                "Profile updated"
         );
     }
 }

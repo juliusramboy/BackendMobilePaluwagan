@@ -13,12 +13,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.security.Principal;
+
 @RestController
 @RequestMapping("/api")
 public class LoanController {
 
-    @Autowired
-    private UserService userService;
     @Autowired
     private LoanService loanService;
 

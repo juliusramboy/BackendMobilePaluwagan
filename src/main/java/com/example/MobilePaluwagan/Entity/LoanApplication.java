@@ -31,7 +31,7 @@ public class LoanApplication {
     private BigDecimal requestedAmount;
 
     @Column(name = "term_length")
-    private Integer  termLength;
+    private LocalDate  termLength;
 
     @Column(name = "application_date")
     private LocalDate applicationDate;
