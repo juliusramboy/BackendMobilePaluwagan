@@ -34,6 +34,9 @@ public class ProfileService {
                 userInfo.getSuffix(),
                 userInfo.getPhoneNumber(),
                 userInfo.getVerifiedDate(),
+                userInfo.getAddress(),
+                userInfo.getBirthDay(),
+                userInfo.getGender(),
                 user.getEmail()
         );
     }
@@ -81,7 +84,7 @@ public class ProfileService {
         if (request.getBday() != null) {
             user.setBirthDay(request.getBday());
         }
-        
+
         UserInfo savedUser = userInfoRepo.save(user);
 
         return new ApiResponse<>(

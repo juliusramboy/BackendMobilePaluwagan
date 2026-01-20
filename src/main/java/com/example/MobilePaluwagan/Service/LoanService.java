@@ -63,14 +63,15 @@ public class LoanService {
                 .build();
     }
 
-    public UserAllLoansResponse getAllTheInfo(Long userId){
+    public ApiResponse<UserAllLoansResponse> getAllTheInfo(Long userId){
         Optional<UserInfo> userInfo = userInfoRepo.findByUserId(userId);
         List<LoanApplication> applications = loanApplicationRepo.findAllByUserId(userId);
         List<Loan> loans = userLoanRepo.findAllByUserId(userId);
         List<LoanPayment> payments = loanPaymentRepo.findAllByUserId(userId);
 
         if (applications.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User has no loan records");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "User has no loan records");
         }
 
 
@@ -130,8 +131,7 @@ public class LoanService {
                         .build())
                 .toList();
 
-        // Return wrapper with all lists
-        return UserAllLoansResponse.builder()
+        UserAllLoansResponse response = UserAllLoansResponse.builder()
                 .applications(applicationInfos)
                 .loans(loanInfos)
                 .payments(paymentInfos)
@@ -140,6 +140,12 @@ public class LoanService {
                 .remainingBalance(remainingBalance)
                 .userName(userInfo.get().getFirstName())
                 .build();
+
+        return new ApiResponse<>(
+                true,
+                "Successfully get data",
+                response
+        );
     }
 
     public String refNumberLoan(Long userId) {

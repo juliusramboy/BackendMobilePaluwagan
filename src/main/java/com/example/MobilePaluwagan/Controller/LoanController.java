@@ -1,6 +1,7 @@
 package com.example.MobilePaluwagan.Controller;
 
 import com.example.MobilePaluwagan.DTOs.Request.LoanApplicationRequest;
+import com.example.MobilePaluwagan.DTOs.Response.ApiResponse;
 import com.example.MobilePaluwagan.DTOs.Response.UserAllLoansResponse;
 import com.example.MobilePaluwagan.DTOs.Response.UserApplyLoanResponse;
 import com.example.MobilePaluwagan.Entity.UserPrinciple;
@@ -44,11 +45,11 @@ public class LoanController {
     }
 
     @GetMapping("/loan/user-details")
-    public ResponseEntity<UserAllLoansResponse> getLoanInfoFromUser(Authentication authentication){
+    public ResponseEntity<ApiResponse<UserAllLoansResponse>> getLoanInfoFromUser(Authentication authentication){
         UserPrinciple loanInfo = (UserPrinciple) authentication.getPrincipal();
         Long userId = loanInfo.userId();
 
-        UserAllLoansResponse userInfo = loanService.getAllTheInfo(userId);
+        ApiResponse<UserAllLoansResponse> userInfo = loanService.getAllTheInfo(userId);
 
         return ResponseEntity.ok(userInfo);
     }
