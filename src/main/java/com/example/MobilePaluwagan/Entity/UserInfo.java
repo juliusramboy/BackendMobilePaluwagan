@@ -38,7 +38,7 @@ public class UserInfo {
     @Column(name = "gender")
     private String gender;
 
-    @Column(name = "bday")
+    @Column(name = "birthday")
     private LocalDate birthDay;
 
     @Column(name = "address")

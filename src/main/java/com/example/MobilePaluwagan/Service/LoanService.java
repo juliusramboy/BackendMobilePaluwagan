@@ -70,8 +70,16 @@ public class LoanService {
         List<LoanPayment> payments = loanPaymentRepo.findAllByUserId(userId);
 
         if (applications.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    "User has no loan records");
+            UserAllLoansResponse response = UserAllLoansResponse.builder()
+                    .applications(List.of())
+                    .loans(List.of())
+                    .payments(List.of())
+                    .totalAmountPaid(BigDecimal.ZERO)
+                    .paymentProgress("")
+                    .remainingBalance(0.0)
+                    .userName(userInfo.get().getFirstName())
+                    .eligible(!applications.isEmpty())
+                    .build();
         }
 
 
@@ -87,7 +95,7 @@ public class LoanService {
                 .sum();
 
         double remainingBalance = 0.0;
-        String progressMessage = "No active loan balance";
+        String progressMessage = "0";
 
         if (totalLoanAmount > 0) {
             remainingBalance = totalLoanAmount - totalPaid;

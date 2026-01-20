@@ -77,13 +77,14 @@ public class ProfileService {
             user.setAddress(request.getAddress());
         }
 
+        if (request.getBirthDay() != null) {
+            user.setBirthDay(request.getBirthDay());
+        }
+
         if (request.getPhoneNumber() != null) {
             user.setPhoneNumber(request.getPhoneNumber());
         }
 
-        if (request.getBday() != null) {
-            user.setBirthDay(request.getBday());
-        }
 
         UserInfo savedUser = userInfoRepo.save(user);
 

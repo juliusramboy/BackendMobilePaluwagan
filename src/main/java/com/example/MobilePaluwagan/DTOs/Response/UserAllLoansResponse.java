@@ -15,6 +15,7 @@ public class UserAllLoansResponse {
     private List<LoanInfo> loans;
     private List<PaymentInfo> payments;
 
+    private boolean eligible;
     private BigDecimal totalAmountPaid;
     private String paymentProgress;
     private Double remainingBalance;

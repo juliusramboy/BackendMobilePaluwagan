@@ -14,7 +14,7 @@ public class ProfileUpdateRequest {
     private String gender;
     private String address;
     private String phoneNumber;
-    private LocalDate bday;
+    private LocalDate birthDay;
 
     private String email;
     private String password;
