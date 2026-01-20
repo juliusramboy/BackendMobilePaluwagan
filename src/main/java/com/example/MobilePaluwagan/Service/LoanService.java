@@ -78,8 +78,10 @@ public class LoanService {
                     .paymentProgress("")
                     .remainingBalance(0.0)
                     .userName(userInfo.get().getFirstName())
-                    .eligible(!applications.isEmpty())
+                    .eligible(true)
                     .build();
+
+            return new ApiResponse<>(true, "User is eligible to make loan", response);
         }
 
 
