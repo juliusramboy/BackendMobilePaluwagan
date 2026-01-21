@@ -20,6 +20,8 @@ public class User {
     private String password;
     @Column(name = "is_verified")
     private boolean isActive;
+    @Column(name = "has_loan")
+    private boolean hasLoan;
 
     @Transient
     private String verificationOtp;

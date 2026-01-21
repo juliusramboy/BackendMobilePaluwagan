@@ -37,7 +37,39 @@ public class LoanService {
 
 
 
-    public UserApplyLoanResponse loanApplication(Long userId, BigDecimal requestedAmount, LocalDate termLength){
+    public ApiResponse<UserApplyLoanResponse> loanApplication(Long userId, BigDecimal requestedAmount, LocalDate termLength, LocalDate startDate){
+        Optional<User> checkIfHaveLoan = userRepo.findById(userId);
+        Optional<Loan> checkIfHavePassLoan = userLoanRepo.findByUserId(userId);
+        Optional<LoanApplication> checkIfUserHaveAppllication = loanApplicationRepo.findByUserId(userId);
+
+
+        if(checkIfHaveLoan.isPresent() && checkIfHaveLoan.get().isHasLoan()){
+            return new ApiResponse<>(
+                    false,
+                    "We see that you have a pending Loan. Pay all your balance to make another loan.",
+                    null
+            );
+        }
+
+        boolean hasPendingApp = checkIfUserHaveAppllication.stream()
+                .anyMatch(app -> "PENDING".equalsIgnoreCase(app.getStatus().name()));
+
+        if (hasPendingApp) {
+            return new ApiResponse<>(
+                    false,
+                    "You already have a pending loan application. Please wait for approval.",
+                    null
+            );
+        }
+
+        if(checkIfHavePassLoan.isPresent()){
+            return new ApiResponse<>(
+                    false,
+                    "You already have a already loan. Please pay you all pending balance to loan again.",
+                    null
+            );
+        }
+
         Long applicationNumber = generateApplicationId(userId);
 
         LoanApplication loanApplication = new LoanApplication();
@@ -45,12 +77,18 @@ public class LoanService {
         loanApplication.setUserId(userId);
         loanApplication.setRequestedAmount(requestedAmount);
         loanApplication.setTermLength(termLength);
-        loanApplication.setApplicationDate(LocalDate.now());
+        loanApplication.setApplicationDate(startDate);
         loanApplication.setStatus(Status.PENDING);
 
         LoanApplication saved = loanApplicationRepo.save(loanApplication);
 
-        return mapToUserLoanResponse(saved);
+        UserApplyLoanResponse applyLoan = mapToUserLoanResponse(saved);
+
+        return new ApiResponse<>(
+                true,
+                "Successfully Applied loan pls wait for admin to verify it",
+                applyLoan
+        );
     }
 
     private UserApplyLoanResponse mapToUserLoanResponse(LoanApplication loan) {
@@ -166,11 +204,8 @@ public class LoanService {
     }
 
     public long generateApplicationId(Long userId) {
-        String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        // Concatenate date + userId into one string
-        String numericId = datePart + userId;
-        // Convert to long
-        return Long.parseLong(numericId);
+        long timestamp = System.currentTimeMillis();
+        return (timestamp * 100) + (userId % 100);
     }
 
 

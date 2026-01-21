@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+
 import java.time.LocalDate;
 
 @Data
@@ -14,4 +15,5 @@ import java.time.LocalDate;
 public class LoanApplicationRequest {
     Double loanAmount;
     LocalDate termLength;
+    LocalDate startDate;
 }

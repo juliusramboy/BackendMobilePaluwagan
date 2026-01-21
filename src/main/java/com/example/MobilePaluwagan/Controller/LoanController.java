@@ -31,14 +31,15 @@ public class LoanController {
 
 
     @PostMapping("/loan/apply")
-    public ResponseEntity<UserApplyLoanResponse> applyLoan(Authentication authentication, @RequestBody LoanApplicationRequest request) {
+    public ResponseEntity<ApiResponse<UserApplyLoanResponse>> applyLoan(Authentication authentication, @RequestBody LoanApplicationRequest request) {
         UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
         Long userId = userDetails.userId();
 
-        UserApplyLoanResponse response = loanService.loanApplication(
+        ApiResponse<UserApplyLoanResponse> response = loanService.loanApplication(
                 userId,
                 BigDecimal.valueOf(request.getLoanAmount()),
-                request.getTermLength()
+                request.getTermLength(),
+                request.getStartDate()
         );
 
         return ResponseEntity.ok(response);
