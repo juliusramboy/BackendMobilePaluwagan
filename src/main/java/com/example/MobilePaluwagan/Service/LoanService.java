@@ -1,10 +1,13 @@
 package com.example.MobilePaluwagan.Service;
 
+import com.example.MobilePaluwagan.DTOs.Request.ApplyLoanRequest;
 import com.example.MobilePaluwagan.DTOs.Response.*;
 import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -91,15 +94,15 @@ public class LoanService {
 //        );
 //    }
 
-    private UserApplyLoanResponse mapToUserLoanResponse(LoanApplication loan) {
-        return UserApplyLoanResponse.builder()
-                .applicationNumber(loan.getApplicationID())
-                .loanAmount(loan.getRequestedAmount())
-                .termLength(loan.getTermLength())
-                .status(loan.getStatus().name())
-                .applicationDate(loan.getApplicationDate())
-                .build();
-    }
+//    private UserApplyLoanResponse mapToUserLoanResponse(LoanApplication loan) {
+//        return UserApplyLoanResponse.builder()
+//                .applicationNumber(loan.getApplicationID())
+//                .loanAmount(loan.getRequestedAmount())
+//                .termLength(loan.getEndDate())
+//                .status(loan.getStatus().name())
+//                .applicationDate(loan.getStartDate())
+//                .build();
+//    }
 
     public ApiResponse<UserAllLoansResponse> getAllTheInfo(Long userId){
         Optional<UserInfo> userInfo = userInfoRepo.findByUserId(userId);
@@ -152,9 +155,9 @@ public class LoanService {
                 .map(app -> LoanApplicationInfo.builder()
                         .applicationNumber(app.getApplicationID())
                         .loanAmount(app.getRequestedAmount())
-                        .termLength(app.getTermLength())
+                        .termLength(app.getEndDate())
                         .status(app.getStatus().name())
-                        .applicationDate(app.getApplicationDate())
+                        .applicationDate(app.getEndDate())
                         .status(String.valueOf(app.getStatus()))
                         .build())
                 .toList();
@@ -286,6 +289,44 @@ public class LoanService {
 
         return new PaymentSchedule(numberOfPayments, regularPayment);
     }
+
+    public Long applyLoan(Long userId, ApplyLoanRequest request) {
+
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        // Check for PENDING or APPROVED loans
+        boolean hasActiveLoan = loanApplicationRepo.findAllByUserId(userId).stream()
+                .anyMatch(data -> "PENDING".equalsIgnoreCase(data.getStatus().name()));
+
+        if (hasActiveLoan){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "You already have an active or pending loan application");
+        }
+
+        boolean hasSavings = user.isHasSavings();
+        double monthlyRate = hasSavings ? 5.0 : 10.0;
+
+        Long applicationId = generateApplicationId(userId);
+
+        LoanApplication saveLoan = new LoanApplication();
+        saveLoan.setApplicationID(applicationId);
+        saveLoan.setUserId(userId);
+        saveLoan.setStartDate(request.getStartDate());
+        saveLoan.setEndDate(request.getEndDate());
+        saveLoan.setRepayPeriodDays(request.getRepayPeriodDays());
+        saveLoan.setRepayPeriodWeeks(request.getRepayPeriodWeeks());
+        saveLoan.setWeeklyPay(request.getWeeklyPay());
+        saveLoan.setRequestedAmount(request.getTotalLoan());
+        saveLoan.setInterest(monthlyRate);
+        saveLoan.setTotalRepayable(request.getTotalRepayable());
+        saveLoan.setStatus(Status.PENDING);
+
+        loanApplicationRepo.save(saveLoan);
+
+        return applicationId;
+    }
+
 
     // Inner classes
     private static class LoanDurationResult {

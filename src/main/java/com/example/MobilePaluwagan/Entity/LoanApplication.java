@@ -30,11 +30,26 @@ public class LoanApplication {
     @Column(name = "requested_amount")
     private BigDecimal requestedAmount;
 
-    @Column(name = "term_length")
-    private LocalDate  termLength;
+    @Column(name = "interest")
+    private double interest;
 
-    @Column(name = "application_date")
-    private LocalDate applicationDate;
+    @Column(name = "weekly_pay")
+    private BigDecimal weeklyPay;
+
+    @Column(name = "total_repayable")
+    private BigDecimal totalRepayable;
+
+    @Column(name = "repay_period_days")
+    private int repayPeriodDays;
+
+    @Column(name = "repay_period_weeks")
+    private int repayPeriodWeeks;
+
+    @Column(name = "end_date")
+    private LocalDate  endDate;
+
+    @Column(name = "start_date")
+    private LocalDate startDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

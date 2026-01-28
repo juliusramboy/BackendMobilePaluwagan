@@ -11,7 +11,12 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ApplyLoanRequest {
-     LocalDate startDate;
-     LocalDate endDate;
-     BigDecimal loanAmount;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private int repayPeriodWeeks;
+    private int repayPeriodDays;
+    private BigDecimal weeklyPay;
+    private BigDecimal totalLoan;
+    private Double interest;
+    private BigDecimal totalRepayable;
 }

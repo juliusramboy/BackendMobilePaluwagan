@@ -26,12 +26,24 @@ public class Loan {
     @Column(name = "user_id")
     private Long userId;
 
-    @Column(name = "amount")
+    @Column(name = "total_loan")
     private Double amount;
+
+    @Column(name = "total_repayable")
+    private Double totalRepayable;
+
+    @Column(name = "weekly_pay")
+    private Double weeklyPay;
+
+    @Column(name = "interest")
+    private Double interest;
 
     @Column(name = "interest_rate")
     private Double interestRate;
 
     @Column(name = "start_date")
     private LocalDate startDate;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
 }

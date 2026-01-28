@@ -1,11 +1,12 @@
 package com.example.MobilePaluwagan.Controller;
 
 import com.example.MobilePaluwagan.DTOs.Request.ApplyLoanRequest;
+import com.example.MobilePaluwagan.DTOs.Request.CalculateLoanRequest;
 import com.example.MobilePaluwagan.DTOs.Request.LoanApplicationRequest;
 import com.example.MobilePaluwagan.DTOs.Response.ApiResponse;
 import com.example.MobilePaluwagan.DTOs.Response.ApplyLoanResponse;
+import com.example.MobilePaluwagan.DTOs.Response.LoanApplicationResponse;
 import com.example.MobilePaluwagan.DTOs.Response.UserAllLoansResponse;
-import com.example.MobilePaluwagan.DTOs.Response.UserApplyLoanResponse;
 import com.example.MobilePaluwagan.Entity.UserPrinciple;
 import com.example.MobilePaluwagan.Service.LoanService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.security.Principal;
 
 @RestController
@@ -58,7 +58,7 @@ public class LoanController {
 
 
     @PostMapping("/loan/calculate-loan")
-    public ResponseEntity<ApplyLoanResponse> calculateLoan(Authentication authentication, @RequestBody ApplyLoanRequest request){
+    public ResponseEntity<ApplyLoanResponse> calculateLoan(Authentication authentication, @RequestBody CalculateLoanRequest request){
         UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
         Long userId = userDetails.userId();
 
@@ -70,6 +70,16 @@ public class LoanController {
         );
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/loan/apply-loan")
+    public Long applyLoan(Authentication authentication, @RequestBody ApplyLoanRequest request){
+        UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
+        Long userId = userDetails.userId();
+
+        Long response = loanService.applyLoan(userId, request);
+
+        return response;
     }
 
 
