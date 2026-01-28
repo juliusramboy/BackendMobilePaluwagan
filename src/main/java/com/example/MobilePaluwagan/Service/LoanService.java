@@ -4,13 +4,13 @@ import com.example.MobilePaluwagan.DTOs.Response.*;
 import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,59 +37,59 @@ public class LoanService {
 
 
 
-    public ApiResponse<UserApplyLoanResponse> loanApplication(Long userId, BigDecimal requestedAmount, LocalDate termLength, LocalDate startDate){
-        Optional<User> checkIfHaveLoan = userRepo.findById(userId);
-        Optional<Loan> checkIfHavePassLoan = userLoanRepo.findByUserId(userId);
-        Optional<LoanApplication> checkIfUserHaveAppllication = loanApplicationRepo.findByUserId(userId);
-
-
-        if(checkIfHaveLoan.isPresent() && checkIfHaveLoan.get().isHasLoan()){
-            return new ApiResponse<>(
-                    false,
-                    "We see that you have a pending Loan. Pay all your balance to make another loan.",
-                    null
-            );
-        }
-
-        boolean hasPendingApp = checkIfUserHaveAppllication.stream()
-                .anyMatch(app -> "PENDING".equalsIgnoreCase(app.getStatus().name()));
-
-        if (hasPendingApp) {
-            return new ApiResponse<>(
-                    false,
-                    "You already have a pending loan application. Please wait for approval.",
-                    null
-            );
-        }
-
-        if(checkIfHavePassLoan.isPresent()){
-            return new ApiResponse<>(
-                    false,
-                    "You already have a already loan. Please pay you all pending balance to loan again.",
-                    null
-            );
-        }
-
-        Long applicationNumber = generateApplicationId(userId);
-
-        LoanApplication loanApplication = new LoanApplication();
-        loanApplication.setApplicationID(applicationNumber);
-        loanApplication.setUserId(userId);
-        loanApplication.setRequestedAmount(requestedAmount);
-        loanApplication.setTermLength(termLength);
-        loanApplication.setApplicationDate(startDate);
-        loanApplication.setStatus(Status.PENDING);
-
-        LoanApplication saved = loanApplicationRepo.save(loanApplication);
-
-        UserApplyLoanResponse applyLoan = mapToUserLoanResponse(saved);
-
-        return new ApiResponse<>(
-                true,
-                "Successfully Applied loan pls wait for admin to verify it",
-                applyLoan
-        );
-    }
+//    public ApiResponse<UserApplyLoanResponse> loanApplication(Long userId, BigDecimal requestedAmount, LocalDate termLength, LocalDate startDate){
+//        Optional<User> checkIfHaveLoan = userRepo.findById(userId);
+//        Optional<Loan> checkIfHavePassLoan = userLoanRepo.findByUserId(userId);
+//        Optional<LoanApplication> checkIfUserHaveAppllication = loanApplicationRepo.findByUserId(userId);
+//
+//
+//        if(checkIfHaveLoan.isPresent() && checkIfHaveLoan.get().isHasLoan()){
+//            return new ApiResponse<>(
+//                    false,
+//                    "We see that you have a pending Loan. Pay all your balance to make another loan.",
+//                    null
+//            );
+//        }
+//
+//        boolean hasPendingApp = checkIfUserHaveAppllication.stream()
+//                .anyMatch(app -> "PENDING".equalsIgnoreCase(app.getStatus().name()));
+//
+//        if (hasPendingApp) {
+//            return new ApiResponse<>(
+//                    false,
+//                    "You already have a pending loan application. Please wait for approval.",
+//                    null
+//            );
+//        }
+//
+//        if(checkIfHavePassLoan.isPresent()){
+//            return new ApiResponse<>(
+//                    false,
+//                    "You already have a already loan. Please pay you all pending balance to loan again.",
+//                    null
+//            );
+//        }
+//
+//        Long applicationNumber = generateApplicationId(userId);
+//
+//        LoanApplication loanApplication = new LoanApplication();
+//        loanApplication.setApplicationID(applicationNumber);
+//        loanApplication.setUserId(userId);
+//        loanApplication.setRequestedAmount(requestedAmount);
+//        loanApplication.setTermLength(termLength);
+//        loanApplication.setApplicationDate(startDate);
+//        loanApplication.setStatus(Status.PENDING);
+//
+//        LoanApplication saved = loanApplicationRepo.save(loanApplication);
+//
+//        UserApplyLoanResponse applyLoan = mapToUserLoanResponse(saved);
+//
+//        return new ApiResponse<>(
+//                true,
+//                "Successfully Applied loan pls wait for admin to verify it",
+//                applyLoan
+//        );
+//    }
 
     private UserApplyLoanResponse mapToUserLoanResponse(LoanApplication loan) {
         return UserApplyLoanResponse.builder()
@@ -208,5 +208,109 @@ public class LoanService {
         return (timestamp * 100) + (userId % 100);
     }
 
+
+    public ApplyLoanResponse processLoanApplication(Long userId, BigDecimal loanAmount,
+                                                    LocalDate startDate, LocalDate endDate) {
+        // Step 1: Get duration
+        LoanDurationResult duration = calculateLoanDuration(startDate, endDate);
+
+        // Step 2: Calculate interest
+        BigDecimal totalInterest = calculateLoanInterest(userId, loanAmount, duration.getTotalDays());
+
+        // Step 3: Calculate payment schedule
+        PaymentSchedule paymentSchedule = calculatePaymentSchedule(loanAmount, totalInterest, duration.getTotalWeeks());
+
+        // Format date range
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd-MMM dd");
+        String dateRange = startDate.format(DateTimeFormatter.ofPattern("MMM dd")) + "-" +
+                endDate.format(DateTimeFormatter.ofPattern("MMM dd"));
+
+        // Calculate total repayable
+        BigDecimal totalRepayable = loanAmount.add(totalInterest);
+
+        // Get weeks and days
+        int weeks = (int) Math.floor(duration.getTotalWeeks());
+        int days = (int) duration.getTotalDays();
+
+        // Return loan summary as ApplyLoanResponse (not ApiResponse)
+        return new ApplyLoanResponse(
+                dateRange,
+                weeks,
+                days,
+                paymentSchedule.getRegularPayment(),
+                loanAmount,
+                totalInterest,
+                totalRepayable
+        );
+    }
+
+    // Step 1: Calculate loan duration
+    private LoanDurationResult calculateLoanDuration(LocalDate startDate, LocalDate endDate) {
+        long totalDays = ChronoUnit.DAYS.between(startDate, endDate);
+        double totalWeeks = (double) totalDays / 7;
+
+        return new LoanDurationResult(totalDays, totalWeeks);
+    }
+
+    // Step 2: Calculate loan interest (MONTHLY RATE)
+    private BigDecimal calculateLoanInterest(Long userId, BigDecimal loanAmount, long totalDays) {
+        Optional<User> userOpt = userRepo.findById(userId);
+
+        boolean hasSavings = userOpt.map(User::isHasSavings).orElse(false);
+
+        // Monthly interest rate: 5% or 10% per month
+        double monthlyRate = hasSavings ? 5.0 : 10.0;
+
+        // Calculate daily rate based on 30-day month
+        double dailyRate = (monthlyRate / 100) / 30;
+
+        BigDecimal interestPerDay = loanAmount.multiply(BigDecimal.valueOf(dailyRate));
+        BigDecimal totalInterest = interestPerDay.multiply(BigDecimal.valueOf(totalDays));
+
+        // Round to 2 decimal places
+        return totalInterest.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    // Step 3: Calculate payment schedule
+    private PaymentSchedule calculatePaymentSchedule(BigDecimal loanAmount, BigDecimal totalInterest, double totalWeeks) {
+        int numberOfPayments = (int) Math.ceil(totalWeeks);
+        BigDecimal totalAmountDue = loanAmount.add(totalInterest);
+
+        // Calculate regular weekly payment - divide by NUMBER OF PAYMENTS
+        BigDecimal regularPayment = totalAmountDue.divide(
+                BigDecimal.valueOf(numberOfPayments),
+                2,
+                RoundingMode.HALF_UP
+        );
+
+        return new PaymentSchedule(numberOfPayments, regularPayment);
+    }
+
+    // Inner classes
+    private static class LoanDurationResult {
+        private long totalDays;
+        private double totalWeeks;
+
+        public LoanDurationResult(long totalDays, double totalWeeks) {
+            this.totalDays = totalDays;
+            this.totalWeeks = totalWeeks;
+        }
+
+        public long getTotalDays() { return totalDays; }
+        public double getTotalWeeks() { return totalWeeks; }
+    }
+
+    private static class PaymentSchedule {
+        private int numberOfPayments;
+        private BigDecimal regularPayment;
+
+        public PaymentSchedule(int numberOfPayments, BigDecimal regularPayment) {
+            this.numberOfPayments = numberOfPayments;
+            this.regularPayment = regularPayment;
+        }
+
+        public int getNumberOfPayments() { return numberOfPayments; }
+        public BigDecimal getRegularPayment() { return regularPayment; }
+    }
 
 }

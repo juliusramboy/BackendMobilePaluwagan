@@ -22,6 +22,8 @@ public class User {
     private boolean isActive;
     @Column(name = "has_loan")
     private boolean hasLoan;
+    @Column(name = "has_savings")
+    private boolean hasSavings;
 
     @Transient
     private String verificationOtp;

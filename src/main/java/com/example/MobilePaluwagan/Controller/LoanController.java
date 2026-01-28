@@ -1,12 +1,13 @@
 package com.example.MobilePaluwagan.Controller;
 
+import com.example.MobilePaluwagan.DTOs.Request.ApplyLoanRequest;
 import com.example.MobilePaluwagan.DTOs.Request.LoanApplicationRequest;
 import com.example.MobilePaluwagan.DTOs.Response.ApiResponse;
+import com.example.MobilePaluwagan.DTOs.Response.ApplyLoanResponse;
 import com.example.MobilePaluwagan.DTOs.Response.UserAllLoansResponse;
 import com.example.MobilePaluwagan.DTOs.Response.UserApplyLoanResponse;
 import com.example.MobilePaluwagan.Entity.UserPrinciple;
 import com.example.MobilePaluwagan.Service.LoanService;
-import com.example.MobilePaluwagan.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -30,20 +31,20 @@ public class LoanController {
 
 
 
-    @PostMapping("/loan/apply")
-    public ResponseEntity<ApiResponse<UserApplyLoanResponse>> applyLoan(Authentication authentication, @RequestBody LoanApplicationRequest request) {
-        UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
-        Long userId = userDetails.userId();
-
-        ApiResponse<UserApplyLoanResponse> response = loanService.loanApplication(
-                userId,
-                BigDecimal.valueOf(request.getLoanAmount()),
-                request.getTermLength(),
-                request.getStartDate()
-        );
-
-        return ResponseEntity.ok(response);
-    }
+//    @PostMapping("/loan/apply")
+//    public ResponseEntity<ApiResponse<UserApplyLoanResponse>> applyLoan(Authentication authentication, @RequestBody LoanApplicationRequest request) {
+//        UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
+//        Long userId = userDetails.userId();
+//
+//        ApiResponse<UserApplyLoanResponse> response = loanService.loanApplication(
+//                userId,
+//                BigDecimal.valueOf(request.getLoanAmount()),
+//                request.getTermLength(),
+//                request.getStartDate()
+//        );
+//
+//        return ResponseEntity.ok(response);
+//    }
 
     @GetMapping("/loan/user-details")
     public ResponseEntity<ApiResponse<UserAllLoansResponse>> getLoanInfoFromUser(Authentication authentication){
@@ -56,6 +57,20 @@ public class LoanController {
     }
 
 
+    @PostMapping("/loan/calculate-loan")
+    public ResponseEntity<ApplyLoanResponse> calculateLoan(Authentication authentication, @RequestBody ApplyLoanRequest request){
+        UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
+        Long userId = userDetails.userId();
+
+        ApplyLoanResponse response = loanService.processLoanApplication(
+                userId,
+                request.getLoanAmount(),
+                request.getStartDate(),
+                request.getEndDate()
+        );
+
+        return ResponseEntity.ok(response);
+    }
 
 
 }
