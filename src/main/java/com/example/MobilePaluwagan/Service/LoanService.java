@@ -220,10 +220,10 @@ public class LoanService {
         // Step 3: Calculate payment schedule
         PaymentSchedule paymentSchedule = calculatePaymentSchedule(loanAmount, totalInterest, duration.getTotalWeeks());
 
-        // Format date range
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd-MMM dd");
-        String dateRange = startDate.format(DateTimeFormatter.ofPattern("MMM dd")) + "-" +
-                endDate.format(DateTimeFormatter.ofPattern("MMM dd"));
+//        // Format date range
+//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd-MMM dd");
+//        String dateRange = startDate.format(DateTimeFormatter.ofPattern("MMM dd")) + "-" +
+//                endDate.format(DateTimeFormatter.ofPattern("MMM dd"));
 
         // Calculate total repayable
         BigDecimal totalRepayable = loanAmount.add(totalInterest);
@@ -234,7 +234,8 @@ public class LoanService {
 
         // Return loan summary as ApplyLoanResponse (not ApiResponse)
         return new ApplyLoanResponse(
-                dateRange,
+                startDate,
+                endDate,
                 weeks,
                 days,
                 paymentSchedule.getRegularPayment(),

@@ -5,12 +5,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class ApplyLoanResponse {
-    private String dateRange;
+    private LocalDate startDate;
+    private LocalDate endDate;
     private int repayPeriodWeeks;
     private int repayPeriodDays;
     private BigDecimal weeklyPay;
