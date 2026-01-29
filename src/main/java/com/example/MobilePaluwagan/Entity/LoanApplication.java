@@ -33,6 +33,9 @@ public class LoanApplication {
     @Column(name = "interest")
     private double interest;
 
+    @Column(name = "interest_rate")
+    private double interestRate;
+
     @Column(name = "weekly_pay")
     private BigDecimal weeklyPay;
 

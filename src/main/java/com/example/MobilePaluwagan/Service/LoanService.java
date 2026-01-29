@@ -295,14 +295,7 @@ public class LoanService {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        // Check for PENDING or APPROVED loans
-        boolean hasActiveLoan = loanApplicationRepo.findAllByUserId(userId).stream()
-                .anyMatch(data -> "PENDING".equalsIgnoreCase(data.getStatus().name()));
-
-        if (hasActiveLoan){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "You already have an active or pending loan application");
-        }
+        validateUserCanApplyForLoan(user);
 
         boolean hasSavings = user.isHasSavings();
         double monthlyRate = hasSavings ? 5.0 : 10.0;
@@ -319,12 +312,29 @@ public class LoanService {
         saveLoan.setWeeklyPay(request.getWeeklyPay());
         saveLoan.setRequestedAmount(request.getTotalLoan());
         saveLoan.setInterest(monthlyRate);
+        saveLoan.setInterestRate(request.getInterestRate());
         saveLoan.setTotalRepayable(request.getTotalRepayable());
         saveLoan.setStatus(Status.PENDING);
 
         loanApplicationRepo.save(saveLoan);
 
         return applicationId;
+    }
+
+    private void validateUserCanApplyForLoan(User user) {
+
+        if (user.isHasLoan()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You already have an active loan");
+        }
+
+
+        boolean hasActiveLoan = loanApplicationRepo.findAllByUserId(user.getId()).stream()
+                .anyMatch(data -> data.getStatus() == Status.PENDING);
+
+        if (hasActiveLoan){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "You already have an active or pending loan application");
+        }
     }
 
 

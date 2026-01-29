@@ -18,5 +18,6 @@ public class ApplyLoanRequest {
     private BigDecimal weeklyPay;
     private BigDecimal totalLoan;
     private Double interest;
+    private Double interestRate;
     private BigDecimal totalRepayable;
 }
