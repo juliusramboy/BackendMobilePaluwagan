@@ -28,11 +28,10 @@ public class JWTService {
     public static final long Expiration_time = 1000 * 60 * 60 * 24;
 
 
-    public static String generateToken(String email, Long userId, String role, boolean hasLoan) {
+    public static String generateToken(String email, Long userId, String role) {
         Map<String, Object>  claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("role", role);
-        claims.put("hasLoan", hasLoan);
         return Jwts.builder()
                 .claims()
                 .add(claims)

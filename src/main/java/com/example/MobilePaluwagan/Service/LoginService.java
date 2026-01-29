@@ -64,7 +64,7 @@ public class LoginService {
 
                 verificationRepo.delete(userVerification);
 
-                String token = String.valueOf(jwtService.generateToken(request.getEmail(), user.getId(), user.getRole().getRoleName(), user.isHasLoan()));
+                String token = String.valueOf(jwtService.generateToken(request.getEmail(), user.getId(), user.getRole().getRoleName()));
                 Date expiryDate = new Date(System.currentTimeMillis() + JWTService.Expiration_time);
 
                 LoginResponse response = new LoginResponse(

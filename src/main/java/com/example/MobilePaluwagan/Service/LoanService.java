@@ -355,7 +355,7 @@ public class LoanService {
                 userId,
                 List.of(Status.APPROVED)
         );
-        
+
         Optional<LoanApplication> latestApplication = loanApplicationRepo.findAllByUserId(userId).stream()
                 .filter(app -> app.getStatus() == Status.PENDING || app.getStatus() == Status.APPROVED)
                 .max(Comparator.comparing(LoanApplication::getApplicationID));
