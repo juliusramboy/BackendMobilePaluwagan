@@ -3,10 +3,7 @@ package com.example.MobilePaluwagan.Controller;
 import com.example.MobilePaluwagan.DTOs.Request.ApplyLoanRequest;
 import com.example.MobilePaluwagan.DTOs.Request.CalculateLoanRequest;
 import com.example.MobilePaluwagan.DTOs.Request.LoanApplicationRequest;
-import com.example.MobilePaluwagan.DTOs.Response.ApiResponse;
-import com.example.MobilePaluwagan.DTOs.Response.ApplyLoanResponse;
-import com.example.MobilePaluwagan.DTOs.Response.LoanApplicationResponse;
-import com.example.MobilePaluwagan.DTOs.Response.UserAllLoansResponse;
+import com.example.MobilePaluwagan.DTOs.Response.*;
 import com.example.MobilePaluwagan.Entity.UserPrinciple;
 import com.example.MobilePaluwagan.Service.LoanService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,22 +26,6 @@ public class LoanController {
     }
 
 
-
-
-//    @PostMapping("/loan/apply")
-//    public ResponseEntity<ApiResponse<UserApplyLoanResponse>> applyLoan(Authentication authentication, @RequestBody LoanApplicationRequest request) {
-//        UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
-//        Long userId = userDetails.userId();
-//
-//        ApiResponse<UserApplyLoanResponse> response = loanService.loanApplication(
-//                userId,
-//                BigDecimal.valueOf(request.getLoanAmount()),
-//                request.getTermLength(),
-//                request.getStartDate()
-//        );
-//
-//        return ResponseEntity.ok(response);
-//    }
 
     @GetMapping("/loan/user-details")
     public ResponseEntity<ApiResponse<UserAllLoansResponse>> getLoanInfoFromUser(Authentication authentication){
@@ -80,6 +61,16 @@ public class LoanController {
         Long response = loanService.applyLoan(userId, request);
 
         return response;
+    }
+
+    @GetMapping("/loan/status")
+    public ApiResponse<LoanStatusResponse> checkLoanStatus(Authentication authentication) {
+        UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
+        Long userId = userDetails.userId();
+
+        LoanStatusResponse status = loanService.getUserLoanStatus(userId);
+
+        return new ApiResponse<>(true, "Success", status);
     }
 
 

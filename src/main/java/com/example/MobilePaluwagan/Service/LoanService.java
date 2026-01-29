@@ -14,6 +14,8 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -335,6 +337,36 @@ public class LoanService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "You already have an active or pending loan application");
         }
+    }
+
+    public LoanStatusResponse getUserLoanStatus(Long userId){
+
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        boolean hasLoan = user.isHasLoan();
+
+        boolean hasPendingApplication = loanApplicationRepo.existsByUserIdAndStatusIn(
+                userId,
+                List.of(Status.PENDING)
+        );
+
+        boolean hasApprovedApplication = loanApplicationRepo.existsByUserIdAndStatusIn(
+                userId,
+                List.of(Status.APPROVED)
+        );
+        
+        Optional<LoanApplication> latestApplication = loanApplicationRepo.findAllByUserId(userId).stream()
+                .filter(app -> app.getStatus() == Status.PENDING || app.getStatus() == Status.APPROVED)
+                .max(Comparator.comparing(LoanApplication::getApplicationID));
+
+        return new LoanStatusResponse(
+                hasLoan,
+                hasPendingApplication,
+                hasApprovedApplication,
+                latestApplication.map(LoanApplication::getApplicationID).orElse(null),
+                latestApplication.map(app -> app.getStatus().name()).orElse(null)
+        );
     }
 
 
