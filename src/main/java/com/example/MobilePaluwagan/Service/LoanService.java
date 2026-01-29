@@ -311,8 +311,8 @@ public class LoanService {
         saveLoan.setRepayPeriodWeeks(request.getRepayPeriodWeeks());
         saveLoan.setWeeklyPay(request.getWeeklyPay());
         saveLoan.setRequestedAmount(request.getTotalLoan());
-        saveLoan.setInterest(monthlyRate);
-        saveLoan.setInterestRate(request.getInterestRate());
+        saveLoan.setInterest(request.getInterest());
+        saveLoan.setInterestRate(monthlyRate);
         saveLoan.setTotalRepayable(request.getTotalRepayable());
         saveLoan.setStatus(Status.PENDING);
 
