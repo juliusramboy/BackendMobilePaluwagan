@@ -13,7 +13,12 @@ import java.util.Date;
 @AllArgsConstructor
 public class LoanInfo {
     private Long loanId;
-    private BigDecimal loanAmount;
+    private BigDecimal totalLoan;
+    private BigDecimal totalRepayable;
     private BigDecimal interestRate;
+    private BigDecimal interest;
+    private BigDecimal weeklyPay;
     private LocalDate startDate;
+    private LocalDate endDate;
+
 }

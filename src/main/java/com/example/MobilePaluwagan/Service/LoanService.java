@@ -4,7 +4,10 @@ import com.example.MobilePaluwagan.DTOs.Request.ApplyLoanRequest;
 import com.example.MobilePaluwagan.DTOs.Response.*;
 import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.*;
+import org.hibernate.query.Page;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -167,8 +170,12 @@ public class LoanService {
         List<LoanInfo> loanInfos = loans.stream()
                 .map(loan -> LoanInfo.builder()
                         .loanId(loan.getId())
-                        .loanAmount(BigDecimal.valueOf(loan.getAmount()))
+                        .totalLoan(BigDecimal.valueOf(loan.getAmount()))
+                        .totalRepayable(BigDecimal.valueOf(loan.getTotalRepayable()))
                         .interestRate(BigDecimal.valueOf(loan.getInterestRate()))
+                        .interest(BigDecimal.valueOf(loan.getInterest()))
+                        .weeklyPay(BigDecimal.valueOf(loan.getWeeklyPay()))
+                        .endDate(loan.getEndDate())
                         .startDate(loan.getStartDate())
                         .build())
                 .toList();
