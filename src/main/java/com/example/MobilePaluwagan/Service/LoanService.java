@@ -225,6 +225,8 @@ public class LoanService {
         // Step 3: Calculate payment schedule
         PaymentSchedule paymentSchedule = calculatePaymentSchedule(loanAmount, totalInterest, duration.getTotalWeeks());
 
+        Long applicationId = generateApplicationId(userId);
+
 //        // Format date range
 //        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd-MMM dd");
 //        String dateRange = startDate.format(DateTimeFormatter.ofPattern("MMM dd")) + "-" +
@@ -239,6 +241,7 @@ public class LoanService {
 
         // Return loan summary as ApplyLoanResponse (not ApiResponse)
         return new ApplyLoanResponse(
+                applicationId,
                 startDate,
                 endDate,
                 weeks,
@@ -302,10 +305,9 @@ public class LoanService {
         boolean hasSavings = user.isHasSavings();
         double monthlyRate = hasSavings ? 5.0 : 10.0;
 
-        Long applicationId = generateApplicationId(userId);
 
         LoanApplication saveLoan = new LoanApplication();
-        saveLoan.setApplicationID(applicationId);
+        saveLoan.setApplicationID(request.getApplicationId());
         saveLoan.setUserId(userId);
         saveLoan.setStartDate(request.getStartDate());
         saveLoan.setEndDate(request.getEndDate());
@@ -320,7 +322,7 @@ public class LoanService {
 
         loanApplicationRepo.save(saveLoan);
 
-        return applicationId;
+        return request.getApplicationId();
     }
 
     private void validateUserCanApplyForLoan(User user) {

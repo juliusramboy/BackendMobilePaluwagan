@@ -11,6 +11,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ApplyLoanResponse {
+    private Long applicationId;
     private LocalDate startDate;
     private LocalDate endDate;
     private int repayPeriodWeeks;
