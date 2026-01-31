@@ -388,6 +388,10 @@ public class LoanService {
         return latestApplication;
     }
 
+    public List<LoanApplicantsAdmin> getUserLoans(){
+        return loanApplicationRepo.findLoanByStatus(Status.PENDING);
+    }
+
 
     // Inner classes
     private static class LoanDurationResult {

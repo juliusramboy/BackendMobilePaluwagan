@@ -58,6 +58,7 @@ public class LoanApplication {
     @Column(nullable = false)
     private Status status = Status.PENDING;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "user_id", referencedColumnName = "user_id") private UserInfo userInfo;
+    @ManyToOne
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    private UserInfo userInfo;
 }

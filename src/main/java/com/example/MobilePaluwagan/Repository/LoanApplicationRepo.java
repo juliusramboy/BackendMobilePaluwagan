@@ -23,10 +23,12 @@ public interface LoanApplicationRepo extends JpaRepository<LoanApplication, Long
 
     boolean existsByUserIdAndStatusIn(Long userId, List<Status> statuses);
 
-//    @Query("SELECT new com.example.MobilePaluwagan.DTOs.Response.LoanApplicantsAdmin(" +
-//            "l.id, u.firstName, u.lastName, l.totalRepayable, l.weeklyPay) " +
-//            "FROM LoanApplication l JOIN l.userInfo u " +
-//            "WHERE l.status = 'PENDING'")
-//    List<LoanApplicantsAdmin> findAllPendingApplication();
+    @Query("SELECT new com.example.MobilePaluwagan.DTOs.Response.LoanApplicantsAdmin(" +
+            "la.userId, la.applicationID, la.totalRepayable, la.weeklyPay, lu.firstName, lu.lastName) " +
+            "FROM LoanApplication la " +
+            "JOIN la.userInfo lu " +
+            "WHERE la.status = :status")
+    List<LoanApplicantsAdmin> findLoanByStatus(@Param("status") Status status);
+
 
 }

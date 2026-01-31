@@ -10,9 +10,10 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoanApplicantsAdmin {
-    private Long id;
-    private String firstName;
-    private String lastName;
+    private Long userId;
+    private Long applicationId;
     private BigDecimal totalRepayable;
     private BigDecimal weeklyPay;
+    private String firstName;
+    private String lastName;
 }

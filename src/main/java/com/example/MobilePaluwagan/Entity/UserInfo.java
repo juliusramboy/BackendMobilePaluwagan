@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @Entity
@@ -46,4 +47,7 @@ public class UserInfo {
 
     @Column(name = "verified_date")
     private LocalDate verifiedDate;
+
+    @OneToMany(mappedBy = "userInfo")
+    private List<LoanApplication> loanApplications;
 }
