@@ -139,7 +139,7 @@ public class LoanService {
 
 
         double totalLoanAmount = loans.stream()
-                .mapToDouble(Loan::getAmount)
+                .mapToDouble(Loan::getTotalRepayable)
                 .sum();
 
         double remainingBalance = 0.0;
@@ -378,9 +378,6 @@ public class LoanService {
         );
     }
 
-//    public List<LoanApplicantsAdmin> getAllpending(){
-//        return loanApplicationRepo.findAllPendingApplication();
-//    }
 
     public Optional<LoanApplication> getDetails(Long userId){
 
