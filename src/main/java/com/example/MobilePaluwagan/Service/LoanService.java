@@ -160,9 +160,9 @@ public class LoanService {
                 .map(app -> LoanApplicationInfo.builder()
                         .applicationNumber(app.getApplicationID())
                         .loanAmount(app.getRequestedAmount())
-                        .termLength(app.getEndDate())
+                        .endDate(app.getEndDate())
+                        .startDate(app.getStartDate())
                         .status(app.getStatus().name())
-                        .applicationDate(app.getEndDate())
                         .status(String.valueOf(app.getStatus()))
                         .build())
                 .toList();
@@ -315,7 +315,7 @@ public class LoanService {
 
         LoanApplication saveLoan = new LoanApplication();
         saveLoan.setApplicationID(request.getApplicationId());
-        saveLoan.setUserId(userId);
+        saveLoan.setId(userId);
         saveLoan.setStartDate(request.getStartDate());
         saveLoan.setEndDate(request.getEndDate());
         saveLoan.setRepayPeriodDays(request.getRepayPeriodDays());
@@ -376,6 +376,19 @@ public class LoanService {
                 latestApplication.map(LoanApplication::getApplicationID).orElse(null),
                 latestApplication.map(app -> app.getStatus().name()).orElse(null)
         );
+    }
+
+    public List<LoanApplicantsAdmin> getAllpending(){
+        return loanApplicationRepo.findAllPendingApplication();
+    }
+
+    public Optional<LoanApplication> getDetails(Long userId){
+
+        Optional<LoanApplication> latestApplication = loanApplicationRepo.findAllByUserId(userId).stream()
+                .filter(app -> app.getStatus() == Status.PENDING || app.getStatus() == Status.APPROVED)
+                .max(Comparator.comparing(LoanApplication::getApplicationID));
+
+        return latestApplication;
     }
 
 

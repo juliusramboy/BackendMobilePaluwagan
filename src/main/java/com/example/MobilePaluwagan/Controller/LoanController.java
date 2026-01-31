@@ -4,6 +4,7 @@ import com.example.MobilePaluwagan.DTOs.Request.ApplyLoanRequest;
 import com.example.MobilePaluwagan.DTOs.Request.CalculateLoanRequest;
 import com.example.MobilePaluwagan.DTOs.Request.LoanApplicationRequest;
 import com.example.MobilePaluwagan.DTOs.Response.*;
+import com.example.MobilePaluwagan.Entity.LoanApplication;
 import com.example.MobilePaluwagan.Entity.UserPrinciple;
 import com.example.MobilePaluwagan.Service.LoanService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -71,6 +73,16 @@ public class LoanController {
         LoanStatusResponse status = loanService.getUserLoanStatus(userId);
 
         return new ApiResponse<>(true, "Success", status);
+    }
+
+    @GetMapping("loan/status/details")
+    public Optional<LoanApplication> details(Authentication authentication){
+        UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
+        Long userId = userDetails.userId();
+
+        Optional<LoanApplication> userInfo = loanService.getDetails(userId);
+        
+        return userInfo;
     }
 
 

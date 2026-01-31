@@ -13,7 +13,7 @@ import java.time.LocalDate;
 public class LoanApplicationInfo {
     private Long applicationNumber;
     private BigDecimal loanAmount;
-    private LocalDate termLength;
+    private LocalDate startDate;
     private String status;
-    private LocalDate applicationDate;
+    private LocalDate endDate;
 }
