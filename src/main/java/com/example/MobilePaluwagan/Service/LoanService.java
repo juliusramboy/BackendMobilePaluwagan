@@ -315,7 +315,7 @@ public class LoanService {
 
         LoanApplication saveLoan = new LoanApplication();
         saveLoan.setApplicationID(request.getApplicationId());
-        saveLoan.setId(userId);
+        saveLoan.setUserId(userId);
         saveLoan.setStartDate(request.getStartDate());
         saveLoan.setEndDate(request.getEndDate());
         saveLoan.setRepayPeriodDays(request.getRepayPeriodDays());
@@ -378,9 +378,9 @@ public class LoanService {
         );
     }
 
-    public List<LoanApplicantsAdmin> getAllpending(){
-        return loanApplicationRepo.findAllPendingApplication();
-    }
+//    public List<LoanApplicantsAdmin> getAllpending(){
+//        return loanApplicationRepo.findAllPendingApplication();
+//    }
 
     public Optional<LoanApplication> getDetails(Long userId){
 

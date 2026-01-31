@@ -24,7 +24,7 @@ public class LoanApplication {
     @Column(name = "application_id")
     private Long applicationID;
 
-    @Column(name = "user_id", insertable = false, updatable = false)
+    @Column(name = "user_id")
     private Long userId;
 
     @Column(name = "requested_amount")
@@ -58,5 +58,6 @@ public class LoanApplication {
     @Column(nullable = false)
     private Status status = Status.PENDING;
 
-    @ManyToOne @JoinColumn(name = "user_id", referencedColumnName = "user_id") private UserInfo userInfo;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "user_id", referencedColumnName = "user_id") private UserInfo userInfo;
 }

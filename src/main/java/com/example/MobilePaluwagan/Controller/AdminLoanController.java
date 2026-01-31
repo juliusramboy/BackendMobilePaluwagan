@@ -16,15 +16,15 @@ import java.util.List;
 @RestController
 @RequestMapping("api/admin")
 public class AdminLoanController {
-    @Autowired
-    LoanService loanService;
+//    @Autowired
+//    LoanService loanService;
 
 //    @GetMapping("/loan/all-applicants")
 //    public ResponseEntity<?> showAllApplicants(Authentication authentication){
 //
 //    }
 
-    @GetMapping("/pending")
-    public ResponseEntity<List<LoanApplicantsAdmin>> showAllPendingApplicants() {
-        List<LoanApplicantsAdmin> applicants = loanService.getAllpending(); return ResponseEntity.ok(applicants); }
-    }
+//    @GetMapping("/pending")
+//    public ResponseEntity<List<LoanApplicantsAdmin>> showAllPendingApplicants() {
+//        List<LoanApplicantsAdmin> applicants = loanService.getAllpending(); return ResponseEntity.ok(applicants); }
+  }
