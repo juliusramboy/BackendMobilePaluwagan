@@ -3,17 +3,25 @@ package com.example.MobilePaluwagan.Controller;
 import com.example.MobilePaluwagan.DTOs.Request.ApplyLoanRequest;
 import com.example.MobilePaluwagan.DTOs.Request.CalculateLoanRequest;
 import com.example.MobilePaluwagan.DTOs.Request.LoanApplicationRequest;
+import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterRequest;
 import com.example.MobilePaluwagan.DTOs.Response.*;
 import com.example.MobilePaluwagan.Entity.LoanApplication;
+import com.example.MobilePaluwagan.Entity.LoanPayment;
 import com.example.MobilePaluwagan.Entity.UserPrinciple;
 import com.example.MobilePaluwagan.Service.LoanService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
 
 @RestController
 @RequestMapping("/api")
@@ -83,6 +91,53 @@ public class LoanController {
         Optional<LoanApplication> userInfo = loanService.getDetails(userId);
         
         return userInfo;
+    }
+
+    @GetMapping("/loan/payment/filter")
+    public ResponseEntity<paymentResponse> filterPayment(
+            Authentication authentication,
+            @RequestParam(required = false) String reference,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String paymentMethod) {
+
+        // Get the logged-in user's ID
+        UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
+        Long userId = userDetails.userId();  // Make sure your UserPrinciple has getUserId() method
+
+        // Step 1: Build the filter object with userId
+        PaymentFilterRequest filter = PaymentFilterRequest.builder()
+                .userId(userId)  // IMPORTANT: Set the user ID
+                .reference(reference)
+                .startDate(startDate)
+                .endDate(endDate)
+                .status(status)
+                .paymentMethod(paymentMethod)
+                .build();
+
+        // Step 2: Get filtered payments from service
+        List<LoanPayment> loanPayments = loanService.filterUserPayments(filter);
+
+        // Step 3: Convert entities to DTOs
+        List<PaymentInfo> paymentDTOs = loanPayments.stream()
+                .map(loanService::convertToDTO)
+                .collect(Collectors.toList());
+
+        // Step 4: Create appropriate message
+        String message = filter.hasFilters() ?
+                "Successfully retrieved filtered payments" :
+                "Successfully retrieved all payments";
+
+        // Step 5: Build the response
+        paymentResponse response = paymentResponse.builder()
+                .success(true)
+                .message(message)
+                .filters(filter.hasFilters() ? filter : null)
+                .payment(paymentDTOs)
+                .build();
+
+        return ResponseEntity.ok(response);
     }
 
 

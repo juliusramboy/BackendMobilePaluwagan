@@ -1,15 +1,14 @@
 package com.example.MobilePaluwagan.Controller;
 
+import com.example.MobilePaluwagan.DTOs.Request.AdminApplicantRequest;
+import com.example.MobilePaluwagan.DTOs.Response.ApiResponse;
+import com.example.MobilePaluwagan.DTOs.Response.ApplicantsFullInfoAdmin;
 import com.example.MobilePaluwagan.DTOs.Response.LoanApplicantsAdmin;
-import com.example.MobilePaluwagan.Entity.LoanApplication;
-import com.example.MobilePaluwagan.Repository.LoanApplicationRepo;
 import com.example.MobilePaluwagan.Service.LoanService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -21,15 +20,36 @@ public class AdminLoanController {
 
     @GetMapping("/loan/pending")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<LoanApplicantsAdmin>> getAllPendingLoan() {
-        List<LoanApplicantsAdmin> pending = loanService.getPendingApplicants();
+    public ResponseEntity<ApiResponse<List<LoanApplicantsAdmin>>> getAllPendingApplications() {
+        ApiResponse<List<LoanApplicantsAdmin>> pending = loanService.getPendingApplicants();
         return ResponseEntity.ok(pending);
     }
 
     @GetMapping("/loan/approve")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<LoanApplicantsAdmin>> getAllApproveLoan(){
-        List<LoanApplicantsAdmin> approve = loanService.getApproveApplicants();
+    public ResponseEntity<ApiResponse<List<LoanApplicantsAdmin>>> getAllApproveApplications() {
+        ApiResponse<List<LoanApplicantsAdmin>> approve = loanService.getApproveApplicants();
         return ResponseEntity.ok(approve);
     }
-  }
+
+    @GetMapping("/loan/rejected")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<List<LoanApplicantsAdmin>>> getAllRejectedApplications() {
+        ApiResponse<List<LoanApplicantsAdmin>> rejected = loanService.getRejectedApplicants();
+        return ResponseEntity.ok(rejected);
+    }
+
+    @GetMapping("/loan/approve/{applicationId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApplicantsFullInfoAdmin> getAllApproveApplications(@PathVariable Long appicationId) {
+        System.out.println("Searching for applicationID: " + appicationId);
+        ApplicantsFullInfoAdmin applicantsFullInfo = loanService.applicantsFullInfo(appicationId);
+        System.out.println("Query result: " + applicantsFullInfo);
+        return ResponseEntity.ok(applicantsFullInfo);
+    }
+
+//    @PostMapping("/loan/approve/{applicationId}")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<?>
+
+}

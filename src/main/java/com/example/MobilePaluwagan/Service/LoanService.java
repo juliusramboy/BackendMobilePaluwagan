@@ -1,13 +1,11 @@
 package com.example.MobilePaluwagan.Service;
 
 import com.example.MobilePaluwagan.DTOs.Request.ApplyLoanRequest;
+import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterRequest;
 import com.example.MobilePaluwagan.DTOs.Response.*;
 import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.*;
-import org.hibernate.query.Page;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -17,7 +15,6 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -180,21 +177,21 @@ public class LoanService {
                         .build())
                 .toList();
 
-        List<PaymentInfo> paymentInfos = payments.stream()
-                .map(payment -> PaymentInfo.builder()
-                        .paymentId(payment.getId())
-                        .referenceNumber(payment.getReferenceNumber())
-                        .amountPaid(BigDecimal.valueOf(payment.getAmountPaid()))
-                        .paymentDate(payment.getPaymentDate())
-                        .paymentMethod(payment.getPaymentMethod().name())
-                        .paymentStatus(payment.getStatus().name())
-                        .build())
-                .toList();
+//        List<PaymentInfo> paymentInfos = payments.stream()
+//                .map(payment -> PaymentInfo.builder()
+//                        .paymentId(payment.getId())
+//                        .referenceNumber(payment.getReferenceNumber())
+//                        .amountPaid(BigDecimal.valueOf(payment.getAmountPaid()))
+//                        .paymentDate(payment.getPaymentDate())
+//                        .paymentMethod(payment.getPaymentMethod().name())
+//                        .paymentStatus(payment.getStatus().name())
+//                        .build())
+//                .toList();
 
         UserAllLoansResponse response = UserAllLoansResponse.builder()
                 .applications(applicationInfos)
                 .loans(loanInfos)
-                .payments(paymentInfos)
+                //.payments(paymentInfos)
                 .totalAmountPaid(BigDecimal.valueOf(totalPaid))
                 .paymentProgress(progressMessage)
                 .remainingBalance(remainingBalance)
@@ -217,7 +214,7 @@ public class LoanService {
 
     public long generateApplicationId(Long userId) {
         long timestamp = System.currentTimeMillis();
-        return (timestamp * 100) + (userId % 100);
+        return (timestamp * 1_000_000) + userId;
     }
 
 
@@ -388,13 +385,66 @@ public class LoanService {
         return latestApplication;
     }
 
-    public List<LoanApplicantsAdmin> getPendingApplicants(){
-        return loanApplicationRepo.findLoanByStatus(Status.PENDING);
+    public ApiResponse<List<LoanApplicantsAdmin>> getPendingApplicants(){
+        return new ApiResponse<>(
+                true,
+                "Successful",
+                loanApplicationRepo.findLoanByStatus(Status.PENDING)
+        );
     }
 
-    public List<LoanApplicantsAdmin> getApproveApplicants(){
-        return loanApplicationRepo.findLoanByStatus(Status.APPROVED);
+    public ApiResponse<List<LoanApplicantsAdmin>> getApproveApplicants(){
+        return new ApiResponse<>(
+                true,
+                "Successful",
+                loanApplicationRepo.findLoanByStatus(Status.APPROVED)
+        );
     }
+
+    public ApiResponse<List<LoanApplicantsAdmin>> getRejectedApplicants(){
+        return new ApiResponse<>(
+                true,
+                "Successful",
+                loanApplicationRepo.findLoanByStatus(Status.REJECTED)
+        );
+    }
+
+    public ApplicantsFullInfoAdmin applicantsFullInfo(Long applicationID){
+        return loanApplicationRepo.findLoanApplicantsFullInfo(applicationID);
+    }
+
+//    public List<LoanPayment> filter(PaymentFilterRequest filter) {
+//        return loanPaymentRepo.findByFilters(
+//                filter.getReference(),
+//                filter.getStartDate(),
+//                filter.getEndDate(),
+//                filter.getStatus(),
+//                filter.getPaymentMethod()
+//        );
+//    }
+
+    public List<LoanPayment> filterUserPayments(PaymentFilterRequest filter) {
+        return loanPaymentRepo.findPaymentsByUserIdWithFilters(
+                filter.getUserId(),
+                filter.getReference(),
+                filter.getStartDate(),
+                filter.getEndDate(),
+                filter.getStatus(),
+                filter.getPaymentMethod()
+        );
+    }
+
+    public PaymentInfo convertToDTO(LoanPayment payment) {
+        return PaymentInfo.builder()
+                .loanId(payment.getLoanId())
+                .referenceNumber(payment.getReferenceNumber())
+                .amountPaid(payment.getAmountPaid())
+                .paymentDate(payment.getPaymentDate())
+                .paymentStatus(payment.getStatus().name())
+                .paymentMethod(payment.getPaymentMethod().name())
+                .build();
+    }
+
 
 
     // Inner classes
