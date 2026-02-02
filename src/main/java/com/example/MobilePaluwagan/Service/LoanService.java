@@ -113,7 +113,7 @@ public class LoanService {
         Optional<UserInfo> userInfo = userInfoRepo.findByUserId(userId);
         List<LoanApplication> applications = loanApplicationRepo.findAllByUserId(userId);
         List<Loan> loans = userLoanRepo.findAllByUserId(userId);
-        List<LoanPayment> payments = loanPaymentRepo.findAllByUserId(userId);
+        List<LoanPayment> payments = loanPaymentRepo.findPaymentsByUserIdNative(userId);
 
         if (applications.isEmpty()) {
             UserAllLoansResponse response = UserAllLoansResponse.builder()
@@ -388,8 +388,12 @@ public class LoanService {
         return latestApplication;
     }
 
-    public List<LoanApplicantsAdmin> getUserLoans(){
+    public List<LoanApplicantsAdmin> getPendingApplicants(){
         return loanApplicationRepo.findLoanByStatus(Status.PENDING);
+    }
+
+    public List<LoanApplicantsAdmin> getApproveApplicants(){
+        return loanApplicationRepo.findLoanByStatus(Status.APPROVED);
     }
 
 

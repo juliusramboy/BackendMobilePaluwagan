@@ -21,8 +21,15 @@ public class AdminLoanController {
 
     @GetMapping("/loan/pending")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<LoanApplicantsAdmin>> getAllLoans() {
-        List<LoanApplicantsAdmin> loans = loanService.getUserLoans();
-        return ResponseEntity.ok(loans);
+    public ResponseEntity<List<LoanApplicantsAdmin>> getAllPendingLoan() {
+        List<LoanApplicantsAdmin> pending = loanService.getPendingApplicants();
+        return ResponseEntity.ok(pending);
+    }
+
+    @GetMapping("/loan/approve")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<LoanApplicantsAdmin>> getAllApproveLoan(){
+        List<LoanApplicantsAdmin> approve = loanService.getApproveApplicants();
+        return ResponseEntity.ok(approve);
     }
   }
