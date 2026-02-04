@@ -106,19 +106,20 @@ public class AuthController {
 
     @PostMapping("/login-send-otp")
     public ResponseEntity<OtpResponse> sendOtpLogin(@RequestBody OtpLoginRequest request) {
-        OtpResponse response = authOtpService.sendOtpLogin(request.getEmail());
 
-        if (response.getUserId() != null) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(response);
+        OtpResponse response = authOtpService.sendOtpLogin(request.getEmail(), request.getPassword());
+            if (response.getUserId() != null) {
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(response);
         }
+
     }
 
     @PostMapping("/forgot-password")
     public ResponseEntity<OtpResponse> forgotpassword(@RequestBody OtpLoginRequest request) {
-        OtpResponse response = authOtpService.sendOtpLogin(request.getEmail());
+        OtpResponse response = authOtpService.sendOtpLogin(request.getEmail(), request.getPassword());
 
         if (response.getUserId() != null) {
             return ResponseEntity.ok(response);

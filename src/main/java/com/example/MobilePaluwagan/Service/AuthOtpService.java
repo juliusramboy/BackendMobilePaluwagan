@@ -10,6 +10,7 @@ import com.example.MobilePaluwagan.Repository.UserRepo;
 import com.example.MobilePaluwagan.Repository.VerificationRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -95,35 +96,40 @@ public class AuthOtpService {
         return false;
     }
 
-    public OtpResponse sendOtpLogin(String email){
+    public OtpResponse sendOtpLogin(String email, String password){
 
         User isPresent = userRepo.findByEmail(email);
 
         if(isPresent != null){
             User user = isPresent;
 
-            if(user.isActive()){
-                UserVerification verification = verificationRepo.findByUserId(user.getId());
+            if (encoder.matches(password, user.getPassword())) {
 
-                if(verification != null){
-                    verificationRepo.delete(verification);
+                if(user.isActive()){
+                    UserVerification verification = verificationRepo.findByUserId(user.getId());
+
+                    if(verification != null){
+                        verificationRepo.delete(verification);
+                    }
+
+                    String plainNewOtp = registerService.generateOtp();
+                    String hashedNewOtp = encoder.encode(plainNewOtp);
+
+
+                    UserVerification userVerification = new UserVerification();
+                    userVerification.setUserId(user.getId());
+                    userVerification.setOtpHash(hashedNewOtp);
+                    userVerification.setExpiresAt(LocalDateTime.now().plusMinutes(5));
+                    userVerification.setCreatedAt(LocalDateTime.now());
+
+                    verificationRepo.save(userVerification);
+
+                    emailService.sendOtpInLogin(user.getEmail(), plainNewOtp);
+
+                    return new OtpResponse("OTP sent successfully to your email", user.getId());
                 }
-
-                String plainNewOtp = registerService.generateOtp();
-                String hashedNewOtp = encoder.encode(plainNewOtp);
-
-
-                UserVerification userVerification = new UserVerification();
-                userVerification.setUserId(user.getId());
-                userVerification.setOtpHash(hashedNewOtp);
-                userVerification.setExpiresAt(LocalDateTime.now().plusMinutes(5));
-                userVerification.setCreatedAt(LocalDateTime.now());
-
-                verificationRepo.save(userVerification);
-
-                emailService.sendOtpInLogin(user.getEmail(), plainNewOtp);
-
-                return new OtpResponse("OTP sent successfully to your email", user.getId());
+            }else {
+                return new OtpResponse("Email or password do not match", user.getId());
             }
         }
         return new OtpResponse("Please verify your account or register your account.", null);

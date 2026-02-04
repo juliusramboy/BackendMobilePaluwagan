@@ -16,6 +16,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,8 +30,9 @@ public class LoginService {
     private UserRepo userRepo;
     @Autowired
     private VerificationRepo verificationRepo;
+    private final PasswordEncoder passwordEncoder;
 
-    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+//    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
     private final JWTService jwtService;
     private final AuthenticationManager authenticationManager;
@@ -57,7 +59,7 @@ public class LoginService {
                 if (userVerification.getExpiresAt().isBefore(LocalDateTime.now())){
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED) .body(new LoginResponse("failed - OTP expired", null, null));
                 }
-                boolean isValidOtp = encoder.matches(request.getOtp(), userVerification.getOtpHash());
+                boolean isValidOtp = passwordEncoder.matches(request.getOtp(), userVerification.getOtpHash());
                 if (!isValidOtp){
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED) .body(new LoginResponse("failed - invalid OTP", null, null));
                 }
@@ -86,4 +88,5 @@ public class LoginService {
 
         }
     }
+
 }

@@ -11,4 +11,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OtpLoginRequest {
     private String email;
+    private String password;
 }

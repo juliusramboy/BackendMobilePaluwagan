@@ -16,4 +16,6 @@ public class OtpResponse {
     public OtpResponse(String message, Long userId) {
         this.message = message; this.userId = userId;
     }
+
+
 }
