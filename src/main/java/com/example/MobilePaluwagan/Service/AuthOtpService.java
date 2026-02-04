@@ -129,7 +129,7 @@ public class AuthOtpService {
                     return new OtpResponse("OTP sent successfully to your email", user.getId());
                 }
             }else {
-                return new OtpResponse("Email or password do not match", user.getId());
+                return new OtpResponse("Email or password do not match", null);
             }
         }
         return new OtpResponse("Please verify your account or register your account.", null);
