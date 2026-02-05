@@ -39,11 +39,11 @@ public class AdminLoanController {
         return ResponseEntity.ok(rejected);
     }
 
-    @GetMapping("/loan/approve/{applicationId}")
+    @GetMapping("/loan/details/{applicationId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApplicantsFullInfoAdmin> getAllApproveApplications(@PathVariable Long appicationId) {
-        System.out.println("Searching for applicationID: " + appicationId);
-        ApplicantsFullInfoAdmin applicantsFullInfo = loanService.applicantsFullInfo(appicationId);
+    public ResponseEntity<ApplicantsFullInfoAdmin> getAllApproveApplications(@PathVariable Long applicationId) {
+        System.out.println("Searching for applicationID: " + applicationId);
+        ApplicantsFullInfoAdmin applicantsFullInfo = loanService.applicantsFullInfo(applicationId);
         System.out.println("Query result: " + applicantsFullInfo);
         return ResponseEntity.ok(applicantsFullInfo);
     }
