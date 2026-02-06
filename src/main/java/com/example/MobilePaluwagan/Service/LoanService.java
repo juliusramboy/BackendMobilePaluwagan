@@ -1,5 +1,6 @@
 package com.example.MobilePaluwagan.Service;
 
+import com.example.MobilePaluwagan.Controller.LoanSseController;
 import com.example.MobilePaluwagan.DTOs.Request.AdminLoanStatus;
 import com.example.MobilePaluwagan.DTOs.Request.ApplyLoanRequest;
 import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterRequest;
@@ -41,6 +42,9 @@ public class LoanService {
 
     @Autowired
     private LoanPaymentRepo loanPaymentRepo;
+
+    @Autowired
+    private LoanSseController loanSseController;
 
 
 
@@ -484,6 +488,8 @@ public class LoanService {
         User changeTrue = user.get();
         changeTrue.setHasLoan(true);
         userRepo.save(changeTrue);
+
+        loanSseController.loanUpdates();
 
         return new ApiResponse<>(
                 true,
