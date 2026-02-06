@@ -20,7 +20,7 @@ public interface LoanApplicationRepo extends JpaRepository<LoanApplication, Long
     boolean existsByUserIdAndStatusIn(Long userId, List<Status> statuses);
 
     @Query("SELECT new com.example.MobilePaluwagan.DTOs.Response.LoanApplicantsAdmin(" +
-            "la.userId, la.applicationID, la.totalRepayable, la.weeklyPay, lu.firstName, lu.lastName) " +
+            "la.userId, la.applicationID, la.totalRepayable, la.weeklyPay, la.requestedAmount, la.interestRate, la.interest, la.repayPeriodDays, la.repayPeriodWeeks, la.startDate, la.endDate, la.status, lu.firstName, lu.lastName) " +
             "FROM LoanApplication la " +
             "JOIN la.userInfo lu " +
             "WHERE la.status = :status")

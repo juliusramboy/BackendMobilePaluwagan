@@ -1,10 +1,12 @@
 package com.example.MobilePaluwagan.DTOs.Response;
 
+import com.example.MobilePaluwagan.Entity.Status;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
@@ -14,6 +16,16 @@ public class LoanApplicantsAdmin {
     private Long applicationId;
     private BigDecimal totalRepayable;
     private BigDecimal weeklyPay;
+
+    private BigDecimal requestedAmount;
+    private double interestRate;          // Keep as double
+    private double interest;
+    private int repayPeriodDays;
+    private int repayPeriodWeeks;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private Status status;
+
     private String firstName;
     private String lastName;
 }
