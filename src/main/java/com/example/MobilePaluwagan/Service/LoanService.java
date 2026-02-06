@@ -489,7 +489,7 @@ public class LoanService {
         changeTrue.setHasLoan(true);
         userRepo.save(changeTrue);
 
-        loanSseController.loanUpdates();
+        loanSseController.loanUpdates("nag update ang admin");
 
         return new ApiResponse<>(
                 true,

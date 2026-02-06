@@ -13,7 +13,7 @@ public class LoanSseController {
     private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 
     @GetMapping("/loan/updates")
-    public SseEmitter loanUpdates() {
+    public SseEmitter loanUpdates(String nagUpdateAngAdmin) {
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
         emitters.add(emitter);
 
