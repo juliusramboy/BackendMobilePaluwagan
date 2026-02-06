@@ -12,8 +12,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class LoanSseController {
     private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 
+
     @GetMapping("/loan/updates")
-    public SseEmitter loanUpdates(String nagUpdateAngAdmin) {
+    public SseEmitter loanUpdates() {
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
         emitters.add(emitter);
 
