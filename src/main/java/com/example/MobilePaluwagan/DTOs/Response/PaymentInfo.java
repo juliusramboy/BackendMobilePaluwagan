@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
@@ -12,7 +13,7 @@ import java.time.LocalDate;
 public class PaymentInfo {
     private Long loanId;
     private String referenceNumber;
-    private Double amountPaid;
+    private BigDecimal amountPaid;
     private LocalDate paymentDate;
     private String paymentStatus;
     private String paymentMethod;

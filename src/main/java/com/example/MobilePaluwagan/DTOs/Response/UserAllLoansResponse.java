@@ -18,6 +18,6 @@ public class UserAllLoansResponse {
     private boolean eligible;
     private BigDecimal totalAmountPaid;
     private String paymentProgress;
-    private Double remainingBalance;
+    private BigDecimal remainingBalance;
     private String userName;
 }

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Date;
 
@@ -33,7 +34,7 @@ public class LoanPayment {
     private LocalDate paymentDate;
 
     @Column(name = "amount_paid")
-    private Double amountPaid;
+    private BigDecimal amountPaid;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

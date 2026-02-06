@@ -1,10 +1,12 @@
 package com.example.MobilePaluwagan.Service;
 
+import com.example.MobilePaluwagan.DTOs.Request.AdminLoanStatus;
 import com.example.MobilePaluwagan.DTOs.Request.ApplyLoanRequest;
 import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterRequest;
 import com.example.MobilePaluwagan.DTOs.Response.*;
 import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.*;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -119,7 +121,7 @@ public class LoanService {
                     .payments(List.of())
                     .totalAmountPaid(BigDecimal.ZERO)
                     .paymentProgress("")
-                    .remainingBalance(0.0)
+                    .remainingBalance(BigDecimal.valueOf(0.0))
                     .userName(userInfo.get().getFirstName())
                     .eligible(true)
                     .build();
@@ -128,26 +130,29 @@ public class LoanService {
         }
 
 
-        double totalPaid = payments.stream()
+        BigDecimal totalPaid = payments.stream()
                 .filter(p  -> "PAID".equalsIgnoreCase(p.getStatus().name()))
-                .mapToDouble(LoanPayment::getAmountPaid)
-                .sum();
+                .map(LoanPayment::getAmountPaid)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
 
 
-        double totalLoanAmount = loans.stream()
-                .mapToDouble(Loan::getTotalRepayable)
-                .sum();
+        BigDecimal totalLoanAmount = loans.stream()
+                .map(Loan::getTotalRepayable)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        double remainingBalance = 0.0;
+
+        BigDecimal remainingBalance = BigDecimal.ZERO;
         String progressMessage = "0";
 
-        if (totalLoanAmount > 0) {
-            remainingBalance = totalLoanAmount - totalPaid;
+        if (totalLoanAmount.compareTo(BigDecimal.ZERO) > 0) {
+            remainingBalance = totalLoanAmount.subtract(totalPaid);
 
-            if (remainingBalance < 0) remainingBalance = 0;
+            if (remainingBalance.compareTo(BigDecimal.ZERO) < 0){
+                remainingBalance = BigDecimal.ZERO;
+            };
 
-            double percentPaid = (totalPaid / totalLoanAmount) * 100;
+            BigDecimal percentPaid = totalPaid.divide(totalLoanAmount, 2, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
 
             progressMessage = String.format("%.0f", percentPaid);
         }
@@ -167,11 +172,11 @@ public class LoanService {
         List<LoanInfo> loanInfos = loans.stream()
                 .map(loan -> LoanInfo.builder()
                         .loanId(loan.getId())
-                        .totalLoan(BigDecimal.valueOf(loan.getAmount()))
-                        .totalRepayable(BigDecimal.valueOf(loan.getTotalRepayable()))
+                        .totalLoan(loan.getAmount())
+                        .totalRepayable(loan.getTotalRepayable())
                         .interestRate(BigDecimal.valueOf(loan.getInterestRate()))
                         .interest(BigDecimal.valueOf(loan.getInterest()))
-                        .weeklyPay(BigDecimal.valueOf(loan.getWeeklyPay()))
+                        .weeklyPay(loan.getWeeklyPay())
                         .endDate(loan.getEndDate())
                         .startDate(loan.getStartDate())
                         .build())
@@ -192,7 +197,7 @@ public class LoanService {
                 .applications(applicationInfos)
                 .loans(loanInfos)
                 //.payments(paymentInfos)
-                .totalAmountPaid(BigDecimal.valueOf(totalPaid))
+                .totalAmountPaid(totalPaid)
                 .paymentProgress(progressMessage)
                 .remainingBalance(remainingBalance)
                 .userName(userInfo.get().getFirstName())
@@ -443,6 +448,48 @@ public class LoanService {
                 .paymentStatus(payment.getStatus().name())
                 .paymentMethod(payment.getPaymentMethod().name())
                 .build();
+    }
+
+    @Transactional
+    public ApiResponse<?> loanAdminChangeStats(AdminLoanStatus request){
+
+        Optional<LoanApplication> applicantId = loanApplicationRepo.findByApplicationID(request.getApplicationID());
+
+       LoanApplication id = applicantId.get();
+
+       if (id.getStatus().equals(request.getStatus())){
+           return new ApiResponse<>(
+                   false,
+                   "Status is already" + request.getStatus(),
+                   null
+
+           );
+       }
+        id.setStatus(request.getStatus());
+        loanApplicationRepo.save(id);
+
+        Loan loan = new Loan();
+        loan.setApplicationID(id.getApplicationID());
+        loan.setUserId(id.getUserId());
+        loan.setAmount(id.getRequestedAmount());
+        loan.setTotalRepayable(id.getTotalRepayable());
+        loan.setWeeklyPay(id.getWeeklyPay());
+        loan.setInterest(id.getInterest());
+        loan.setInterestRate(id.getInterestRate());
+        loan.setStartDate(id.getStartDate());
+        loan.setEndDate(id.getEndDate());
+        userLoanRepo.save(loan);
+
+        Optional<User> user = userRepo.findById(id.getUserId());
+        User changeTrue = user.get();
+        changeTrue.setHasLoan(true);
+        userRepo.save(changeTrue);
+
+        return new ApiResponse<>(
+                true,
+                "Successful change the status of applicant " + id.getStatus(),
+                null
+        );
     }
 
 

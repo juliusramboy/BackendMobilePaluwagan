@@ -5,8 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Date;
 
 @Data
 @Entity
@@ -27,13 +27,13 @@ public class Loan {
     private Long userId;
 
     @Column(name = "total_loan")
-    private Double amount;
+    private BigDecimal amount;
 
     @Column(name = "total_repayable")
-    private Double totalRepayable;
+    private BigDecimal totalRepayable;
 
     @Column(name = "weekly_pay")
-    private Double weeklyPay;
+    private BigDecimal weeklyPay;
 
     @Column(name = "interest")
     private Double interest;

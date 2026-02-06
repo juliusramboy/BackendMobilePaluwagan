@@ -1,6 +1,7 @@
 package com.example.MobilePaluwagan.Controller;
 
 import com.example.MobilePaluwagan.DTOs.Request.AdminApplicantRequest;
+import com.example.MobilePaluwagan.DTOs.Request.AdminLoanStatus;
 import com.example.MobilePaluwagan.DTOs.Response.ApiResponse;
 import com.example.MobilePaluwagan.DTOs.Response.ApplicantsFullInfoAdmin;
 import com.example.MobilePaluwagan.DTOs.Response.LoanApplicantsAdmin;
@@ -51,5 +52,11 @@ public class AdminLoanController {
 //    @PostMapping("/loan/approve/{applicationId}")
 //    @PreAuthorize("hasRole('ADMIN')")
 //    public ResponseEntity<?>
+
+    @PutMapping("loan/change-status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<?> changeLoanStatus(@RequestBody AdminLoanStatus request){
+        return loanService.loanAdminChangeStats(request);
+    }
 
 }
