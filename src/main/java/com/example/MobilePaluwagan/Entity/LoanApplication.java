@@ -1,5 +1,6 @@
 package com.example.MobilePaluwagan.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,7 +25,7 @@ public class LoanApplication {
     @Column(name = "application_id")
     private Long applicationID;
 
-    @Column(name = "user_id")
+    @Column(name = "user_id", updatable = false)
     private Long userId;
 
     @Column(name = "requested_amount")
@@ -57,6 +58,7 @@ public class LoanApplication {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status = Status.PENDING;
+
 
     @ManyToOne
     @JoinColumn(name = "user_id", insertable = false, updatable = false)

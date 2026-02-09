@@ -1,10 +1,12 @@
 package com.example.MobilePaluwagan.Service;
 
 import com.example.MobilePaluwagan.Entity.Role;
+import com.example.MobilePaluwagan.Repository.TokenRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,12 +22,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 @Service
+@RequiredArgsConstructor
 public class JWTService {
 
     //@Value("${jwt.secret}")
     private static String secretKey = "a9f8b7c6d5e4f3g2h1i0jklmnopqrstuvwxyz123456";
 
     public static final long Expiration_time = 1000 * 60 * 60 * 24;
+
+    private final TokenRepository tokenRepository;
 
 
     public static String generateToken(String email, Long userId, String role) {
@@ -81,7 +86,11 @@ public class JWTService {
 
     public boolean validateToken(String token, UserDetails userdetails){
         final String username = extractUserName(token);
-        return(username.equals(userdetails.getUsername()) && !isTokenExpired(token));
+
+        boolean isValidToken = tokenRepository.findByToken(token)
+                .map(t -> !t.isLoggedOut()).orElse(false);
+
+        return(username.equals(userdetails.getUsername()) && !isTokenExpired(token)) && isValidToken;
     }
 
     private boolean isTokenExpired(String token){

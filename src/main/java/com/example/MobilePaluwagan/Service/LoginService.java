@@ -2,8 +2,10 @@ package com.example.MobilePaluwagan.Service;
 
 import com.example.MobilePaluwagan.DTOs.Request.LoginRequest;
 import com.example.MobilePaluwagan.DTOs.Response.LoginResponse;
+import com.example.MobilePaluwagan.Entity.Token;
 import com.example.MobilePaluwagan.Entity.User;
 import com.example.MobilePaluwagan.Entity.UserVerification;
+import com.example.MobilePaluwagan.Repository.TokenRepository;
 import com.example.MobilePaluwagan.Repository.UserRepo;
 import com.example.MobilePaluwagan.Repository.VerificationRepo;
 import io.jsonwebtoken.Jwts;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -31,8 +34,10 @@ public class LoginService {
     @Autowired
     private VerificationRepo verificationRepo;
     private final PasswordEncoder passwordEncoder;
+    @Autowired
+    private TokenRepository tokenRepository;
 
-//    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+
 
     private final JWTService jwtService;
     private final AuthenticationManager authenticationManager;
@@ -66,12 +71,16 @@ public class LoginService {
 
                 verificationRepo.delete(userVerification);
 
-                String token = String.valueOf(jwtService.generateToken(request.getEmail(), user.getId(), user.getRole().getRoleName()));
+                String jwt = String.valueOf(jwtService.generateToken(request.getEmail(), user.getId(), user.getRole().getRoleName()));
                 Date expiryDate = new Date(System.currentTimeMillis() + JWTService.Expiration_time);
+
+                revokeAllTokenByUser(user);
+
+                saveUserToken(jwt, user);
 
                 LoginResponse response = new LoginResponse(
                         "success",
-                        token,
+                        jwt,
                         expiryDate);
 
                 return ResponseEntity.ok(response);
@@ -87,6 +96,24 @@ public class LoginService {
                     .body(new LoginResponse("failed", null, null));
 
         }
+    }
+
+    private void revokeAllTokenByUser(User user) {
+        List<Token> validTokenByUser = tokenRepository.findAllTokenByUser(user.getId());
+
+        if(!validTokenByUser.isEmpty()){
+            validTokenByUser.forEach(token -> token.setLoggedOut(true));
+        }
+
+        tokenRepository.saveAll(validTokenByUser);
+    }
+
+    private void saveUserToken(String jwt, User user) {
+        Token token = new Token();
+        token.setToken(jwt);
+        token.setLoggedOut(false);
+        token.setUser(user);
+        tokenRepository.save(token);
     }
 
 }

@@ -2,7 +2,7 @@ spring:
   application:
     name: MobilePaluwagan
   profiles:
-    active: dev
+    active: backup
 
 ---
 spring:

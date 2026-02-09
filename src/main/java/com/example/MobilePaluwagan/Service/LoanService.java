@@ -313,6 +313,14 @@ public class LoanService {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
+        UserInfo userInfo = userInfoRepo.findByUserId(userId)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "UserId not found in Users"));
+
+        System.out.println("=== UserInfo Debug ===");
+        System.out.println("UserInfo object: " + userInfo);
+        System.out.println("UserInfo ID: " + userInfo.getId());  // ← Does UserInfo have getId()?
+        System.out.println("UserInfo userId: " + userInfo.getUserId());
+
         validateUserCanApplyForLoan(user);
 
         boolean hasSavings = user.isHasSavings();
@@ -321,7 +329,9 @@ public class LoanService {
 
         LoanApplication saveLoan = new LoanApplication();
         saveLoan.setApplicationID(request.getApplicationId());
-        saveLoan.setUserId(userId);
+        saveLoan.setUserId(user.getId());
+        System.out.println("userId "+ userId);
+        System.out.println("user.getID "+ user.getId());
         saveLoan.setStartDate(request.getStartDate());
         saveLoan.setEndDate(request.getEndDate());
         saveLoan.setRepayPeriodDays(request.getRepayPeriodDays());
@@ -334,6 +344,10 @@ public class LoanService {
         saveLoan.setStatus(Status.PENDING);
 
         loanApplicationRepo.save(saveLoan);
+        System.out.println("Saved loan ID: " + saveLoan.getId());
+        LoanApplication verified = loanApplicationRepo.findById(saveLoan.getId()).orElse(null);
+        System.out.println("UserID in DB after save: " + (verified != null ? verified.getUserId() : "NULL"));
+        System.out.println("UserInfo in DB after save: " + (verified != null && verified.getUserInfo() != null ? verified.getUserInfo().getUserId() : "NULL"));
 
         return request.getApplicationId();
     }
@@ -460,6 +474,7 @@ public class LoanService {
         Optional<LoanApplication> applicantId = loanApplicationRepo.findByApplicationID(request.getApplicationID());
 
        LoanApplication id = applicantId.get();
+
 
        if (id.getStatus().equals(request.getStatus())){
            return new ApiResponse<>(

@@ -1,8 +1,10 @@
 package com.example.MobilePaluwagan.Security;
 
 
+import com.example.MobilePaluwagan.Config.CustomLogoutHandler;
 import com.example.MobilePaluwagan.Config.JwtAuthenticationEntryPoint;
 import com.example.MobilePaluwagan.Filter.JwtFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +15,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,6 +26,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     @Autowired
@@ -33,6 +37,8 @@ public class SecurityConfig {
 
     @Autowired
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
+    private final CustomLogoutHandler customLogoutHandler;
 
 
     @Bean
@@ -47,6 +53,11 @@ public class SecurityConfig {
         http.formLogin(customizer -> withDefaults());
         http.httpBasic(Customizer.withDefaults());
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        http.logout(l-> l.logoutUrl("/logout")
+                .addLogoutHandler(customLogoutHandler)
+                .logoutSuccessHandler(
+                        (request, response, authentication) -> SecurityContextHolder.clearContext()
+                ));
 
         return http.build();
     }
