@@ -1,6 +1,7 @@
 package com.example.MobilePaluwagan.Controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -9,6 +10,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @RestController
+@RequestMapping("/api")
 public class LoanSseController {
     private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 
