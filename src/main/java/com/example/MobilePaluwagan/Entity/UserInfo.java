@@ -1,5 +1,6 @@
 package com.example.MobilePaluwagan.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -48,6 +49,7 @@ public class UserInfo {
     @Column(name = "verified_date")
     private LocalDate verifiedDate;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "userInfo")
     private List<LoanApplication> loanApplications;
 }

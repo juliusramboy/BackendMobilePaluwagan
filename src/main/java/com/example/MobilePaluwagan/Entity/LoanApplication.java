@@ -1,6 +1,7 @@
 package com.example.MobilePaluwagan.Entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -59,7 +60,7 @@ public class LoanApplication {
     @Column(nullable = false)
     private Status status = Status.PENDING;
 
-
+    @JsonManagedReference
     @ManyToOne
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private UserInfo userInfo;
