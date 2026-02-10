@@ -18,9 +18,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class LoanService {
@@ -511,6 +509,16 @@ public class LoanService {
                 "Successful change the status of applicant " + id.getStatus(),
                 null
         );
+    }
+
+    public Map<String, Long> getStatusCounts(){
+        Map<String, Long> counts = new HashMap<>();
+
+        counts.put("PENDING",loanApplicationRepo.countByStatus(Status.PENDING));
+        counts.put("REJECTED", loanApplicationRepo.countByStatus(Status.REJECTED));
+        counts.put("APPROVED", loanApplicationRepo.countByStatus(Status.APPROVED));
+
+        return counts;
     }
 
 

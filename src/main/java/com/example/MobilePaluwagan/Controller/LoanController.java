@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -140,5 +141,10 @@ public class  LoanController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/loan/status-counts")
+    public ResponseEntity<Map<String, Long>> getStatusCounts(){
+        Map<String, Long> counts = loanService.getStatusCounts();
+        return ResponseEntity.ok(counts);
+    }
 
 }
