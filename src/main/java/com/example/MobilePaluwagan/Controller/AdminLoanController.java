@@ -63,6 +63,7 @@ public class AdminLoanController {
     }
 
     @GetMapping("/loan/status-counts")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Long>> getStatusCounts(){
         Map<String, Long> counts = loanService.getStatusCounts();
         return ResponseEntity.ok(counts);

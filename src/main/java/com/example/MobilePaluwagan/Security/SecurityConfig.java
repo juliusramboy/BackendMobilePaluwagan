@@ -53,7 +53,7 @@ public class SecurityConfig {
         http.formLogin(customizer -> withDefaults());
         http.httpBasic(Customizer.withDefaults());
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-        http.logout(l-> l.logoutUrl("/logout")
+        http.logout(l-> l.logoutUrl("/api/auth/logout")
                 .addLogoutHandler(customLogoutHandler)
                 .logoutSuccessHandler(
                         (request, response, authentication) -> SecurityContextHolder.clearContext()
