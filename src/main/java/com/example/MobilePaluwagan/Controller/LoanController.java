@@ -140,11 +140,6 @@ public class  LoanController {
 
         return ResponseEntity.ok(response);
     }
-
-    @GetMapping("/loan/status-counts")
-    public ResponseEntity<Map<String, Long>> getStatusCounts(){
-        Map<String, Long> counts = loanService.getStatusCounts();
-        return ResponseEntity.ok(counts);
-    }
+    
 
 }

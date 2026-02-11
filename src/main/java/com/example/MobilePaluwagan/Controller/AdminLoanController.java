@@ -12,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("api/admin")
@@ -59,6 +60,12 @@ public class AdminLoanController {
         System.out.println("=== CONTROLLER HIT ===");
         System.out.println("Request received: " + request);
         return loanService.loanAdminChangeStats(request);
+    }
+
+    @GetMapping("/loan/status-counts")
+    public ResponseEntity<Map<String, Long>> getStatusCounts(){
+        Map<String, Long> counts = loanService.getStatusCounts();
+        return ResponseEntity.ok(counts);
     }
 
 }
