@@ -23,6 +23,7 @@ public class ProfileService {
     @Autowired
     private UserRepo userRepo;
 
+
     public UserProfileResponse userAllInfo(Long userId){
         UserInfo userInfo = userInfoRepo.findByUserId(userId).orElseThrow(() -> new RuntimeException("User info not found in user info"));
         User user = userRepo.findById(userId).orElseThrow(()-> new RuntimeException("user not found in users"));
