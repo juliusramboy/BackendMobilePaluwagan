@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "user_bank")
 @Data
@@ -19,8 +21,11 @@ public class UserBank {
     private Long userId;
 
     @Column(name = "first_deposit_date")
-    private Long firstDepositDate;
+    private LocalDate firstDepositDate;
 
     @Column(name = "account_balance")
     private Long accountBalance;
+
+    @Column(name = "savings_id")
+    private String savingsId;
 }

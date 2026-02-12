@@ -62,7 +62,7 @@ public class RegisterService {
 
         UserBank userBank = new UserBank();
         userBank.setUserId(userdataWithId.getId());
-        userBank.setTargetAmount(register.getTargetAmount());
+//        userBank.setTargetAmount(register.getTargetAmount());
         userBank.setAccountBalance(0L);
 
         userBankRepo.save(userBank);

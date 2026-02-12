@@ -5,7 +5,9 @@ import com.example.MobilePaluwagan.DTOs.Response.SavingsDepositHistory;
 import com.example.MobilePaluwagan.DTOs.Response.SavingsSummaryResponse;
 import com.example.MobilePaluwagan.DTOs.Response.UserDepositSavingsResponse;
 import com.example.MobilePaluwagan.Entity.Status;
+import com.example.MobilePaluwagan.Entity.UserBank;
 import com.example.MobilePaluwagan.Entity.UserSavings;
+import com.example.MobilePaluwagan.Repository.UserBankRepo;
 import com.example.MobilePaluwagan.Repository.UserSavingsRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,39 +26,45 @@ public class SavingsService {
     @Autowired
     private UserSavingsRepo userSavingsRepo;
 
+    @Autowired
+    private UserBankRepo userBankRepo;
+
 
     public ApiResponse<UserDepositSavingsResponse> userDeposit(Long userId, double depositAmount, LocalDate depositDate){
+        Optional<UserBank> userBank = userBankRepo.findByUserId(userId);
 
-            if (depositAmount <= 0){
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Deposit amount must be greater than zero"
-                );
+        ApiResponse<UserDepositSavingsResponse> x = checkUserDepositInput(userId, depositAmount, depositDate);
+        if (x != null) return x;
+
+        UserBank user = userBank.get();
+            UserSavings deposit;
+            
+            if (user.getFirstDepositDate() == null){
+                user.setSavingsId(savingsId(userId));
+                user.setFirstDepositDate(LocalDate.now());
+
+                UserSavings userSavings = new UserSavings();
+                userSavings.setUserId(userId);
+                userSavings.setAmountDeposit(depositAmount);
+                userSavings.setDepositDate(depositDate);
+
+                userSavings.setReference(refNumberSavings(userId));
+                userSavings.setStatus(Status.PENDING);
+
+                 deposit = userSavingsRepo.save(userSavings);
+                 
+            }else {
+                
+                UserSavings userSavings = new UserSavings();
+                userSavings.setUserId(userId);
+                userSavings.setAmountDeposit(depositAmount);
+                userSavings.setDepositDate(depositDate);
+                userSavings.setReference(refNumberSavings(userId));
+                userSavings.setStatus(Status.PENDING);
+
+                deposit = userSavingsRepo.save(userSavings);
             }
-
-            if(depositDate == null){
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST,
-                        "Deposit date cannot be null"
-                );
-            }
-
-            if(userSavingsRepo.existsByUserIdAndStatus(userId, Status.PENDING)){
-               return new ApiResponse<>(
-                       false,
-                       "We see that you have a pending deposit. Please wait for the admin to process it.",
-                       null
-               );
-            }
-
-            UserSavings userSavings = new UserSavings();
-            userSavings.setUserId(userId);
-            userSavings.setAmountDeposit(depositAmount);
-            userSavings.setDepositDate(depositDate);
-            userSavings.setReference(refNumberSavings(userId));
-            userSavings.setStatus(Status.PENDING);
-
-            UserSavings deposit = userSavingsRepo.save(userSavings);
-
+            
             UserDepositSavingsResponse responseData = mapToUserSavingsResponse(deposit);
 
             return new ApiResponse<>(
@@ -65,6 +74,30 @@ public class SavingsService {
             );
 
 
+    }
+
+    private ApiResponse<UserDepositSavingsResponse> checkUserDepositInput(Long userId, double depositAmount, LocalDate depositDate) {
+        if (depositAmount <= 0){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Deposit amount must be greater than zero"
+            );
+        }
+
+        if(depositDate == null){
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Deposit date cannot be null"
+            );
+        }
+
+        if(userSavingsRepo.existsByUserIdAndStatus(userId, Status.PENDING)){
+            return new ApiResponse<>(
+                    false,
+                    "We see that you have a pending deposit. Please wait for the admin to process it.",
+                    null
+            );
+        }
+        return null;
     }
 
     private UserDepositSavingsResponse mapToUserSavingsResponse(UserSavings savings){
@@ -143,6 +176,13 @@ public class SavingsService {
 
     public String refNumberSavings(Long userId) {
         String prefix = "REM";
+        String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        long count = userSavingsRepo.countByUserId(userId) + 1;
+        return String.format("%s-%s-%d-%04d", prefix, datePart, userId, count);
+    }
+
+    public String savingsId (Long userId) {
+        String prefix = "SID";
         String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         long count = userSavingsRepo.countByUserId(userId) + 1;
         return String.format("%s-%s-%d-%04d", prefix, datePart, userId, count);

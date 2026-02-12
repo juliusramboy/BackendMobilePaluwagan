@@ -43,7 +43,7 @@ public class SavingsController {
 
 
 
-    @GetMapping("summary")
+    @GetMapping("/summary")
     public ResponseEntity<ApiResponse<SavingsSummaryResponse>> history(Authentication authentication){
         UserPrinciple user = (UserPrinciple) authentication.getPrincipal();
         Long userId = user.userId();

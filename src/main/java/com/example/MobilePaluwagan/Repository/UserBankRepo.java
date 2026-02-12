@@ -11,7 +11,7 @@ public interface UserBankRepo extends JpaRepository<UserBank, Long> {
 
     Optional<UserBank> findByAccountBalance(Long accountBalance);
 
-    Optional<UserBank> findByTargetAmount(Long targetAmount);
+//    Optional<UserBank> findByTargetAmount(Long targetAmount);
 
     Optional<UserBank> findByUserId(Long userId);
 }

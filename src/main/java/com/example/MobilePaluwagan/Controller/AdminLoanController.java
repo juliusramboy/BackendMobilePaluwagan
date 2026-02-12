@@ -15,33 +15,33 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("api/admin")
+@RequestMapping("api/admin/loan")
 public class AdminLoanController {
     @Autowired
     LoanService loanService;
 
-    @GetMapping("/loan/pending")
+    @GetMapping("/pending")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<LoanApplicantsAdmin>>> getAllPendingApplications() {
         ApiResponse<List<LoanApplicantsAdmin>> pending = loanService.getPendingApplicants();
         return ResponseEntity.ok(pending);
     }
 
-    @GetMapping("/loan/approve")
+    @GetMapping("/approve")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<LoanApplicantsAdmin>>> getAllApproveApplications() {
         ApiResponse<List<LoanApplicantsAdmin>> approve = loanService.getApproveApplicants();
         return ResponseEntity.ok(approve);
     }
 
-    @GetMapping("/loan/rejected")
+    @GetMapping("/rejected")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<LoanApplicantsAdmin>>> getAllRejectedApplications() {
         ApiResponse<List<LoanApplicantsAdmin>> rejected = loanService.getRejectedApplicants();
         return ResponseEntity.ok(rejected);
     }
 
-    @GetMapping("/loan/details/{applicationId}")
+    @GetMapping("/details/{applicationId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApplicantsFullInfoAdmin> getAllApproveApplications(@PathVariable Long applicationId) {
         System.out.println("Searching for applicationID: " + applicationId);
@@ -50,11 +50,8 @@ public class AdminLoanController {
         return ResponseEntity.ok(applicantsFullInfo);
     }
 
-//    @PostMapping("/loan/approve/{applicationId}")
-//    @PreAuthorize("hasRole('ADMIN')")
-//    public ResponseEntity<?>
 
-    @PutMapping("loan/change-status")
+    @PutMapping("/change-status")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<?> changeLoanStatus(@RequestBody AdminLoanStatus request){
         System.out.println("=== CONTROLLER HIT ===");
@@ -62,7 +59,7 @@ public class AdminLoanController {
         return loanService.loanAdminChangeStats(request);
     }
 
-    @GetMapping("/loan/status-counts")
+    @GetMapping("/status-counts")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Long>> getStatusCounts(){
         Map<String, Long> counts = loanService.getStatusCounts();
