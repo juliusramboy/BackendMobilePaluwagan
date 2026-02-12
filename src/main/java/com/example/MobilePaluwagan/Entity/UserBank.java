@@ -18,8 +18,8 @@ public class UserBank {
     @Column(name = "user_id")
     private Long userId;
 
-    @Column(name = "target_amount")
-    private Long targetAmount;
+    @Column(name = "first_deposit_date")
+    private Long firstDepositDate;
 
     @Column(name = "account_balance")
     private Long accountBalance;
