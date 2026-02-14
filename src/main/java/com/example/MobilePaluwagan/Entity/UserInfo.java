@@ -49,6 +49,9 @@ public class UserInfo {
     @Column(name = "verified_date")
     private LocalDate verifiedDate;
 
+    @Column(name = "source_of_funds")
+    private String sourceOfFunds;
+
     @JsonIgnore
     @OneToMany(mappedBy = "userInfo")
     private List<LoanApplication> loanApplications;
