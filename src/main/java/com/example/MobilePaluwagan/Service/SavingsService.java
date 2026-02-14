@@ -1,5 +1,6 @@
 package com.example.MobilePaluwagan.Service;
 
+import com.example.MobilePaluwagan.Controller.LoanSseController;
 import com.example.MobilePaluwagan.DTOs.Response.ApiResponse;
 import com.example.MobilePaluwagan.DTOs.Response.SavingsDepositHistory;
 import com.example.MobilePaluwagan.DTOs.Response.SavingsSummaryResponse;
@@ -35,6 +36,9 @@ public class SavingsService {
 
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private LoanSseController loanSseController;
 
 
     public ApiResponse<UserDepositSavingsResponse> userDeposit(Long userId, double depositAmount, LocalDate depositDate){
@@ -184,6 +188,8 @@ public class SavingsService {
         userInfoRepo.save(userInfo);
 
         userBankRepo.save(userBank);
+
+        loanSseController.notifyLoan();
 
         return  new ApiResponse<>(
                 true,
