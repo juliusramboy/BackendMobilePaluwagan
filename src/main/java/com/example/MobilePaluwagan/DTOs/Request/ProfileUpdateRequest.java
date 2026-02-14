@@ -17,5 +17,6 @@ public class ProfileUpdateRequest {
     private LocalDate birthDay;
 
     private String email;
-    private String password;
+    private String newPassword;
+    private String oldPassword;
 }
