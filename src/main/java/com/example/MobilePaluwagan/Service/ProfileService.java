@@ -10,6 +10,7 @@ import com.example.MobilePaluwagan.Repository.UserRepo;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -22,6 +23,8 @@ public class ProfileService {
     private UserInfoRepo userInfoRepo;
     @Autowired
     private UserRepo userRepo;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
 
     public UserProfileResponse userAllInfo(Long userId){
@@ -46,7 +49,13 @@ public class ProfileService {
     public ApiResponse<String> updateProfile(Long userId, ProfileUpdateRequest request) {
 
 
-        UserInfo user = userInfoRepo.findByUserId(userId)
+        UserInfo info = userInfoRepo.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "User not found with id: " + userId
+                ));
+
+        User user = userRepo.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "User not found with id: " + userId
@@ -55,39 +64,68 @@ public class ProfileService {
 
 
         if (request.getFirstName() != null) {
-            user.setFirstName(request.getFirstName());
+            info.setFirstName(request.getFirstName());
         }
 
         if (request.getMiddleName() != null) {
-            user.setMiddleName(request.getMiddleName());
+            info.setMiddleName(request.getMiddleName());
         }
 
         if (request.getLastName() != null) {
-            user.setLastName(request.getLastName());
+            info.setLastName(request.getLastName());
         }
 
         if (request.getSuffix() != null) {
-            user.setSuffix(request.getSuffix());
+            info.setSuffix(request.getSuffix());
         }
 
         if (request.getGender() != null) {
-            user.setGender(request.getGender());
+            info.setGender(request.getGender());
         }
 
         if (request.getAddress() != null) {
-            user.setAddress(request.getAddress());
+            info.setAddress(request.getAddress());
         }
 
         if (request.getBirthDay() != null) {
-            user.setBirthDay(request.getBirthDay());
+            info.setBirthDay(request.getBirthDay());
         }
 
         if (request.getPhoneNumber() != null) {
-            user.setPhoneNumber(request.getPhoneNumber());
+            info.setPhoneNumber(request.getPhoneNumber());
+        }
+
+        if (request.getEmail() != null){
+            user.setEmail(request.getEmail());
+        }
+
+        if (passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            if (request.getNewPassword() != null && !request.getNewPassword().isBlank()) {
+                String encodedNewPassword = passwordEncoder.encode(request.getNewPassword());
+
+                user.setPassword(encodedNewPassword);
+
+                userRepo.save(user);
+            } else {
+                return new ApiResponse<>(
+                        false,
+                        "New password cannot be null or blank",
+                        null
+                );
+            }
+        } else {
+            return new ApiResponse<>(
+                    false,
+                    "Old password does not match",
+                    null
+            );
         }
 
 
-        UserInfo savedUser = userInfoRepo.save(user);
+
+
+
+        UserInfo savedUser = userInfoRepo.save(info);
 
         return new ApiResponse<>(
                 true,
