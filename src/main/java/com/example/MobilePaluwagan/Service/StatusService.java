@@ -1,0 +1,77 @@
+package com.example.MobilePaluwagan.Service;
+
+import com.example.MobilePaluwagan.DTOs.Response.StatusResponse;
+import com.example.MobilePaluwagan.Entity.*;
+import com.example.MobilePaluwagan.Repository.LoanApplicationRepo;
+import com.example.MobilePaluwagan.Repository.SavingsApplicationRepo;
+import com.example.MobilePaluwagan.Repository.UserBankRepo;
+import com.example.MobilePaluwagan.Repository.UserRepo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class StatusService {
+
+    @Autowired
+    private UserRepo userRepo;
+    @Autowired
+    private LoanApplicationRepo loanApplicationRepo;
+    @Autowired
+    private SavingsApplicationRepo savingsApplicationRepo;
+    @Autowired
+    private UserBankRepo userBankRepo;
+
+    public StatusResponse getUserStatus(Long userId){
+
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        UserBank userBank = userBankRepo.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        boolean hasActiveLoan = user.isHasLoan();
+        boolean hasSavingsAccount = user.isHasSavingsAccount();
+        boolean hasActiveSavings = userBank.isHasSavingsDeposit();
+
+        boolean hasPendingSavingsApplication = savingsApplicationRepo.existsByUserIdAndStatusIn(
+                userId,
+                List.of(Status.PENDING));
+
+        boolean hasPendingApplication = loanApplicationRepo.existsByUserIdAndStatusIn(
+                userId,
+                List.of(Status.PENDING)
+        );
+
+        boolean hasApprovedApplication = loanApplicationRepo.existsByUserIdAndStatusIn(
+                userId,
+                List.of(Status.APPROVED)
+        );
+
+        boolean hasApprovedSavingsApplication = savingsApplicationRepo.existsByUserIdAndStatusIn(
+                userId,
+                List.of(Status.APPROVED)
+        );
+
+        Optional<LoanApplication> latestApplication = loanApplicationRepo.findAllByUserId(userId).stream()
+                .filter(app -> app.getStatus() == Status.PENDING || app.getStatus() == Status.APPROVED)
+                .max(Comparator.comparing(LoanApplication::getApplicationID));
+
+        return new StatusResponse(
+                hasActiveLoan,
+                hasActiveSavings,
+                hasSavingsAccount,
+                hasPendingSavingsApplication,
+                hasApprovedSavingsApplication,
+                hasPendingApplication,
+                hasApprovedApplication,
+                latestApplication.map(LoanApplication::getApplicationID).orElse(null),
+                latestApplication.map(app -> app.getStatus().name()).orElse(null)
+        );
+    }
+}

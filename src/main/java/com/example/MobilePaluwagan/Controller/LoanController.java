@@ -2,14 +2,12 @@ package com.example.MobilePaluwagan.Controller;
 
 import com.example.MobilePaluwagan.DTOs.Request.ApplyLoanRequest;
 import com.example.MobilePaluwagan.DTOs.Request.CalculateLoanRequest;
-import com.example.MobilePaluwagan.DTOs.Request.LoanApplicationRequest;
 import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterRequest;
 import com.example.MobilePaluwagan.DTOs.Response.*;
 import com.example.MobilePaluwagan.Entity.LoanApplication;
 import com.example.MobilePaluwagan.Entity.LoanPayment;
 import com.example.MobilePaluwagan.Entity.UserPrinciple;
 import com.example.MobilePaluwagan.Service.LoanService;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -74,15 +71,6 @@ public class  LoanController {
         return response;
     }
 
-    @GetMapping("/loan/status")
-    public ApiResponse<LoanStatusResponse> checkLoanStatus(Authentication authentication) {
-        UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
-        Long userId = userDetails.userId();
-
-        LoanStatusResponse status = loanService.getUserLoanStatus(userId);
-
-        return new ApiResponse<>(true, "Success", status);
-    }
 
     @GetMapping("loan/status/details")
     public Optional<LoanApplication> details(Authentication authentication){

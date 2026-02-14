@@ -48,6 +48,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(request -> request.requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/loan/updates").permitAll()
+                .requestMatchers("/images/**").permitAll()
                 .anyRequest().authenticated());
         http.exceptionHandling(ex -> ex .authenticationEntryPoint(jwtAuthenticationEntryPoint));
         http.formLogin(customizer -> withDefaults());

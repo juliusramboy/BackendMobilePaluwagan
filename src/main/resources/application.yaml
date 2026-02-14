@@ -36,3 +36,5 @@ jwt:
 app:
   cors:
     allowed-cors: ${ALLOWED_ORIGINS}
+  logo:
+    url: ${LOGO_URL}

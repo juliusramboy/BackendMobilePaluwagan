@@ -7,8 +7,12 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoanStatusResponse {
+public class StatusResponse {
     private boolean hasActiveLoan;
+    private boolean hasActiveSavings;
+    private boolean hasSavingsAccount;
+    private boolean hasPendingSavingsApplication;
+    private boolean hasApprovedSavingsApplication;
     private boolean hasPendingApplication;
     private boolean hasApprovedApplication;
     private Long latestApplicationId;

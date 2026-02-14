@@ -4,9 +4,11 @@ import com.example.MobilePaluwagan.DTOs.Response.ApiResponse;
 import com.example.MobilePaluwagan.DTOs.Response.SavingsDepositHistory;
 import com.example.MobilePaluwagan.DTOs.Response.SavingsSummaryResponse;
 import com.example.MobilePaluwagan.DTOs.Response.UserDepositSavingsResponse;
+import com.example.MobilePaluwagan.Entity.SavingsApplication;
 import com.example.MobilePaluwagan.Entity.Status;
 import com.example.MobilePaluwagan.Entity.UserBank;
 import com.example.MobilePaluwagan.Entity.UserSavings;
+import com.example.MobilePaluwagan.Repository.SavingsApplicationRepo;
 import com.example.MobilePaluwagan.Repository.UserBankRepo;
 import com.example.MobilePaluwagan.Repository.UserSavingsRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -29,6 +32,9 @@ public class SavingsService {
     @Autowired
     private UserBankRepo userBankRepo;
 
+    @Autowired
+    private SavingsApplicationRepo savingsApplicationRepo;
+
 
     public ApiResponse<UserDepositSavingsResponse> userDeposit(Long userId, double depositAmount, LocalDate depositDate){
         Optional<UserBank> userBank = userBankRepo.findByUserId(userId);
@@ -38,32 +44,14 @@ public class SavingsService {
 
         UserBank user = userBank.get();
             UserSavings deposit;
-            
-            if (user.getFirstDepositDate() == null){
-                user.setSavingsId(savingsId(userId));
-                user.setFirstDepositDate(LocalDate.now());
-
                 UserSavings userSavings = new UserSavings();
                 userSavings.setUserId(userId);
                 userSavings.setAmountDeposit(depositAmount);
                 userSavings.setDepositDate(depositDate);
-
-                userSavings.setReference(refNumberSavings(userId));
-                userSavings.setStatus(Status.PENDING);
-
-                 deposit = userSavingsRepo.save(userSavings);
-                 
-            }else {
-                
-                UserSavings userSavings = new UserSavings();
-                userSavings.setUserId(userId);
-                userSavings.setAmountDeposit(depositAmount);
-                userSavings.setDepositDate(depositDate);
-                userSavings.setReference(refNumberSavings(userId));
                 userSavings.setStatus(Status.PENDING);
 
                 deposit = userSavingsRepo.save(userSavings);
-            }
+
             
             UserDepositSavingsResponse responseData = mapToUserSavingsResponse(deposit);
 
@@ -164,6 +152,24 @@ public class SavingsService {
         );
     }
 
+    public ApiResponse<?> createSavingsAcc(Long userId, BigDecimal targetAmount, String sourceOfFunds){
+
+        SavingsApplication application = new SavingsApplication();
+
+        application.setUserId(userId);
+        application.setSavingsId(savingsId(userId));
+        application.setTargetAmount(targetAmount);
+        application.setSourceOfFunds(sourceOfFunds);
+
+        savingsApplicationRepo.save(application);
+
+        return  new ApiResponse<>(
+                true,
+                "Successfully applied Savings",
+                application
+        );
+    }
+
     private SavingsDepositHistory allHistory(UserSavings savings) {
         return SavingsDepositHistory.builder()
                 .amountRemit(savings.getAmountDeposit())
@@ -174,17 +180,11 @@ public class SavingsService {
 
     }
 
-    public String refNumberSavings(Long userId) {
-        String prefix = "REM";
-        String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        long count = userSavingsRepo.countByUserId(userId) + 1;
-        return String.format("%s-%s-%d-%04d", prefix, datePart, userId, count);
-    }
-
     public String savingsId (Long userId) {
         String prefix = "SID";
         String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        long count = userSavingsRepo.countByUserId(userId) + 1;
-        return String.format("%s-%s-%d-%04d", prefix, datePart, userId, count);
+        String userIdPart = "0" + userId;
+        return prefix + datePart + userIdPart;
     }
+
 }

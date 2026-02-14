@@ -1,5 +1,6 @@
 package com.example.MobilePaluwagan.Controller;
 
+import com.example.MobilePaluwagan.DTOs.Request.UserCreateSavingsAccount;
 import com.example.MobilePaluwagan.DTOs.Request.UserDepositSavingsRequest;
 import com.example.MobilePaluwagan.DTOs.Response.ApiResponse;
 import com.example.MobilePaluwagan.DTOs.Response.SavingsDepositHistory;
@@ -39,6 +40,20 @@ public class SavingsController {
         );
 
         return ResponseEntity.ok(savings);
+    }
+
+    @PostMapping("/apply")
+    public ResponseEntity<?> createSavingsAcc(Authentication authentication, @RequestBody UserCreateSavingsAccount request){
+        UserPrinciple user = (UserPrinciple) authentication.getPrincipal();
+        Long userId = user.userId();
+
+        ApiResponse<?> apply = savingsService.createSavingsAcc(
+                userId,
+                request.getTargetAmount(),
+                request.getSourceOfFunds()
+        );
+
+        return ResponseEntity.ok(apply);
     }
 
 

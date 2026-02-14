@@ -12,6 +12,7 @@ import javax.xml.crypto.Data;
 import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 public class RegisterService {
@@ -30,6 +31,9 @@ public class RegisterService {
 
     @Autowired
     private VerificationRepo verificationRepo;
+
+    @Autowired
+    private UserSavingsRepo userSavingsRepo;
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
@@ -62,10 +66,11 @@ public class RegisterService {
 
         UserBank userBank = new UserBank();
         userBank.setUserId(userdataWithId.getId());
-//        userBank.setTargetAmount(register.getTargetAmount());
         userBank.setAccountBalance(0L);
 
         userBankRepo.save(userBank);
+
+
 
         String plainOtp = generateOtp();
         String hashedOtp = encoder.encode(plainOtp);
@@ -141,5 +146,7 @@ public class RegisterService {
 
         System.out.println("Password successfully changed for user: " + user.getId());
     }
+
+
 
 }

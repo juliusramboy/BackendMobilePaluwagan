@@ -5,30 +5,33 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+import java.math.BigDecimal;
 
 @Entity
-@Table(name = "user_bank")
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserBank {
+@Data
+@Table(name = "savings_application")
+public class SavingsApplication {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
     @Column(name = "user_id")
     private Long userId;
 
-    @Column(name = "first_deposit_date")
-    private LocalDate firstDepositDate;
-
-    @Column(name = "account_balance")
-    private Long accountBalance;
-
     @Column(name = "savings_id")
     private String savingsId;
 
-    @Column(name = "has_savings_deposit")
-    private boolean hasSavingsDeposit;
+    @Column(name = "target_amount")
+    private BigDecimal targetAmount;
+
+    @Column(name = "source_of_funds")
+    private String sourceOfFunds;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Status status = Status.PENDING;
 }

@@ -276,7 +276,7 @@ public class LoanService {
     private BigDecimal calculateLoanInterest(Long userId, BigDecimal loanAmount, long totalDays) {
         Optional<User> userOpt = userRepo.findById(userId);
 
-        boolean hasSavings = userOpt.map(User::isHasSavings).orElse(false);
+        boolean hasSavings = userOpt.map(User::isHasSavingsAccount).orElse(false);
 
         // Monthly interest rate: 5% or 10% per month
         double monthlyRate = hasSavings ? 5.0 : 10.0;
@@ -321,7 +321,7 @@ public class LoanService {
 
         validateUserCanApplyForLoan(user);
 
-        boolean hasSavings = user.isHasSavings();
+        boolean hasSavings = user.isHasSavingsAccount();
         double monthlyRate = hasSavings ? 5.0 : 10.0;
 
 
@@ -366,35 +366,35 @@ public class LoanService {
         }
     }
 
-    public LoanStatusResponse getUserLoanStatus(Long userId){
-
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
-        boolean hasLoan = user.isHasLoan();
-
-        boolean hasPendingApplication = loanApplicationRepo.existsByUserIdAndStatusIn(
-                userId,
-                List.of(Status.PENDING)
-        );
-
-        boolean hasApprovedApplication = loanApplicationRepo.existsByUserIdAndStatusIn(
-                userId,
-                List.of(Status.APPROVED)
-        );
-
-        Optional<LoanApplication> latestApplication = loanApplicationRepo.findAllByUserId(userId).stream()
-                .filter(app -> app.getStatus() == Status.PENDING || app.getStatus() == Status.APPROVED)
-                .max(Comparator.comparing(LoanApplication::getApplicationID));
-
-        return new LoanStatusResponse(
-                hasLoan,
-                hasPendingApplication,
-                hasApprovedApplication,
-                latestApplication.map(LoanApplication::getApplicationID).orElse(null),
-                latestApplication.map(app -> app.getStatus().name()).orElse(null)
-        );
-    }
+//    public StatusResponse getUserLoanStatus(Long userId){
+//
+//        User user = userRepo.findById(userId)
+//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+//
+//        boolean hasLoan = user.isHasLoan();
+//
+//        boolean hasPendingApplication = loanApplicationRepo.existsByUserIdAndStatusIn(
+//                userId,
+//                List.of(Status.PENDING)
+//        );
+//
+//        boolean hasApprovedApplication = loanApplicationRepo.existsByUserIdAndStatusIn(
+//                userId,
+//                List.of(Status.APPROVED)
+//        );
+//
+//        Optional<LoanApplication> latestApplication = loanApplicationRepo.findAllByUserId(userId).stream()
+//                .filter(app -> app.getStatus() == Status.PENDING || app.getStatus() == Status.APPROVED)
+//                .max(Comparator.comparing(LoanApplication::getApplicationID));
+//
+//        return new StatusResponse(
+//                hasLoan,
+//                hasPendingApplication,
+//                hasApprovedApplication,
+//                latestApplication.map(LoanApplication::getApplicationID).orElse(null),
+//                latestApplication.map(app -> app.getStatus().name()).orElse(null)
+//        );
+//    }
 
 
     public Optional<LoanApplication> getDetails(Long userId){
