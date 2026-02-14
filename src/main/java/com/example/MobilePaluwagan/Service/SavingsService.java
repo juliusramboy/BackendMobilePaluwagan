@@ -4,12 +4,9 @@ import com.example.MobilePaluwagan.DTOs.Response.ApiResponse;
 import com.example.MobilePaluwagan.DTOs.Response.SavingsDepositHistory;
 import com.example.MobilePaluwagan.DTOs.Response.SavingsSummaryResponse;
 import com.example.MobilePaluwagan.DTOs.Response.UserDepositSavingsResponse;
-import com.example.MobilePaluwagan.Entity.SavingsApplication;
-import com.example.MobilePaluwagan.Entity.Status;
-import com.example.MobilePaluwagan.Entity.UserBank;
-import com.example.MobilePaluwagan.Entity.UserSavings;
-import com.example.MobilePaluwagan.Repository.SavingsApplicationRepo;
+import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.UserBankRepo;
+import com.example.MobilePaluwagan.Repository.UserInfoRepo;
 import com.example.MobilePaluwagan.Repository.UserSavingsRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -33,7 +30,7 @@ public class SavingsService {
     private UserBankRepo userBankRepo;
 
     @Autowired
-    private SavingsApplicationRepo savingsApplicationRepo;
+    private UserInfoRepo userInfoRepo;
 
 
     public ApiResponse<UserDepositSavingsResponse> userDeposit(Long userId, double depositAmount, LocalDate depositDate){
@@ -154,19 +151,22 @@ public class SavingsService {
 
     public ApiResponse<?> createSavingsAcc(Long userId, BigDecimal targetAmount, String sourceOfFunds){
 
-        SavingsApplication application = new SavingsApplication();
+        UserBank userBank = userBankRepo.findByUserId(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userId is not found"));
+        UserInfo userInfo = userInfoRepo.findByUserId(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userId not found"));
 
-        application.setUserId(userId);
-        application.setSavingsId(savingsId(userId));
-        application.setTargetAmount(targetAmount);
-        application.setSourceOfFunds(sourceOfFunds);
+        userBank.setSavingsId(savingsId(userId));
+        userBank.setTargetAmount(targetAmount);
 
-        savingsApplicationRepo.save(application);
+        userInfo.setSourceOfFunds(sourceOfFunds);
+
+        userInfoRepo.save(userInfo);
+
+        userBankRepo.save(userBank);
 
         return  new ApiResponse<>(
                 true,
                 "Successfully applied Savings",
-                application
+                userBank
         );
     }
 

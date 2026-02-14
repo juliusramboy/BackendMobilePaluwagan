@@ -3,7 +3,6 @@ package com.example.MobilePaluwagan.Service;
 import com.example.MobilePaluwagan.DTOs.Response.StatusResponse;
 import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.LoanApplicationRepo;
-import com.example.MobilePaluwagan.Repository.SavingsApplicationRepo;
 import com.example.MobilePaluwagan.Repository.UserBankRepo;
 import com.example.MobilePaluwagan.Repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +22,6 @@ public class StatusService {
     @Autowired
     private LoanApplicationRepo loanApplicationRepo;
     @Autowired
-    private SavingsApplicationRepo savingsApplicationRepo;
-    @Autowired
     private UserBankRepo userBankRepo;
 
     public StatusResponse getUserStatus(Long userId){
@@ -39,9 +36,7 @@ public class StatusService {
         boolean hasSavingsAccount = user.isHasSavingsAccount();
         boolean hasActiveSavings = userBank.isHasSavingsDeposit();
 
-        boolean hasPendingSavingsApplication = savingsApplicationRepo.existsByUserIdAndStatusIn(
-                userId,
-                List.of(Status.PENDING));
+
 
         boolean hasPendingApplication = loanApplicationRepo.existsByUserIdAndStatusIn(
                 userId,
@@ -49,11 +44,6 @@ public class StatusService {
         );
 
         boolean hasApprovedApplication = loanApplicationRepo.existsByUserIdAndStatusIn(
-                userId,
-                List.of(Status.APPROVED)
-        );
-
-        boolean hasApprovedSavingsApplication = savingsApplicationRepo.existsByUserIdAndStatusIn(
                 userId,
                 List.of(Status.APPROVED)
         );
@@ -66,8 +56,6 @@ public class StatusService {
                 hasActiveLoan,
                 hasActiveSavings,
                 hasSavingsAccount,
-                hasPendingSavingsApplication,
-                hasApprovedSavingsApplication,
                 hasPendingApplication,
                 hasApprovedApplication,
                 latestApplication.map(LoanApplication::getApplicationID).orElse(null),

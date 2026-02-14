@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -28,6 +29,9 @@ public class UserBank {
 
     @Column(name = "savings_id")
     private String savingsId;
+
+    @Column(name = "target_amount")
+    private BigDecimal targetAmount;
 
     @Column(name = "has_savings_deposit")
     private boolean hasSavingsDeposit;
