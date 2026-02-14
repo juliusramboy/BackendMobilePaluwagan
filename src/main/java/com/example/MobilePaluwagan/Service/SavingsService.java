@@ -7,6 +7,7 @@ import com.example.MobilePaluwagan.DTOs.Response.UserDepositSavingsResponse;
 import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.UserBankRepo;
 import com.example.MobilePaluwagan.Repository.UserInfoRepo;
+import com.example.MobilePaluwagan.Repository.UserRepo;
 import com.example.MobilePaluwagan.Repository.UserSavingsRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,6 +32,9 @@ public class SavingsService {
 
     @Autowired
     private UserInfoRepo userInfoRepo;
+
+    @Autowired
+    private UserRepo userRepo;
 
 
     public ApiResponse<UserDepositSavingsResponse> userDeposit(Long userId, double depositAmount, LocalDate depositDate){
@@ -153,6 +157,7 @@ public class SavingsService {
 
         UserBank userBank = userBankRepo.findByUserId(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userId is not found"));
         UserInfo userInfo = userInfoRepo.findByUserId(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userId not found"));
+        User user = userRepo.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userId not found"));
 
         if(userBank.getTargetAmount() != null){
             return new ApiResponse<>(
@@ -172,6 +177,7 @@ public class SavingsService {
 
         userBank.setSavingsId(savingsId(userId));
         userBank.setTargetAmount(targetAmount);
+        user.setHasSavingsAccount(true);
 
         userInfo.setSourceOfFunds(sourceOfFunds);
 
