@@ -163,12 +163,6 @@ public class SavingsService {
         UserInfo userInfo = userInfoRepo.findByUserId(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userId not found"));
         User user = userRepo.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userId not found"));
 
-        if(userBank.getTargetAmount() != null){
-            return new ApiResponse<>(
-                    false,
-                    "You already set a target amount",
-                    null );
-        }
 
         if (targetAmount.compareTo(BigDecimal.valueOf(5000)) < 0) {
             return new ApiResponse<>(
@@ -176,6 +170,13 @@ public class SavingsService {
                     "5000 is minimum target amount in Savings",
                     targetAmount
             );
+        }
+
+        if(userBank.getTargetAmount() != null){
+            return new ApiResponse<>(
+                    false,
+                    "You already set a target amount",
+                    null );
         }
 
 
