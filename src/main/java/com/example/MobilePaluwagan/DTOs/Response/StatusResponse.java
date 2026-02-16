@@ -14,5 +14,6 @@ public class StatusResponse {
     private boolean hasPendingApplication;
     private boolean hasApprovedApplication;
     private Long latestApplicationId;
+    private String SavingsId;
     private String latestApplicationStatus;
 }
