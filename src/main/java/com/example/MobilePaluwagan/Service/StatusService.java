@@ -36,6 +36,8 @@ public class StatusService {
         boolean hasSavingsAccount = user.isHasSavingsAccount();
         boolean hasActiveSavings = userBank.isHasSavingsDeposit();
 
+        String SavingsId = userBank.getSavingsId();
+
 
 
         boolean hasPendingApplication = loanApplicationRepo.existsByUserIdAndStatusIn(
@@ -59,6 +61,7 @@ public class StatusService {
                 hasPendingApplication,
                 hasApprovedApplication,
                 latestApplication.map(LoanApplication::getApplicationID).orElse(null),
+                SavingsId,
                 latestApplication.map(app -> app.getStatus().name()).orElse(null)
         );
     }
