@@ -99,27 +99,33 @@ public class ProfileService {
             user.setEmail(request.getEmail());
         }
 
-        if (passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
-            if (request.getNewPassword() != null && !request.getNewPassword().isBlank()) {
-                String encodedNewPassword = passwordEncoder.encode(request.getNewPassword());
+        if (request.getNewPassword() != null && request.getOldPassword() != null){
 
-                user.setPassword(encodedNewPassword);
+            if (passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+                if (request.getNewPassword() != null && !request.getNewPassword().isBlank()) {
+                    String encodedNewPassword = passwordEncoder.encode(request.getNewPassword());
 
-                userRepo.save(user);
+                    user.setPassword(encodedNewPassword);
+
+                    userRepo.save(user);
+                } else {
+                    return new ApiResponse<>(
+                            false,
+                            "New password cannot be null or blank",
+                            null
+                    );
+                }
             } else {
                 return new ApiResponse<>(
                         false,
-                        "New password cannot be null or blank",
+                        "Old password does not match",
                         null
                 );
             }
-        } else {
-            return new ApiResponse<>(
-                    false,
-                    "Old password does not match",
-                    null
-            );
+
         }
+
+
 
 
 
