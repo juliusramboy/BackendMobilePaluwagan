@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -31,7 +32,7 @@ public class UserSavings {
     private Status status = Status.PENDING;
 
     @Column(name = "deposit_date")
-    private LocalDate depositDate;
+    private LocalDateTime depositDate;
 
     @Column(name = "reference")
     private String reference;
