@@ -8,12 +8,13 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
 public class SavingsDepositHistory {
     private double amountRemit;
-    private LocalDate remitDate;
+    private LocalDateTime remitDate;
     private String reference;
     private String status;
 

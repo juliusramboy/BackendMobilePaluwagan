@@ -17,6 +17,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -48,12 +50,14 @@ public class SavingsService {
         ApiResponse<UserDepositSavingsResponse> x = checkUserDepositInput(userId, depositAmount, depositDate);
         if (x != null) return x;
 
+        LocalDateTime depositDateTime = depositDate.atTime(LocalTime.now());
+
         UserBank user = userBank.get();
             UserSavings deposit;
                 UserSavings userSavings = new UserSavings();
                 userSavings.setUserId(userId);
                 userSavings.setAmountDeposit(depositAmount);
-                userSavings.setDepositDate(depositDate);
+                userSavings.setDepositDate(depositDateTime);
                 userSavings.setReference(generateRef());
                 userSavings.setStatus(Status.PENDING);
 
@@ -98,7 +102,7 @@ public class SavingsService {
     private UserDepositSavingsResponse mapToUserSavingsResponse(UserSavings savings){
         return UserDepositSavingsResponse.builder()
                 .amountRemit(savings.getAmountDeposit())
-                .remitDate(savings.getDepositDate())
+                .remitDate(savings.getDepositDate().toLocalDate())
                 .reference(savings.getReference())
                 .status(savings.getStatus().name())
                 .build();
