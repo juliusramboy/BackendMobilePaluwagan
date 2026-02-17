@@ -119,12 +119,9 @@ public class SavingsService {
          String savingsId = userBank.getSavingsId();
 
 
-        if(userSavings.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "user does not have savings record");
-        }
-
 
         List<SavingsDepositHistory> savingsDepositHistoryList = userSavings.stream()
+                .filter(status -> status.getStatus() == Status.PAID)
                 .map(this::allHistory)
                 .collect(Collectors.toList());
 
@@ -170,21 +167,8 @@ public class SavingsService {
         UserInfo userInfo = userInfoRepo.findByUserId(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userId not found"));
         User user = userRepo.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userId not found"));
 
-
-        if (targetAmount.compareTo(BigDecimal.valueOf(5000)) < 0) {
-            return new ApiResponse<>(
-                    false,
-                    "5000 is minimum target amount in Savings",
-                    targetAmount
-            );
-        }
-
-        if(userBank.getTargetAmount() != null){
-            return new ApiResponse<>(
-                    false,
-                    "You already set a target amount",
-                    null );
-        }
+        ApiResponse<?> userInfo1 = savingsValidation(targetAmount, userInfo, userBank);
+        if (userInfo1 != null) return userInfo1;
 
 
         userBank.setSavingsId(savingsId(userId));
@@ -204,6 +188,32 @@ public class SavingsService {
                 "Successfully applied Savings",
                 userBank
         );
+    }
+
+    private static ApiResponse<?> savingsValidation(BigDecimal targetAmount, UserInfo userInfo, UserBank userBank) {
+        if (userInfo.getAddress() == null || userInfo.getBirthDay() == null|| userInfo.getFirstName() == null || userInfo.getGender() == null || userInfo.getLastName() == null || userInfo.getMiddleName() == null || userInfo.getPhoneNumber() == null || userInfo.getSuffix() == null) {
+            return new ApiResponse<>(
+                    false,
+                    "Pls complete your details in profile",
+                    null
+            );
+        }
+
+        if (targetAmount.compareTo(BigDecimal.valueOf(5000)) < 0) {
+            return new ApiResponse<>(
+                    false,
+                    "5000 is minimum target amount in Savings",
+                    targetAmount
+            );
+        }
+
+        if(userBank.getTargetAmount() != null){
+            return new ApiResponse<>(
+                    false,
+                    "You already set a target amount",
+                    null);
+        }
+        return null;
     }
 
     private SavingsDepositHistory allHistory(UserSavings savings) {
