@@ -114,6 +114,11 @@ public class SavingsService {
     public ApiResponse<SavingsSummaryResponse> savingsAllData(Long userId){
         List<UserSavings> userSavings = userSavingsRepo.findByUserId(userId);
 
+        UserBank userBank = userBankRepo.findByUserId(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userId is not found"));
+
+         String savingsId = userBank.getSavingsId();
+
+
         if(userSavings.isEmpty()){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "user does not have savings record");
         }
@@ -146,6 +151,7 @@ public class SavingsService {
 
 
         SavingsSummaryResponse response = new SavingsSummaryResponse();
+        response.setSavingsId(savingsId);
         response.setTotalSavingsBalance(totalSavings);;
         response.setDepositHistoryList(savingsDepositHistoryList);
         response.setAnnualMoney(userAnnual);
