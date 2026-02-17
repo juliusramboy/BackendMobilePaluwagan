@@ -15,5 +15,6 @@ public class SavingsSummaryResponse {
     private BigDecimal totalSavingsBalance;
     private BigDecimal annualMoney;
     private String savingsId;
+    private boolean isTargetReached;
     private List<SavingsDepositHistory> depositHistoryList;
 }
