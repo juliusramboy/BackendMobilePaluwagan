@@ -13,5 +13,6 @@ import java.util.List;
 public class SavingsSummaryResponse {
     private double totalSavingsBalance;
     private double annualMoney;
+    private String savingsId;
     private List<SavingsDepositHistory> depositHistoryList;
 }
