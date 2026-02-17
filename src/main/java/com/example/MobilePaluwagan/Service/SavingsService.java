@@ -53,7 +53,7 @@ public class SavingsService {
                 userSavings.setUserId(userId);
                 userSavings.setAmountDeposit(depositAmount);
                 userSavings.setDepositDate(depositDate);
-                userSavings.setReference(generateRef(userId));
+                userSavings.setReference(generateRef());
                 userSavings.setStatus(Status.PENDING);
 
                 deposit = userSavingsRepo.save(userSavings);
@@ -233,11 +233,22 @@ public class SavingsService {
         return prefix + datePart + userIdPart;
     }
 
-    public String generateRef (Long userId) {
-        String prefix = "Ref";
+    public String generateRef () {
         String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String userIdPart = "0" + userId;
-        return prefix + datePart + userIdPart;
+
+        Optional<UserSavings> lastRef = userSavingsRepo.findLastRef();
+
+        int sequence = 1;
+
+        if(lastRef.isPresent()){
+            String lastRefNumber = lastRef.get().getReference();
+            String lastSequence = lastRefNumber.substring(lastRefNumber.length() - 4);
+            sequence = Integer.parseInt(lastSequence) + 1;
+        }
+
+        String sequencePart = String.format("%04d", sequence);
+
+        return datePart + sequencePart;
     }
 
 }
