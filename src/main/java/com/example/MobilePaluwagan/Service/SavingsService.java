@@ -250,7 +250,7 @@ public class SavingsService {
 
         if(lastRef.isPresent()){
             String lastRefNumber = lastRef.get().getReference();
-            String lastSequence = lastRefNumber.substring(lastRefNumber.length() - 5, lastRefNumber.length() - 1);
+            String lastSequence = lastRefNumber.substring(13, 17);
             sequence = Integer.parseInt(lastSequence) + 1;
         }
 
