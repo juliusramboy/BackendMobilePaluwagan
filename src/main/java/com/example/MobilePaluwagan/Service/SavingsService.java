@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -122,30 +123,44 @@ public class SavingsService {
         UserBank userBank = userBankRepo.findByUserId(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userId is not found"));
 
          String savingsId = userBank.getSavingsId();
-
-
+         BigDecimal targetAmount = userBank.getTargetAmount();
 
         List<SavingsDepositHistory> savingsDepositHistoryList = userSavings.stream()
                 .filter(status -> status.getStatus() == Status.PAID)
                 .map(this::allHistory)
                 .collect(Collectors.toList());
 
-        double totalSavings = userSavings.stream()
+        BigDecimal totalSavings = userSavings.stream()
                 .filter(amount -> "PAID".equalsIgnoreCase(amount.getStatus().name()))
-                .mapToDouble(UserSavings::getAmountDeposit)
-                .sum();
+                .map(amount -> BigDecimal.valueOf(amount.getAmountDeposit()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        double savingsBase = 5000;
-        double annualBase = 500;
-        double userAnnual = 0.00;
+        BigDecimal savingsBase = new BigDecimal("5000");
+        BigDecimal annualBase = new BigDecimal("500");
 
-        if (totalSavings > 0) {
-             double divMoney = Math.floor(totalSavings / savingsBase);
+        BigDecimal maxAnnual = targetAmount
+                .divide(savingsBase, 10, RoundingMode.HALF_UP)
+                .multiply(annualBase)
+                .setScale(2, RoundingMode.HALF_UP);
 
-            if(divMoney > 0){
-                userAnnual = divMoney * annualBase;
-            }
-        }
+        BigDecimal savingsForAnnual = totalSavings
+                .min(targetAmount)
+                .setScale(2, RoundingMode.HALF_UP);
+
+        BigDecimal userAnnual = savingsForAnnual
+                .divide(savingsBase, 10, RoundingMode.HALF_UP)
+                .multiply(annualBase)
+                .min(maxAnnual)
+                .setScale(2, RoundingMode.HALF_UP);
+
+
+//        if (totalSavings > 0) {
+//             double divMoney = Math.floor(totalSavings / savingsBase);
+//
+//            if(divMoney > 0){
+//                userAnnual = divMoney * annualBase;
+//            }
+//        }
 
         System.out.println(totalSavings);
         System.out.println(userAnnual);
