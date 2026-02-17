@@ -125,6 +125,8 @@ public class SavingsService {
          String savingsId = userBank.getSavingsId();
          BigDecimal targetAmount = userBank.getTargetAmount();
 
+         BigDecimal userTargetAmount = userBank.getTargetAmount();
+
         List<SavingsDepositHistory> savingsDepositHistoryList = userSavings.stream()
                 .filter(status -> status.getStatus() == Status.PAID)
                 .map(this::allHistory)
@@ -163,7 +165,8 @@ public class SavingsService {
 
         SavingsSummaryResponse response = new SavingsSummaryResponse();
         response.setSavingsId(savingsId);
-        response.setTotalSavingsBalance(totalSavings);;
+        response.setTotalSavingsBalance(totalSavings);
+        response.setTargetAmount(userTargetAmount);
         response.setDepositHistoryList(savingsDepositHistoryList);
         response.setTargetReached(isTargetReached);
         response.setAnnualMoney(userAnnual);
