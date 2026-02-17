@@ -153,24 +153,19 @@ public class SavingsService {
                 .min(maxAnnual)
                 .setScale(2, RoundingMode.HALF_UP);
 
+        boolean isTargetReached = totalSavings.compareTo(userBank.getTargetAmount()) >= 0;
 
-//        if (totalSavings > 0) {
-//             double divMoney = Math.floor(totalSavings / savingsBase);
-//
-//            if(divMoney > 0){
-//                userAnnual = divMoney * annualBase;
-//            }
-//        }
+
 
         System.out.println(totalSavings);
         System.out.println(userAnnual);
-
 
 
         SavingsSummaryResponse response = new SavingsSummaryResponse();
         response.setSavingsId(savingsId);
         response.setTotalSavingsBalance(totalSavings);;
         response.setDepositHistoryList(savingsDepositHistoryList);
+        response.setTargetReached(isTargetReached);
         response.setAnnualMoney(userAnnual);
 
 
