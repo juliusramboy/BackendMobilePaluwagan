@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
@@ -233,8 +234,15 @@ public class SavingsService {
         return prefix + datePart + userIdPart;
     }
 
-    public String generateRef () {
+    public String generateRef() {
+        String prefix = "REF";
         String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String randomLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        Random random = new Random();
+
+        String letter1 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
+        String letter2 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
+        String letter3 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
 
         Optional<UserSavings> lastRef = userSavingsRepo.findLastRef();
 
@@ -242,13 +250,13 @@ public class SavingsService {
 
         if(lastRef.isPresent()){
             String lastRefNumber = lastRef.get().getReference();
-            String lastSequence = lastRefNumber.substring(lastRefNumber.length() - 4);
+            String lastSequence = lastRefNumber.substring(lastRefNumber.length() - 5, lastRefNumber.length() - 1);
             sequence = Integer.parseInt(lastSequence) + 1;
         }
 
         String sequencePart = String.format("%04d", sequence);
 
-        return datePart + sequencePart;
+        return prefix + datePart + letter1 + letter2 + sequencePart + letter3;
     }
 
 }
