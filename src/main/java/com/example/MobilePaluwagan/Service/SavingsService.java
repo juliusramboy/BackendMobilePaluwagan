@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -260,6 +261,11 @@ public class SavingsService {
             );
         }
 
+        LocalDateTime firstDepositDate = user.getFirstDepositDate();
+        LocalDateTime oneYearLater = firstDepositDate.plusYears(1);
+        LocalDateTime now = LocalDateTime.now();
+
+        boolean hasBeenOneYear = LocalDateTime.now().isAfter(user.getFirstDepositDate().plusYears(1));
 
         boolean isTargetReached = user.getAccountBalance()
                 .compareTo(user.getTargetAmount()) >= 0;
@@ -269,7 +275,7 @@ public class SavingsService {
         BigDecimal annual;
 
 
-        if (isTargetReached) {
+        if (isTargetReached && hasBeenOneYear) {
             BigDecimal maxAnnual = user.getTargetAmount()
                     .divide(savingsBase, 10, RoundingMode.HALF_UP)
                     .multiply(annualBase);
@@ -280,7 +286,7 @@ public class SavingsService {
                     .min(maxAnnual)
                     .setScale(2, RoundingMode.HALF_UP);
         } else {
-            annual = BigDecimal.ZERO; 
+            annual = BigDecimal.ZERO;
         }
 
         SavingsWithdrawApplication withdrawApplication = new SavingsWithdrawApplication();
@@ -293,9 +299,16 @@ public class SavingsService {
 
         savingsWithdrawApplicationRepo.save(withdrawApplication);
 
-        String message = isTargetReached
-                ? "Successfully applied for withdrawal with ₱" + annual + " annual bonus!"
-                : "Successfully applied for withdrawal. No annual bonus (target not reached).";
+        String message;
+        if (!hasBeenOneYear) {
+            long daysRemaining = ChronoUnit.DAYS.between(now, oneYearLater);
+            message = "Successfully applied for withdrawal. No annual bonus yet - please wait "
+                    + daysRemaining + " more days (1 year requirement).";
+        } else if (!isTargetReached) {
+            message = "Successfully applied for withdrawal. No annual bonus (target not reached).";
+        } else {
+            message = "Successfully applied for withdrawal with ₱" + annual + " annual bonus!";
+        }
 
         return new ApiResponse<>(
                 true,
