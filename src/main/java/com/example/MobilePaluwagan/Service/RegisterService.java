@@ -9,6 +9,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.xml.crypto.Data;
+import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -66,7 +67,7 @@ public class RegisterService {
 
         UserBank userBank = new UserBank();
         userBank.setUserId(userdataWithId.getId());
-        userBank.setAccountBalance(0L);
+        userBank.setAccountBalance(BigDecimal.valueOf(0L));
 
         userBankRepo.save(userBank);
 

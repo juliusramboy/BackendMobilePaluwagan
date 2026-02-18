@@ -6,10 +6,7 @@ import com.example.MobilePaluwagan.DTOs.Response.SavingsDepositHistory;
 import com.example.MobilePaluwagan.DTOs.Response.SavingsSummaryResponse;
 import com.example.MobilePaluwagan.DTOs.Response.UserDepositSavingsResponse;
 import com.example.MobilePaluwagan.Entity.*;
-import com.example.MobilePaluwagan.Repository.UserBankRepo;
-import com.example.MobilePaluwagan.Repository.UserInfoRepo;
-import com.example.MobilePaluwagan.Repository.UserRepo;
-import com.example.MobilePaluwagan.Repository.UserSavingsRepo;
+import com.example.MobilePaluwagan.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -43,6 +40,9 @@ public class SavingsService {
 
     @Autowired
     private LoanSseController loanSseController;
+
+    @Autowired
+    private SavingsWithdrawApplicationRepo savingsWithdrawApplicationRepo;
 
 
     public ApiResponse<UserDepositSavingsResponse> userDeposit(Long userId, double depositAmount, LocalDate depositDate){
@@ -189,7 +189,7 @@ public class SavingsService {
         if (userInfo1 != null) return userInfo1;
 
 
-        userBank.setSavingsId(savingsId(userId));
+        userBank.setSavingsId(savingsId());
         userBank.setTargetAmount(targetAmount);
         user.setHasSavingsAccount(true);
 
@@ -244,11 +244,89 @@ public class SavingsService {
 
     }
 
-    public String savingsId (Long userId) {
+    public ApiResponse<?> withdrawSavings(Long userId) {
+        UserBank user = userBankRepo.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "User not found"));
+
+        boolean hasApplication  = savingsWithdrawApplicationRepo
+                .existsByUserIdAndStatus(userId,Status.PENDING);
+
+        if (hasApplication){
+            return new ApiResponse<>(
+                    false,
+                    "We see that you applied to withdraw your savings. Please wait for admin to approve it.",
+                    null
+            );
+        }
+
+
+        boolean isTargetReached = user.getAccountBalance()
+                .compareTo(user.getTargetAmount()) >= 0;
+
+        BigDecimal savingsBase = new BigDecimal("5000");
+        BigDecimal annualBase = new BigDecimal("500");
+        BigDecimal annual;
+
+
+        if (isTargetReached) {
+            BigDecimal maxAnnual = user.getTargetAmount()
+                    .divide(savingsBase, 10, RoundingMode.HALF_UP)
+                    .multiply(annualBase);
+
+            annual = user.getAccountBalance()
+                    .divide(savingsBase, 10, RoundingMode.HALF_UP)
+                    .multiply(annualBase)
+                    .min(maxAnnual)
+                    .setScale(2, RoundingMode.HALF_UP);
+        } else {
+            annual = BigDecimal.ZERO; 
+        }
+
+        SavingsWithdrawApplication withdrawApplication = new SavingsWithdrawApplication();
+        withdrawApplication.setSavingsId(user.getSavingsId());
+        withdrawApplication.setAnnual(annual);
+        withdrawApplication.setUserId(user.getUserId());
+        withdrawApplication.setTargetAmount(user.getTargetAmount());
+        withdrawApplication.setAccountBalance(user.getAccountBalance());
+        withdrawApplication.setStatus(Status.PENDING);
+
+        savingsWithdrawApplicationRepo.save(withdrawApplication);
+
+        String message = isTargetReached
+                ? "Successfully applied for withdrawal with ₱" + annual + " annual bonus!"
+                : "Successfully applied for withdrawal. No annual bonus (target not reached).";
+
+        return new ApiResponse<>(
+                true,
+                message,
+                withdrawApplication
+        );
+    }
+
+    public String savingsId () {
         String prefix = "SID";
         String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String userIdPart = "0" + userId;
-        return prefix + datePart + userIdPart;
+        String randomLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        Random random = new Random();
+
+        String letter1 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
+        String letter2 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
+        String letter3 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
+
+        Optional<UserSavings> lastRef = userSavingsRepo.findLastRef();
+
+        int sequence = 1;
+
+        if(lastRef.isPresent()){
+            String lastRefNumber = lastRef.get().getReference();
+            String lastSequence = lastRefNumber.substring(13, 17);
+            sequence = Integer.parseInt(lastSequence) + 1;
+        }
+
+        String sequencePart = String.format("%04d", sequence);
+
+        return prefix + datePart + letter1 + letter2 + sequencePart + letter3;
     }
 
     public String generateRef() {
@@ -267,8 +345,16 @@ public class SavingsService {
 
         if(lastRef.isPresent()){
             String lastRefNumber = lastRef.get().getReference();
-            String lastSequence = lastRefNumber.substring(13, 17);
-            sequence = Integer.parseInt(lastSequence) + 1;
+
+            if (lastRefNumber.length() >= 17) {
+                try {
+                    String lastSequence = lastRefNumber.substring(13, 17);
+                    sequence = Integer.parseInt(lastSequence) + 1;
+                } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
+                    System.err.println("Error parsing reference: " + lastRefNumber);
+                    sequence = 1;
+                }
+            }
         }
 
         String sequencePart = String.format("%04d", sequence);
