@@ -20,22 +20,17 @@ public class LoanSseController {
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
         emitters.add(emitter);
 
-        System.out.println("New SSE client connected. Total clients: " + emitters.size());
-
         emitter.onCompletion(() -> {
             emitters.remove(emitter);
-            System.out.println("Client disconnected. Remaining clients: " + emitters.size());
         });
         emitter.onTimeout(() -> {
             emitters.remove(emitter);
-            System.out.println("Client timed out. Remaining clients: " + emitters.size());
         });
 
         return emitter;
     }
 
     public void notifyLoan() {
-        System.out.println("Broadcasting update: " + " to " + emitters.size() + " clients");
         for (SseEmitter emitter : emitters){
             try {
                 emitter.send(SseEmitter.event()

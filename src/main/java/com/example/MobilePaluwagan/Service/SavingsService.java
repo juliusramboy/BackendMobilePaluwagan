@@ -1,10 +1,7 @@
 package com.example.MobilePaluwagan.Service;
 
 import com.example.MobilePaluwagan.Controller.LoanSseController;
-import com.example.MobilePaluwagan.DTOs.Response.ApiResponse;
-import com.example.MobilePaluwagan.DTOs.Response.SavingsDepositHistory;
-import com.example.MobilePaluwagan.DTOs.Response.SavingsSummaryResponse;
-import com.example.MobilePaluwagan.DTOs.Response.UserDepositSavingsResponse;
+import com.example.MobilePaluwagan.DTOs.Response.*;
 import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,14 +44,21 @@ public class SavingsService {
 
 
     public ApiResponse<UserDepositSavingsResponse> userDeposit(Long userId, double depositAmount, LocalDate depositDate){
-        Optional<UserBank> userBank = userBankRepo.findByUserId(userId);
+        UserBank user = userBankRepo.findByUserId(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userId not found"));
 
         ApiResponse<UserDepositSavingsResponse> x = checkUserDepositInput(userId, depositAmount, depositDate);
         if (x != null) return x;
 
         LocalDateTime depositDateTime = depositDate.atTime(LocalTime.now());
 
-        UserBank user = userBank.get();
+
+        // pansamantala for admin to dapat
+        if (user.getFirstDepositDate() == null){
+            user.setFirstDepositDate(depositDateTime);
+            user.setHasSavingsDeposit(true);
+
+            userBankRepo.save(user);
+        }
             UserSavings deposit;
                 UserSavings userSavings = new UserSavings();
                 userSavings.setUserId(userId);
@@ -265,7 +269,7 @@ public class SavingsService {
         LocalDateTime oneYearLater = firstDepositDate.plusYears(1);
         LocalDateTime now = LocalDateTime.now();
 
-        boolean hasBeenOneYear = LocalDateTime.now().isAfter(user.getFirstDepositDate().plusYears(1));
+        boolean hasBeenOneYear = now.isAfter(oneYearLater)|| now.isEqual(oneYearLater);
 
         boolean isTargetReached = user.getAccountBalance()
                 .compareTo(user.getTargetAmount()) >= 0;
@@ -295,15 +299,24 @@ public class SavingsService {
         withdrawApplication.setUserId(user.getUserId());
         withdrawApplication.setTargetAmount(user.getTargetAmount());
         withdrawApplication.setAccountBalance(user.getAccountBalance());
+        withdrawApplication.setReference(generateRef());
         withdrawApplication.setStatus(Status.PENDING);
 
         savingsWithdrawApplicationRepo.save(withdrawApplication);
 
+        BigDecimal totalWithdrawal = user.getAccountBalance().add(annual);
+
+        WithdrawApplicationResponse response = WithdrawApplicationResponse.builder()
+                .savingsId(withdrawApplication.getSavingsId())
+                .totalWithdrawal(totalWithdrawal)
+                .reference(withdrawApplication.getReference())
+                .status(withdrawApplication.getStatus().name())
+                .build();
+
         String message;
         if (!hasBeenOneYear) {
             long daysRemaining = ChronoUnit.DAYS.between(now, oneYearLater);
-            message = "Successfully applied for withdrawal. No annual bonus yet - please wait "
-                    + daysRemaining + " more days (1 year requirement).";
+            message = "Successfully applied for withdrawal. No annual bonus yet - please wait " + daysRemaining + " more days (1 year requirement).";
         } else if (!isTargetReached) {
             message = "Successfully applied for withdrawal. No annual bonus (target not reached).";
         } else {
@@ -313,7 +326,7 @@ public class SavingsService {
         return new ApiResponse<>(
                 true,
                 message,
-                withdrawApplication
+                response
         );
     }
 
