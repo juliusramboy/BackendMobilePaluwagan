@@ -6,14 +6,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
-@Entity
-@Table(name = "user_bank")
 @Data
-@AllArgsConstructor
+@Entity
+@Table(name = "savings_withdraw_applciation")
 @NoArgsConstructor
-public class UserBank {
+@AllArgsConstructor
+public class SavingsWithdrawApplication {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,18 +21,18 @@ public class UserBank {
     @Column(name = "user_id")
     private Long userId;
 
-    @Column(name = "first_deposit_date")
-    private LocalDate firstDepositDate;
+    @Column(name = "savings_id")
+    private String savingsId;
 
     @Column(name = "account_balance")
     private BigDecimal accountBalance;
 
-    @Column(name = "savings_id")
-    private String savingsId;
-
     @Column(name = "target_amount")
     private BigDecimal targetAmount;
 
-    @Column(name = "has_savings_deposit")
-    private boolean hasSavingsDeposit;
+    private BigDecimal annual;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Status status = Status.PENDING;
 }

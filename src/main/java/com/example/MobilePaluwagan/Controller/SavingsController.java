@@ -56,6 +56,14 @@ public class SavingsController {
         return ResponseEntity.ok(apply);
     }
 
+    @PostMapping("/withdraw")
+    public ApiResponse<?> UserWithdraw(Authentication authentication){
+        UserPrinciple user = (UserPrinciple) authentication.getPrincipal();
+        Long userId = user.userId();
+
+        return savingsService.withdrawSavings(userId);
+    }
+
 
 
     @GetMapping("/summary")
