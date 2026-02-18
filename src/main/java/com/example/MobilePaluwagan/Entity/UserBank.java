@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "user_bank")
@@ -22,7 +23,7 @@ public class UserBank {
     private Long userId;
 
     @Column(name = "first_deposit_date")
-    private LocalDate firstDepositDate;
+    private LocalDateTime firstDepositDate;
 
     @Column(name = "account_balance")
     private BigDecimal accountBalance;
