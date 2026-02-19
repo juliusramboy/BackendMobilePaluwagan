@@ -46,70 +46,6 @@ public class LoanService {
 
 
 
-//    public ApiResponse<UserApplyLoanResponse> loanApplication(Long userId, BigDecimal requestedAmount, LocalDate termLength, LocalDate startDate){
-//        Optional<User> checkIfHaveLoan = userRepo.findById(userId);
-//        Optional<Loan> checkIfHavePassLoan = userLoanRepo.findByUserId(userId);
-//        Optional<LoanApplication> checkIfUserHaveAppllication = loanApplicationRepo.findByUserId(userId);
-//
-//
-//        if(checkIfHaveLoan.isPresent() && checkIfHaveLoan.get().isHasLoan()){
-//            return new ApiResponse<>(
-//                    false,
-//                    "We see that you have a pending Loan. Pay all your balance to make another loan.",
-//                    null
-//            );
-//        }
-//
-//        boolean hasPendingApp = checkIfUserHaveAppllication.stream()
-//                .anyMatch(app -> "PENDING".equalsIgnoreCase(app.getStatus().name()));
-//
-//        if (hasPendingApp) {
-//            return new ApiResponse<>(
-//                    false,
-//                    "You already have a pending loan application. Please wait for approval.",
-//                    null
-//            );
-//        }
-//
-//        if(checkIfHavePassLoan.isPresent()){
-//            return new ApiResponse<>(
-//                    false,
-//                    "You already have a already loan. Please pay you all pending balance to loan again.",
-//                    null
-//            );
-//        }
-//
-//        Long applicationNumber = generateApplicationId(userId);
-//
-//        LoanApplication loanApplication = new LoanApplication();
-//        loanApplication.setApplicationID(applicationNumber);
-//        loanApplication.setUserId(userId);
-//        loanApplication.setRequestedAmount(requestedAmount);
-//        loanApplication.setTermLength(termLength);
-//        loanApplication.setApplicationDate(startDate);
-//        loanApplication.setStatus(Status.PENDING);
-//
-//        LoanApplication saved = loanApplicationRepo.save(loanApplication);
-//
-//        UserApplyLoanResponse applyLoan = mapToUserLoanResponse(saved);
-//
-//        return new ApiResponse<>(
-//                true,
-//                "Successfully Applied loan pls wait for admin to verify it",
-//                applyLoan
-//        );
-//    }
-
-//    private UserApplyLoanResponse mapToUserLoanResponse(LoanApplication loan) {
-//        return UserApplyLoanResponse.builder()
-//                .applicationNumber(loan.getApplicationID())
-//                .loanAmount(loan.getRequestedAmount())
-//                .termLength(loan.getEndDate())
-//                .status(loan.getStatus().name())
-//                .applicationDate(loan.getStartDate())
-//                .build();
-//    }
-
     public ApiResponse<UserAllLoansResponse> getAllTheInfo(Long userId){
         Optional<UserInfo> userInfo = userInfoRepo.findByUserId(userId);
         List<LoanApplication> applications = loanApplicationRepo.findAllByUserId(userId);
@@ -366,35 +302,6 @@ public class LoanService {
         }
     }
 
-//    public StatusResponse getUserLoanStatus(Long userId){
-//
-//        User user = userRepo.findById(userId)
-//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-//
-//        boolean hasLoan = user.isHasLoan();
-//
-//        boolean hasPendingApplication = loanApplicationRepo.existsByUserIdAndStatusIn(
-//                userId,
-//                List.of(Status.PENDING)
-//        );
-//
-//        boolean hasApprovedApplication = loanApplicationRepo.existsByUserIdAndStatusIn(
-//                userId,
-//                List.of(Status.APPROVED)
-//        );
-//
-//        Optional<LoanApplication> latestApplication = loanApplicationRepo.findAllByUserId(userId).stream()
-//                .filter(app -> app.getStatus() == Status.PENDING || app.getStatus() == Status.APPROVED)
-//                .max(Comparator.comparing(LoanApplication::getApplicationID));
-//
-//        return new StatusResponse(
-//                hasLoan,
-//                hasPendingApplication,
-//                hasApprovedApplication,
-//                latestApplication.map(LoanApplication::getApplicationID).orElse(null),
-//                latestApplication.map(app -> app.getStatus().name()).orElse(null)
-//        );
-//    }
 
 
     public Optional<LoanApplication> getDetails(Long userId){
