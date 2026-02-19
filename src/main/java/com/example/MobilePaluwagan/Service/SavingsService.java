@@ -1,6 +1,8 @@
 package com.example.MobilePaluwagan.Service;
 
 import com.example.MobilePaluwagan.Controller.LoanSseController;
+import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterRequest;
+import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterSavingsRequest;
 import com.example.MobilePaluwagan.DTOs.Response.*;
 import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.*;
@@ -328,6 +330,25 @@ public class SavingsService {
                 message,
                 response
         );
+    }
+
+    public List<UserSavings> filterSavingsPayment(PaymentFilterRequest filter){
+        return userSavingsRepo.findPaymentsByUserIdWithFilters(
+                filter.getUserId(),
+                filter.getReference(),
+                filter.getStartDate(),
+                filter.getEndDate(),
+                Status.PAID.name()
+        );
+    }
+
+    public SavingsDepositHistory convertToDto(UserSavings savings){
+        return  SavingsDepositHistory.builder()
+                .amountRemit(savings.getAmountDeposit())
+                .remitDate(savings.getDepositDate())
+                .reference(savings.getReference())
+                .status(savings.getStatus().name())
+                .build();
     }
 
     public String savingsId () {
