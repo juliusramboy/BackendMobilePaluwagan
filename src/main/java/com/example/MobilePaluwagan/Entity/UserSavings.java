@@ -34,7 +34,6 @@ public class UserSavings {
     @Column(name = "deposit_date")
     private LocalDateTime depositDate;
 
-    @Column(name = "reference")
     private String reference;
 
 }
