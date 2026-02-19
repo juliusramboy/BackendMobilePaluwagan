@@ -86,8 +86,8 @@ public class SavingsController {
     public ResponseEntity<SavingsResponse> filterSavings(
             Authentication authentication,
             @RequestParam(required = false) String reference,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDate endDate) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
         UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
         Long userId = userDetails.userId();
