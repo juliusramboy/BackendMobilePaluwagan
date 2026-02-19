@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -98,19 +99,27 @@ public class SavingsController {
                 .endDate(endDate)
                 .build();
 
+        if (!filterRequest.hasFilters()) {
+            SavingsResponse response = SavingsResponse.builder()
+                    .success(false)
+                    .message("Please provide at least one filter (reference, startDate, or endDate)")
+                    .filters(null)
+                    .savings(Collections.emptyList())
+                    .build();
+
+            return ResponseEntity.ok(response);
+        }
+
         List<UserSavings> savings = savingsService.filterSavingsPayment(filterRequest);
 
         List<SavingsDepositHistory> depostList = savings.stream()
                 .map(savingsService::convertToDto)
                 .toList();
 
-        String msg = filterRequest.hasFilters() ?
-                "Successfully retrieved filtered payments" :
-                "Successfully retrieved all payments";
 
         SavingsResponse response = SavingsResponse.builder()
                 .success(true)
-                .message(msg)
+                .message("Successfully retrieved filtered payments")
                 .filters(filterRequest.hasFilters() ? filterRequest : null)
                 .savings(depostList)
                 .build();
