@@ -6,18 +6,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SavingsApplicantsAdmin {
+public class SavingsMemberOverview {
+    //private Long userId;
     private String firstName;
     private String lastName;
 
-    private double amountDeposit;
-    private LocalDateTime depositDate;
-    private Status status;
-    private String reference;
+    private String savingsId;
+    private BigDecimal savingsAccountBalance;
+    private Long statusCount;
 }

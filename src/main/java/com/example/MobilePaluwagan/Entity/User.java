@@ -37,4 +37,14 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private List<Token> tokens;
+
+    @OneToOne(mappedBy = "user")
+    private UserInfo userInfo;
+
+    @OneToOne(mappedBy = "user")
+    private UserBank userBank;
+
+    @OneToMany(mappedBy = "user")
+    private List<UserSavings> userSavings;
+
 }

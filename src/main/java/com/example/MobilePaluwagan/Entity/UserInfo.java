@@ -59,4 +59,8 @@ public class UserInfo {
     @JsonIgnore
     @OneToMany(mappedBy = "userInfo")
     private List<UserSavings> savingsApplications;
+
+    @OneToOne
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    private User user;
 }
