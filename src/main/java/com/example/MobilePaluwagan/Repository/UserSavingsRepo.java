@@ -1,6 +1,7 @@
 package com.example.MobilePaluwagan.Repository;
 
 import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterRequest;
+import com.example.MobilePaluwagan.DTOs.Response.SavingsApplicantsAdmin;
 import com.example.MobilePaluwagan.Entity.Status;
 import com.example.MobilePaluwagan.Entity.UserSavings;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,6 +19,7 @@ public interface UserSavingsRepo extends JpaRepository<UserSavings, Long> {
     List<UserSavings> findByUserId(long userId);
     Long countByUserId(long userId);
     boolean existsByUserIdAndStatus(long userId, Status status);
+
 
     @Query("SELECT e FROM UserSavings e ORDER BY e.id desc LIMIT 1")
     Optional<UserSavings> findLastRef();
@@ -53,6 +55,13 @@ public interface UserSavingsRepo extends JpaRepository<UserSavings, Long> {
             @Param("endDate") LocalDate endDate,
             @Param("status") String status
     );
+
+    @Query("SELECT new com.example.MobilePaluwagan.DTOs.Response.SavingsApplicantsAdmin(" +
+    "us.firstName, us.lastName, sa.amountDeposit, sa.depositDate, sa.status, sa.reference) " +
+    "FROM UserSavings sa " +
+    "JOIN sa.userInfo us " +
+    "WHERE sa.status = :status")
+    List<SavingsApplicantsAdmin> findByLoanStatus(@Param("status") Status status);
 
 
 }
