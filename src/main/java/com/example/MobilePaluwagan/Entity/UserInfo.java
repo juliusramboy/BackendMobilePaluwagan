@@ -55,4 +55,8 @@ public class UserInfo {
     @JsonIgnore
     @OneToMany(mappedBy = "userInfo")
     private List<LoanApplication> loanApplications;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "userInfo")
+    private List<UserSavings> savingsApplications;
 }

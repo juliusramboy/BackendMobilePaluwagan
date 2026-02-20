@@ -2,7 +2,6 @@ package com.example.MobilePaluwagan.Service;
 
 import com.example.MobilePaluwagan.Controller.LoanSseController;
 import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterRequest;
-import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterSavingsRequest;
 import com.example.MobilePaluwagan.DTOs.Response.*;
 import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.*;
@@ -45,7 +44,7 @@ public class SavingsService {
     private SavingsWithdrawApplicationRepo savingsWithdrawApplicationRepo;
 
 
-    public ApiResponse<UserDepositSavingsResponse> userDeposit(Long userId, double depositAmount, LocalDate depositDate){
+    public ApiResponse<UserDepositSavingsResponse>  userDeposit(Long userId, double depositAmount, LocalDate depositDate){
         UserBank user = userBankRepo.findByUserId(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userId not found"));
 
         ApiResponse<UserDepositSavingsResponse> x = checkUserDepositInput(userId, depositAmount, depositDate);
@@ -81,6 +80,30 @@ public class SavingsService {
             );
 
 
+    }
+
+    public ApiResponse<?> getSavingsPendingApplicants(){
+        return new ApiResponse<>(
+                true,
+                "Successful",
+                userSavingsRepo.findByLoanStatus(Status.PENDING)
+        );
+    }
+
+    public ApiResponse<?> getSavingPendingApplicants(){
+        return new ApiResponse<>(
+                true,
+                "Successful",
+                userSavingsRepo.findByLoanStatus(Status.PENDING)
+        );
+    }
+
+    public ApiResponse<?> getSavingsApproveApplicants(){
+        return new ApiResponse<>(
+                true,
+                "Successful",
+                userSavingsRepo.findByLoanStatus(Status.PAID)
+        );
     }
 
     private ApiResponse<UserDepositSavingsResponse> checkUserDepositInput(Long userId, double depositAmount, LocalDate depositDate) {

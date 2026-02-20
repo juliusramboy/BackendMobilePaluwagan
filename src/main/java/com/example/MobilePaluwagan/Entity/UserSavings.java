@@ -1,5 +1,6 @@
 package com.example.MobilePaluwagan.Entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -35,5 +36,10 @@ public class UserSavings {
     private LocalDateTime depositDate;
 
     private String reference;
+
+    @JsonManagedReference
+    @ManyToOne
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    private UserInfo userInfo;
 
 }

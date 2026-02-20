@@ -18,7 +18,7 @@ public class LoanApplicantsAdmin {
     private BigDecimal weeklyPay;
 
     private BigDecimal requestedAmount;
-    private double interestRate;          // Keep as double
+    private double interestRate;
     private double interest;
     private int repayPeriodDays;
     private int repayPeriodWeeks;
