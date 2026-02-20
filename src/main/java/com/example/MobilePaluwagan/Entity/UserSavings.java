@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Entity
@@ -41,5 +42,9 @@ public class UserSavings {
     @ManyToOne
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private UserInfo userInfo;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    private User user;
 
 }

@@ -86,7 +86,7 @@ public class SavingsService {
         return new ApiResponse<>(
                 true,
                 "Successful",
-                userSavingsRepo.findByLoanStatus(Status.PENDING)
+                userSavingsRepo.findAllMembers()
         );
     }
 
@@ -94,7 +94,7 @@ public class SavingsService {
         return new ApiResponse<>(
                 true,
                 "Successful",
-                userSavingsRepo.findByLoanStatus(Status.PENDING)
+                userSavingsRepo.findAllMembers()
         );
     }
 
@@ -102,7 +102,7 @@ public class SavingsService {
         return new ApiResponse<>(
                 true,
                 "Successful",
-                userSavingsRepo.findByLoanStatus(Status.PAID)
+                userSavingsRepo.findAllMembers()
         );
     }
 

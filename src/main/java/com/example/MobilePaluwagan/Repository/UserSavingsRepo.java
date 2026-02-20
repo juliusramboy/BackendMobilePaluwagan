@@ -1,7 +1,6 @@
 package com.example.MobilePaluwagan.Repository;
 
-import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterRequest;
-import com.example.MobilePaluwagan.DTOs.Response.SavingsApplicantsAdmin;
+import com.example.MobilePaluwagan.DTOs.Response.SavingsMemberOverview;
 import com.example.MobilePaluwagan.Entity.Status;
 import com.example.MobilePaluwagan.Entity.UserSavings;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,7 +9,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 @Repository
@@ -56,12 +54,15 @@ public interface UserSavingsRepo extends JpaRepository<UserSavings, Long> {
             @Param("status") String status
     );
 
-    @Query("SELECT new com.example.MobilePaluwagan.DTOs.Response.SavingsApplicantsAdmin(" +
-    "us.firstName, us.lastName, sa.amountDeposit, sa.depositDate, sa.status, sa.reference) " +
-    "FROM UserSavings sa " +
-    "JOIN sa.userInfo us " +
-    "WHERE sa.status = :status")
-    List<SavingsApplicantsAdmin> findByLoanStatus(@Param("status") Status status);
+    @Query("SELECT new com.example.MobilePaluwagan.DTOs.Response.SavingsMemberOverview(" +
+    "ui.firstName, ui.lastName, ub.savingsId, ub.accountBalance, COUNT(us) ) " +
+    "FROM User u " +
+    "JOIN u.userInfo ui " +
+    "JOIN u.userBank ub " +
+    "LEFT JOIN u.userSavings us ON us.status = 'PENDING' "+
+    "WHERE u.hasSavingsAccount = true " +
+    "GROUP BY u.id, ui.firstName, ui.lastName, ub.savingsId, ub.accountBalance")
+    List<SavingsMemberOverview> findAllMembers();
 
 
 }
