@@ -65,5 +65,22 @@ public interface UserSavingsRepo extends JpaRepository<UserSavings, Long> {
     "GROUP BY u.id, ui.firstName, ui.lastName, ub.savingsId, ub.accountBalance, ub.targetAmount")
     List<SavingsMemberOverview> findAllMembers();
 
+    @Query(value = "SELECT us.* FROM user_savings us " +
+            "WHERE us.savings_id = :savingsId " +
+            "AND (:reference IS NULL OR LOWER(us.reference) LIKE LOWER(CONCAT('%', :reference, '%'))) " +
+            "AND (CAST(:startDate AS date) IS NULL OR DATE(us.deposit_date) >= CAST(:startDate AS date)) " +
+            "AND (CAST(:endDate AS date) IS NULL OR DATE(us.deposit_date) <= CAST(:endDate AS date)) " +
+            "AND (:status IS NULL OR us.status = :status) " +
+            "ORDER BY us.deposit_date DESC",
+            nativeQuery = true)
+    List<UserSavings> findPaymentUserSavingsIdFilter(
+            @Param("savingsId") String savingsId,
+            @Param("reference") String reference,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("status") String status
+
+    );
+
 
 }
