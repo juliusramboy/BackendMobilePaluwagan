@@ -2,6 +2,7 @@ package com.example.MobilePaluwagan.Service;
 
 import com.example.MobilePaluwagan.Controller.LoanSseController;
 import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterRequest;
+import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterRequestAdmin;
 import com.example.MobilePaluwagan.DTOs.Response.*;
 import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.*;
@@ -63,6 +64,7 @@ public class SavingsService {
             UserSavings deposit;
                 UserSavings userSavings = new UserSavings();
                 userSavings.setUserId(userId);
+                userSavings.setSavingsId(user.getSavingsId());
                 userSavings.setAmountDeposit(depositAmount);
                 userSavings.setDepositDate(depositDateTime);
                 userSavings.setReference(generateRef());
@@ -376,6 +378,25 @@ public class SavingsService {
     }
 
     public SavingsDepositHistory convertToDto(UserSavings savings){
+        return  SavingsDepositHistory.builder()
+                .amountRemit(savings.getAmountDeposit())
+                .remitDate(savings.getDepositDate())
+                .reference(savings.getReference())
+                .status(savings.getStatus().name())
+                .build();
+    }
+
+    public List<UserSavings> filterSavingsPaymentAdmin(PaymentFilterRequestAdmin filter){
+        return userSavingsRepo.findPaymentUserSavingsIdFilter(
+                filter.getSavingsId(),
+                filter.getReference(),
+                filter.getStartDate(),
+                filter.getEndDate(),
+                Status.PAID.name()
+        );
+    }
+
+    public SavingsDepositHistory convertToDtoAdmin(UserSavings savings){
         return  SavingsDepositHistory.builder()
                 .amountRemit(savings.getAmountDeposit())
                 .remitDate(savings.getDepositDate())

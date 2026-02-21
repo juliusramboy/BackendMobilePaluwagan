@@ -26,6 +26,9 @@ public class UserSavings {
     @Column(name = "user_id")
     private Long userId;
 
+    @Column(name = "savings_id")
+    private String savingsId;
+
     @Column(name = "amount_deposit")
     private double amountDeposit;
 
