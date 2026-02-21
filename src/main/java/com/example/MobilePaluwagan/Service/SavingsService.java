@@ -72,6 +72,8 @@ public class SavingsService {
 
                 deposit = userSavingsRepo.save(userSavings);
 
+                loanSseController.notifyLoan();
+
             
             UserDepositSavingsResponse responseData = mapToUserSavingsResponse(deposit);
 
@@ -103,10 +105,27 @@ public class SavingsService {
             );
         }
 
+        UserInfo userInfo = userInfoRepo.findByUserId(user.getUserId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userid not found"));
+
+        UserSavingsInfo userSavingsInfo = UserSavingsInfo.builder()
+                .firstName(userInfo.getFirstName())
+                .lastName(userInfo.getLastName())
+                .targetAmount(user.getTargetAmount())
+                .savingsId(user.getSavingsId())
+                .accountBalance(user.getAccountBalance())
+                .maturityDate(user.getFirstDepositDate().plusYears(1))
+                .build();
+
+        List<SavingsPendingPaymentMemberResponse> payments = userBankRepo.findPendingPaymentBySavingsId(savingsId);
+
         return new ApiResponse<>(
                 true,
                 "Success",
-                userBankRepo.findPendingPaymentBySavingsId(savingsId)
+                SavingsDetailResponse.builder()
+                        .user(userSavingsInfo)
+                        .payments(payments)
+                        .build()
+
         );
     }
 
