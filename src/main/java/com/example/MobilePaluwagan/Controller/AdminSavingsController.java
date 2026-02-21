@@ -23,11 +23,17 @@ public class AdminSavingsController {
 
     @GetMapping("/members")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<?>> getAllPendingApplicants() {
-        ApiResponse<?>pending = savingsService.getSavingsPendingApplicants();
-        return ResponseEntity.ok(pending);
+    public ResponseEntity<ApiResponse<?>> getAllSavingsMembers() {
+        ApiResponse<?>members = savingsService.getAllSavingsMembers();
+        return ResponseEntity.ok(members);
     }
-    
+
+    @GetMapping("/members/{savingsId}")
+    public ResponseEntity<ApiResponse<?>> getAllPendingPayments(@PathVariable String savingsId) {
+        ApiResponse<?> pendingPayments = savingsService.getAllPendingPayments(savingsId);
+        return ResponseEntity.ok(pendingPayments);
+    }
+
 
 
 }
