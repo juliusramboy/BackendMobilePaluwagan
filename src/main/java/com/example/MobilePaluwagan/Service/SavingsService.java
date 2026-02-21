@@ -82,7 +82,7 @@ public class SavingsService {
 
     }
 
-    public ApiResponse<?> getSavingsPendingApplicants(){
+    public ApiResponse<?> getAllSavingsMembers(){
         return new ApiResponse<>(
                 true,
                 "Successful",
@@ -90,11 +90,21 @@ public class SavingsService {
         );
     }
 
-    public ApiResponse<?> getSavingPendingApplicants(){
+    public ApiResponse<?> getAllPendingPayments(String savingsId){
+        UserBank user = userBankRepo.findBySavingsId(savingsId);
+
+        if (user == null){
+            return new ApiResponse<>(
+                    false,
+                    "Savings Id not exist in records",
+                    null
+            );
+        }
+
         return new ApiResponse<>(
                 true,
-                "Successful",
-                userSavingsRepo.findAllMembers()
+                "Success",
+                userBankRepo.findPendingPaymentBySavingsId(savingsId)
         );
     }
 

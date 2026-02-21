@@ -18,5 +18,6 @@ public class SavingsMemberOverview {
 
     private String savingsId;
     private BigDecimal savingsAccountBalance;
-    private Long statusCount;
+    private BigDecimal targetAmount;
+    private boolean hasPendingPayment;
 }
