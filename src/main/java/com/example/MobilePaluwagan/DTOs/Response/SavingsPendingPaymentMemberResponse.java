@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SavingsPendingPaymentMemberResponse {
-    private double amountDeposit;
-    private LocalDateTime depositDate;
+    private double amountRemit;
+    private LocalDateTime remitDate;
     private String reference;
     private Status status;
 }
