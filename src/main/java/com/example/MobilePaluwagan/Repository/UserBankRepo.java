@@ -1,6 +1,7 @@
 package com.example.MobilePaluwagan.Repository;
 
 import com.example.MobilePaluwagan.DTOs.Response.SavingsPendingPaymentMemberResponse;
+import com.example.MobilePaluwagan.Entity.User;
 import com.example.MobilePaluwagan.Entity.UserBank;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -27,4 +28,5 @@ public interface UserBankRepo extends JpaRepository<UserBank, Long> {
     "WHERE ub.savingsId = :savingsId " +
     "AND us.status = 'PENDING'")
     List<SavingsPendingPaymentMemberResponse> findPendingPaymentBySavingsId(@Param("savingsId") String savingsId);
+
 }

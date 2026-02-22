@@ -17,6 +17,7 @@ public interface UserSavingsRepo extends JpaRepository<UserSavings, Long> {
     List<UserSavings> findByUserId(long userId);
     Long countByUserId(long userId);
     boolean existsByUserIdAndStatus(long userId, Status status);
+    boolean existsByReference(String reference);
 
 
     @Query("SELECT e FROM UserSavings e ORDER BY e.id desc LIMIT 1")

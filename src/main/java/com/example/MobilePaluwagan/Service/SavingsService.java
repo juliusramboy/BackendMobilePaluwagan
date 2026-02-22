@@ -1,11 +1,13 @@
 package com.example.MobilePaluwagan.Service;
 
 import com.example.MobilePaluwagan.Controller.LoanSseController;
+import com.example.MobilePaluwagan.DTOs.Request.AdminSavingsStatus;
 import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterRequest;
 import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterRequestAdmin;
 import com.example.MobilePaluwagan.DTOs.Response.*;
 import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.*;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -44,6 +46,48 @@ public class SavingsService {
     @Autowired
     private SavingsWithdrawApplicationRepo savingsWithdrawApplicationRepo;
 
+    @Transactional
+    public ApiResponse<?> adminAcceptPayment(AdminSavingsStatus request) {
+        UserBank userBank = userBankRepo.findBySavingsId(request.getSavingsId());
+        List<UserSavings> userSavings = userSavingsRepo.findByUserId(userBank.getUserId());
+
+        Optional<UserSavings> savingsWithReference = userSavings.stream()
+                .filter(s -> request.getReference().equals(s.getReference()))
+                .findFirst();
+
+        if (savingsWithReference.isPresent()) {
+            Status status = savingsWithReference.get().getStatus();
+            UserSavings reference = savingsWithReference.get();
+
+            if (status == Status.PAID){
+                return new ApiResponse<>(true, "Payment already processed", null);
+            }
+
+            if (request.getStatus() == Status.REJECTED) {
+                userSavingsRepo.delete(reference);
+                return new ApiResponse<>(true, "Payment deleted", null);
+            }
+
+            if (userBank.getFirstDepositDate() == null) {
+                userBank.setFirstDepositDate(reference.getDepositDate());
+                userBank.setHasSavingsDeposit(true);
+
+                userBankRepo.save(userBank);
+            }
+
+            BigDecimal addPayment = userBank.getAccountBalance().add(BigDecimal.valueOf(reference.getAmountDeposit()));
+            userBank.setAccountBalance(addPayment);
+            userBankRepo.save(userBank);
+            reference.setStatus(Status.PAID);
+            userSavingsRepo.save(reference);
+            return new ApiResponse<>(true, "Payment Added to User", null);
+
+        }else {
+            return new ApiResponse<>(false, "Payment already processed", null);
+        }
+
+    }
+
 
     public ApiResponse<UserDepositSavingsResponse>  userDeposit(Long userId, double depositAmount, LocalDate depositDate){
         UserBank user = userBankRepo.findByUserId(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userId not found"));
@@ -53,14 +97,6 @@ public class SavingsService {
 
         LocalDateTime depositDateTime = depositDate.atTime(LocalTime.now());
 
-
-        // pansamantala for admin to dapat
-        if (user.getFirstDepositDate() == null){
-            user.setFirstDepositDate(depositDateTime);
-            user.setHasSavingsDeposit(true);
-
-            userBankRepo.save(user);
-        }
             UserSavings deposit;
                 UserSavings userSavings = new UserSavings();
                 userSavings.setUserId(userId);

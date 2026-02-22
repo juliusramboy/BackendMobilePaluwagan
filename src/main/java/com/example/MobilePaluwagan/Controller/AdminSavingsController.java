@@ -1,5 +1,6 @@
 package com.example.MobilePaluwagan.Controller;
 
+import com.example.MobilePaluwagan.DTOs.Request.AdminSavingsStatus;
 import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterRequest;
 import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterRequestAdmin;
 import com.example.MobilePaluwagan.DTOs.Request.SavingsResponseAdmin;
@@ -30,7 +31,11 @@ public class AdminSavingsController {
 //        return;
 //    }
 
-
+    @PostMapping("/payment")
+    public ResponseEntity<ApiResponse<?>> acceptPendingPayments(@RequestBody AdminSavingsStatus request){
+        ApiResponse<?> payment = savingsService.adminAcceptPayment(request);
+        return ResponseEntity.ok(payment);
+    }
     @GetMapping("/members")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<?>> getAllSavingsMembers() {
