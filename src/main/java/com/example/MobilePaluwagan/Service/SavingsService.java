@@ -65,6 +65,7 @@ public class SavingsService {
 
             if (request.getStatus() == Status.REJECTED) {
                 userSavingsRepo.delete(reference);
+                loanSseController.notifyLoan();
                 return new ApiResponse<>(true, "Payment deleted", null);
             }
 
@@ -80,6 +81,7 @@ public class SavingsService {
             userBankRepo.save(userBank);
             reference.setStatus(Status.PAID);
             userSavingsRepo.save(reference);
+            loanSseController.notifyLoan();
             return new ApiResponse<>(true, "Payment Added to User", null);
 
         }else {
