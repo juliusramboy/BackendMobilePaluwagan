@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -26,6 +27,9 @@ public class SavingsWithdrawApplication {
 
     @Column(name = "account_balance")
     private BigDecimal accountBalance;
+
+    @Column(name = "withdraw_date")
+    private LocalDateTime withdrawDate;
 
     @Column(name = "target_amount")
     private BigDecimal targetAmount;

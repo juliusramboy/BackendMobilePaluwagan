@@ -1,6 +1,7 @@
 package com.example.MobilePaluwagan.Entity;
 
 public enum Status {
+    WITHDRAW,
     PENDING,
     APPROVED,
     REJECTED,

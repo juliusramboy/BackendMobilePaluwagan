@@ -55,14 +55,13 @@ public class SavingsService {
                 .filter(s -> request.getReference().equals(s.getReference()))
                 .findFirst();
 
-        if (savingsWithReference.isPresent()) {
+        if (savingsWithReference.isPresent() && savingsWithReference.get().getStatus() == Status.PENDING) {
             Status status = savingsWithReference.get().getStatus();
             UserSavings reference = savingsWithReference.get();
 
-            if (status == Status.PAID){
+            if (request.getStatus() == status){
                 return new ApiResponse<>(true, "Payment already processed", null);
             }
-
             if (request.getStatus() == Status.REJECTED) {
                 userSavingsRepo.delete(reference);
                 loanSseController.notifyLoan();
@@ -144,6 +143,12 @@ public class SavingsService {
         }
 
         UserInfo userInfo = userInfoRepo.findByUserId(user.getUserId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userid not found"));
+        SavingsWithdrawApplication savingsWithdrawApplication = savingsWithdrawApplicationRepo.findByUserId(user.getUserId());
+
+        WithdrawSavingsInfo withdrawSavingsInfo = WithdrawSavingsInfo.builder()
+                .withdrawDate(savingsWithdrawApplication.getWithdrawDate())
+                .reference(savingsWithdrawApplication.getReference())
+                .build();
 
         UserSavingsInfo userSavingsInfo = UserSavingsInfo.builder()
                 .firstName(userInfo.getFirstName())
@@ -390,11 +395,12 @@ public class SavingsService {
         SavingsWithdrawApplication withdrawApplication = new SavingsWithdrawApplication();
         withdrawApplication.setSavingsId(user.getSavingsId());
         withdrawApplication.setAnnual(annual);
+        withdrawApplication.setWithdrawDate(LocalDateTime.now());
         withdrawApplication.setUserId(user.getUserId());
         withdrawApplication.setTargetAmount(user.getTargetAmount());
         withdrawApplication.setAccountBalance(user.getAccountBalance());
         withdrawApplication.setReference(generateRef());
-        withdrawApplication.setStatus(Status.PENDING);
+        withdrawApplication.setStatus(Status.WITHDRAW);
 
         savingsWithdrawApplicationRepo.save(withdrawApplication);
 
