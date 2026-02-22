@@ -14,4 +14,5 @@ import java.util.List;
 public class SavingsDetailResponse {
     private UserSavingsInfo user;
     private List<SavingsPendingPaymentMemberResponse> payments;
+    private WithdrawSavingsInfo withdraw;
 }

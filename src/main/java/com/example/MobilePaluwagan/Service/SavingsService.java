@@ -142,13 +142,25 @@ public class SavingsService {
             );
         }
 
+
+
         UserInfo userInfo = userInfoRepo.findByUserId(user.getUserId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userid not found"));
         SavingsWithdrawApplication savingsWithdrawApplication = savingsWithdrawApplicationRepo.findByUserId(user.getUserId());
 
-        WithdrawSavingsInfo withdrawSavingsInfo = WithdrawSavingsInfo.builder()
-                .withdrawDate(savingsWithdrawApplication.getWithdrawDate())
-                .reference(savingsWithdrawApplication.getReference())
-                .build();
+
+       // BigDecimal balance = savingsWithdrawApplication.getAccountBalance().add(savingsWithdrawApplication.getAnnual());
+
+        WithdrawSavingsInfo withdraw  = WithdrawSavingsInfo.builder().build();
+
+        if (savingsWithdrawApplication != null) {
+            BigDecimal balance = savingsWithdrawApplication.getAccountBalance().add(savingsWithdrawApplication.getAnnual());
+            withdraw = WithdrawSavingsInfo.builder()
+                    .withdrawDate(savingsWithdrawApplication.getWithdrawDate())
+                    .reference(savingsWithdrawApplication.getReference())
+                    .totalBalance(balance)
+                    .status(savingsWithdrawApplication.getStatus())
+                    .build();
+        }
 
         UserSavingsInfo userSavingsInfo = UserSavingsInfo.builder()
                 .firstName(userInfo.getFirstName())
@@ -156,7 +168,10 @@ public class SavingsService {
                 .targetAmount(user.getTargetAmount())
                 .savingsId(user.getSavingsId())
                 .accountBalance(user.getAccountBalance())
-                .maturityDate(user.getFirstDepositDate().plusYears(1))
+                .maturityDate(user.getFirstDepositDate() != null
+                        ? user.getFirstDepositDate().plusYears(1)
+                        : null)
+
                 .build();
 
         List<SavingsPendingPaymentMemberResponse> payments = userBankRepo.findPendingPaymentBySavingsId(savingsId);
@@ -167,6 +182,7 @@ public class SavingsService {
                 SavingsDetailResponse.builder()
                         .user(userSavingsInfo)
                         .payments(payments)
+                        .withdraw(withdraw)
                         .build()
 
         );
