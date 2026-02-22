@@ -84,7 +84,7 @@ public class SavingsService {
             return new ApiResponse<>(true, "Payment Added to User", null);
 
         }else {
-            return new ApiResponse<>(false, "Payment already processed", null);
+            return new ApiResponse<>(false, "Missing information " + request.getSavingsId() +" or " + request.getReference(), null);
         }
 
     }
