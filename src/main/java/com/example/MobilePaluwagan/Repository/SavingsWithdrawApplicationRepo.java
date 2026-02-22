@@ -9,4 +9,7 @@ import org.springframework.stereotype.Repository;
 public interface SavingsWithdrawApplicationRepo extends JpaRepository<SavingsWithdrawApplication, Long> {
 
     boolean existsByUserIdAndStatus(Long userId,Status status);
+
+    SavingsWithdrawApplication findByUserId(Long userId);
+
 }
