@@ -20,4 +20,5 @@ public class SavingsMemberOverview {
     private BigDecimal savingsAccountBalance;
     private BigDecimal targetAmount;
     private boolean hasPendingPayment;
+    private String profileImage;
 }
