@@ -125,12 +125,6 @@ public class ProfileService {
 
         }
 
-
-
-
-
-
-
         UserInfo savedUser = userInfoRepo.save(info);
 
         return new ApiResponse<>(
@@ -139,4 +133,12 @@ public class ProfileService {
                 "Profile updated"
         );
     }
+
+    public ApiResponse<?> getProfile(Long userId){
+        UserInfo userInfo = userInfoRepo.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        return new ApiResponse<>(true, "Success", userInfo.getProfileImage());
+    }
+
 }

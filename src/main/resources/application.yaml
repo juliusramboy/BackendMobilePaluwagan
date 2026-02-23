@@ -30,6 +30,11 @@ spring:
           starttls:
             enable: true
 
+supabase:
+  url: ${SUPABASE_URL}
+  key: ${SUPABASE_KEY}
+  bucket: ${BUCKET}
+
 jwt:
   secret: ${JWT_SECRET}
 
