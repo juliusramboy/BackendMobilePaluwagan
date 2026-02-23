@@ -23,4 +23,5 @@ public class ApplicantsFullInfoAdmin {
     private LocalDate endDate;
     private String firstName;
     private String lastName;
+    private String profileImage;
 }

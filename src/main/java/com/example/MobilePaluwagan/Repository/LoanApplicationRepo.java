@@ -26,7 +26,7 @@ public interface LoanApplicationRepo extends JpaRepository<LoanApplication, Long
     Optional<LoanApplication> findByApplicationID(Long applicationID);
 
     @Query("SELECT new com.example.MobilePaluwagan.DTOs.Response.LoanApplicantsAdmin(" +
-            "la.userId, la.applicationID, la.totalRepayable, la.weeklyPay, la.requestedAmount, la.interestRate, la.interest, la.repayPeriodDays, la.repayPeriodWeeks, la.startDate, la.endDate, la.status, lu.firstName, lu.lastName) " +
+            "la.userId, la.applicationID, la.totalRepayable, la.weeklyPay, la.requestedAmount, la.interestRate, la.interest, la.repayPeriodDays, la.repayPeriodWeeks, la.startDate, la.endDate, la.status, lu.firstName, lu.lastName, lu.profileImage) " +
             "FROM LoanApplication la " +
             "JOIN la.userInfo lu " +
             "WHERE la.status = :status")
@@ -42,7 +42,7 @@ public interface LoanApplicationRepo extends JpaRepository<LoanApplication, Long
     @Query("SELECT new com.example.MobilePaluwagan.DTOs.Response.ApplicantsFullInfoAdmin(" +
             "la.applicationID, la.requestedAmount, la.interestRate, la.interest, " +
             "la.weeklyPay, la.totalRepayable, la.repayPeriodDays, la.repayPeriodWeeks, " +
-            "la.startDate, la.endDate, la.userInfo.firstName, la.userInfo.lastName) " +
+            "la.startDate, la.endDate, la.userInfo.firstName, la.userInfo.lastName, la.userInfo.profileImage) " +
             "FROM LoanApplication la " +
             "WHERE la.applicationID = :applicationID")
     ApplicantsFullInfoAdmin findLoanApplicantsFullInfo(@Param("applicationID") Long applicationID);

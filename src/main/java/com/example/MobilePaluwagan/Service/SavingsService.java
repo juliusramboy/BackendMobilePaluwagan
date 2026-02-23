@@ -395,7 +395,7 @@ public class SavingsService {
     }
 
     private static ApiResponse<?> savingsValidation(BigDecimal targetAmount, UserInfo userInfo, UserBank userBank) {
-        if (userInfo.getAddress() == null || userInfo.getBirthDay() == null|| userInfo.getFirstName() == null || userInfo.getGender() == null || userInfo.getLastName() == null || userInfo.getMiddleName() == null || userInfo.getPhoneNumber() == null || userInfo.getSuffix() == null) {
+        if (userInfo.getAddress() == null || userInfo.getBirthDay() == null|| userInfo.getFirstName() == null || userInfo.getGender() == null || userInfo.getLastName() == null || userInfo.getMiddleName() == null || userInfo.getPhoneNumber() == null || userInfo.getSuffix() == null || userInfo.getProfileImage() == null) {
             return new ApiResponse<>(
                     false,
                     "Pls complete your details in profile",
