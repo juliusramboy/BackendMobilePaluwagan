@@ -44,7 +44,8 @@ public class ProfileService {
                 userInfo.getAddress(),
                 userInfo.getBirthDay(),
                 userInfo.getGender(),
-                user.getEmail()
+                user.getEmail(),
+                userInfo.getProfileImage()
         );
     }
 
@@ -130,6 +131,7 @@ public class ProfileService {
 
         UserInfo savedUser = userInfoRepo.save(info);
 
+        loanSseController.notifyLoan();
         return new ApiResponse<>(
                 true,
                 "Successfully updated profile",
@@ -137,11 +139,5 @@ public class ProfileService {
         );
     }
 
-    public ApiResponse<?> getProfile(Long userId){
-        UserInfo userInfo = userInfoRepo.findByUserId(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        loanSseController.notifyLoan();
-        return new ApiResponse<>(true, "Success", userInfo.getProfileImage());
-    }
 
 }

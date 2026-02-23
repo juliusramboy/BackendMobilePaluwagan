@@ -22,6 +22,7 @@ public class UserProfileResponse {
     private String address;
     private LocalDate birthday;
     private String gender;
+    private String profileImage;
 
     private String email;
 

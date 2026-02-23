@@ -33,6 +33,9 @@ public class ProfileControler {
     @Autowired
     private UserInfoRepo userInfoRepo;
 
+    @Autowired
+    private LoanSseController loanSseController;
+
     @GetMapping("/info")
     public UserProfileResponse userAllInfo(Authentication authentication){
         UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
@@ -64,17 +67,10 @@ public class ProfileControler {
         userInfo.setProfileImage(imageUrl);
         userInfoRepo.save(userInfo);
 
+        loanSseController.notifyLoan();
         return ResponseEntity.ok(new ApiResponse<>(true, "Upload successful", imageUrl));
     }
 
-    @GetMapping("/image")
-    public ResponseEntity<ApiResponse<?>> getProfile(Authentication authentication) {
 
-        UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
-        Long userId = userDetails.userId();
-
-        ApiResponse<?> response = profileService.getProfile(userId);
-        return ResponseEntity.ok(response);
-    }
 
 }
