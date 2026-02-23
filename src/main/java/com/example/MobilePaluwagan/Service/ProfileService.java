@@ -44,8 +44,9 @@ public class ProfileService {
                 userInfo.getAddress(),
                 userInfo.getBirthDay(),
                 userInfo.getGender(),
-                user.getEmail(),
-                userInfo.getProfileImage()
+                userInfo.getProfileImage(),
+                user.getEmail()
+
         );
     }
 
