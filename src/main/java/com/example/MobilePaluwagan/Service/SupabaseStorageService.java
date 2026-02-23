@@ -35,6 +35,11 @@ public class SupabaseStorageService {
                     "file size exceeds 150kb limit");
         }
 
+        if (file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Please select an image to upload");
+        }
+
         List<String> allowedTypes = List.of("image/jpeg", "image/png", "image/webp");
         if (!allowedTypes.contains(file.getContentType())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -47,6 +52,7 @@ public class SupabaseStorageService {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + supabaseKey);
         headers.set("Content-Type", file.getContentType());
+        headers.set("x-upsert", "true");
 
         HttpEntity<byte[]> entity = new HttpEntity<>(file.getBytes(), headers);
 
