@@ -116,6 +116,7 @@ public class SavingsService {
             bank.setHasSavingsDeposit(false);
             bank.setTargetAmount(null);
             userBankRepo.save(bank);
+            loanSseController.notifyLoan();
             return new ApiResponse<>(true, "Withdrawal processed successfully", null);
         }
 
