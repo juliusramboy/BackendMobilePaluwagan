@@ -52,6 +52,9 @@ public class UserInfo {
     @Column(name = "source_of_funds")
     private String sourceOfFunds;
 
+    @Column(name = "profile_image")
+    private String profileImage;
+
     @JsonIgnore
     @OneToMany(mappedBy = "userInfo")
     private List<LoanApplication> loanApplications;
