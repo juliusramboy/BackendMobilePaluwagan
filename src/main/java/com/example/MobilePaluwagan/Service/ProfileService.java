@@ -1,5 +1,6 @@
 package com.example.MobilePaluwagan.Service;
 
+import com.example.MobilePaluwagan.Controller.LoanSseController;
 import com.example.MobilePaluwagan.DTOs.Request.ProfileUpdateRequest;
 import com.example.MobilePaluwagan.DTOs.Response.ApiResponse;
 import com.example.MobilePaluwagan.DTOs.Response.UserProfileResponse;
@@ -25,6 +26,8 @@ public class ProfileService {
     private UserRepo userRepo;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private LoanSseController loanSseController;
 
 
     public UserProfileResponse userAllInfo(Long userId){
@@ -137,7 +140,7 @@ public class ProfileService {
     public ApiResponse<?> getProfile(Long userId){
         UserInfo userInfo = userInfoRepo.findByUserId(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
+        loanSseController.notifyLoan();
         return new ApiResponse<>(true, "Success", userInfo.getProfileImage());
     }
 
