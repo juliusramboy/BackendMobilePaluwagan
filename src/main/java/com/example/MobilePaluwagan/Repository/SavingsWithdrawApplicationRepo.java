@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface SavingsWithdrawApplicationRepo extends JpaRepository<SavingsWithdrawApplication, Long> {
@@ -13,5 +14,6 @@ public interface SavingsWithdrawApplicationRepo extends JpaRepository<SavingsWit
     boolean existsByUserIdAndStatus(Long userId,Status status);
 
     SavingsWithdrawApplication findByUserId(Long userId);
+    Optional<SavingsWithdrawApplication> findBySavingsId(String savingsId);
 
 }

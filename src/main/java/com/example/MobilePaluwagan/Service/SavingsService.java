@@ -2,6 +2,7 @@ package com.example.MobilePaluwagan.Service;
 
 import com.example.MobilePaluwagan.Controller.LoanSseController;
 import com.example.MobilePaluwagan.DTOs.Request.AdminSavingsStatus;
+import com.example.MobilePaluwagan.DTOs.Request.MigrateDataWithdraw;
 import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterRequest;
 import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterRequestAdmin;
 import com.example.MobilePaluwagan.DTOs.Response.*;
@@ -46,6 +47,9 @@ public class SavingsService {
     @Autowired
     private SavingsWithdrawApplicationRepo savingsWithdrawApplicationRepo;
 
+    @Autowired
+    private LedgerRepo ledgerRepo;
+
     @Transactional
     public ApiResponse<?> adminAcceptPayment(AdminSavingsStatus request) {
         UserBank userBank = userBankRepo.findBySavingsId(request.getSavingsId());
@@ -54,10 +58,71 @@ public class SavingsService {
         Optional<UserSavings> savingsWithReference = userSavings.stream()
                 .filter(s -> request.getReference().equals(s.getReference()))
                 .findFirst();
+        Optional<SavingsWithdrawApplication> withdrawWithReference = savingsWithdrawApplicationRepo
+                .findBySavingsId(request.getSavingsId());
 
-        if (savingsWithReference.isPresent() && savingsWithReference.get().getStatus() == Status.PENDING) {
+
+        if(request.getStatus() == Status.WITHDRAW && withdrawWithReference.isPresent()){
+            UserBank bank = userBankRepo.findBySavingsId(request.getSavingsId());
+            SavingsWithdrawApplication withdraw = savingsWithdrawApplicationRepo.findBySavingsId(request.getSavingsId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "no record found in withdraw application"));
+            List<UserSavings> savings = userSavingsRepo.findBySavingsId(request.getSavingsId());
+
+            if (bank == null){
+                return new ApiResponse<>(
+                        false,
+                        "Theres no Savings Id found in Bank",
+                        null
+                );
+            }
+
+            if (savings == null){
+                return new ApiResponse<>(
+                        false,
+                        "Theres no Savings Id found in Bank",
+                        null
+                );
+            }
+            BigDecimal balance = withdraw.getAccountBalance().add(withdraw.getAnnual());
+            //from withdrawApplication
+            Ledger withdrawApplication = Ledger.builder()
+                    .savingsId(withdraw.getSavingsId())
+                    .userId(withdraw.getUserId())
+                    .amount(balance)
+                    .depositDate(withdraw.getWithdrawDate())
+                    .reference(withdraw.getReference())
+                    .build();
+
+            ledgerRepo.save(withdrawApplication);
+
+
+            // savings ledger
+            List<Ledger> savingsLedger = savings.stream()
+                    .map(saving -> Ledger.builder()
+                            .savingsId(saving.getSavingsId())
+                            .userId(saving.getUserId())
+                            .amount(BigDecimal.valueOf(saving.getAmountDeposit()))
+                            .depositDate(saving.getDepositDate())
+                            .reference(saving.getReference())
+                            .build())
+                    .toList();
+
+            ledgerRepo.saveAll(savingsLedger);
+
+            savingsWithdrawApplicationRepo.delete(withdraw);
+            userSavingsRepo.deleteAll(savings);
+
+            bank.setAccountBalance(null);
+            bank.setFirstDepositDate(null);
+            bank.setHasSavingsDeposit(false);
+            bank.setTargetAmount(null);
+            userBankRepo.save(bank);
+            return new ApiResponse<>(true, "Withdrawal processed successfully", null);
+        }
+
+        if (savingsWithReference.isPresent()) {
             Status status = savingsWithReference.get().getStatus();
             UserSavings reference = savingsWithReference.get();
+
 
             if (request.getStatus() == status){
                 return new ApiResponse<>(true, "Payment already processed", null);
@@ -370,7 +435,7 @@ public class SavingsService {
                         HttpStatus.NOT_FOUND, "User not found"));
 
         boolean hasApplication  = savingsWithdrawApplicationRepo
-                .existsByUserIdAndStatus(userId,Status.PENDING);
+                .existsByUserIdAndStatus(userId,Status.WITHDRAW);
 
         if (hasApplication){
             return new ApiResponse<>(
