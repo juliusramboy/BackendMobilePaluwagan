@@ -58,13 +58,13 @@ public interface UserSavingsRepo extends JpaRepository<UserSavings, Long> {
 
     @Query("SELECT new com.example.MobilePaluwagan.DTOs.Response.SavingsMemberOverview(" +
     "ui.firstName, ui.lastName, ub.savingsId, ub.accountBalance, ub.targetAmount, " +
-    "CASE WHEN COUNT(us) > 0 THEN true ELSE false END) " +
+    "CASE WHEN COUNT(us) > 0 THEN true ELSE false END, ui.profileImage) " +
     "FROM User u " +
     "JOIN u.userInfo ui " +
     "JOIN u.userBank ub " +
     "LEFT JOIN u.userSavings us ON us.status = 'PENDING' "+
     "WHERE u.hasSavingsAccount = true " +
-    "GROUP BY u.id, ui.firstName, ui.lastName, ub.savingsId, ub.accountBalance, ub.targetAmount")
+    "GROUP BY u.id, ui.firstName, ui.lastName, ub.savingsId, ub.accountBalance, ub.targetAmount, ui.profileImage")
     List<SavingsMemberOverview> findAllMembers();
 
     @Query(value = "SELECT us.* FROM user_savings us " +
