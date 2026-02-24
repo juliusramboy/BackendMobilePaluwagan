@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import java.security.Key;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,15 +26,17 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class JWTService {
 
-    //@Value("${jwt.secret}")
-    private static String secretKey = "a9f8b7c6d5e4f3g2h1i0jklmnopqrstuvwxyz123456";
+    @Value("${jwt.secret}")
+    private  String secretKey;
+
 
     public static final long Expiration_time = 1000 * 60 * 60 * 24;
 
     private final TokenRepository tokenRepository;
 
 
-    public static String generateToken(String email, Long userId, String role) {
+
+    public String generateToken(String email, Long userId, String role) {
         Map<String, Object>  claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("role", role);
@@ -49,7 +52,7 @@ public class JWTService {
 
     }
 
-    private static SecretKey getKey() {
+    private SecretKey getKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }

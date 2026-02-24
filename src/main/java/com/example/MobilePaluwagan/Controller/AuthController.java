@@ -29,6 +29,8 @@ public class AuthController {
     private EmailService emailService;
     @Autowired
     private AuthOtpService authOtpService;
+    @Autowired
+    private JWTService jwtService;
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@RequestBody RegisterRequest request) {
@@ -36,7 +38,7 @@ public class AuthController {
         User existingUser = userRepo.findByEmail(request.getEmail());
 
         if (existingUser != null && !existingUser.isActive()) {
-            String verificationToken = JWTService.generateToken(request.getEmail(), existingUser.getId(), existingUser.getRole().getRoleName());
+            String verificationToken = jwtService.generateToken(request.getEmail(), existingUser.getId(), existingUser.getRole().getRoleName());
             String otpCode = registerService.resendOtp(existingUser.getId());
 
             emailService.resendVerificationEmail(existingUser.getEmail(), otpCode);
@@ -69,7 +71,7 @@ public class AuthController {
         User existingUser = userRepo.findByEmail(request.getEmail());
 
         if(existingUser != null && !existingUser.isActive()){
-            String verificationToken = JWTService.generateToken(request.getEmail(), existingUser.getId(), existingUser.getRole().getRoleName());
+            String verificationToken = jwtService.generateToken(request.getEmail(), existingUser.getId(), existingUser.getRole().getRoleName());
             emailService.sendVerificationEmail(request.getEmail(), verificationToken);
             return  ResponseEntity.ok( new LoginResponse(existingUser.getEmail(), existingUser.getId() , null, "User exists but not yet verified"));
         }
@@ -83,7 +85,7 @@ public class AuthController {
 
         if(isValid){
             User user = userRepo.findById(userId).orElseThrow();
-            String sessionToken = JWTService.generateToken(String.valueOf(user.getEmail()), user.getId(), user.getRole().getRoleName());
+            String sessionToken = jwtService.generateToken(String.valueOf(user.getEmail()), user.getId(), user.getRole().getRoleName());
             return ResponseEntity.ok("OTP verified successfully " + sessionToken);
         }else{
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
