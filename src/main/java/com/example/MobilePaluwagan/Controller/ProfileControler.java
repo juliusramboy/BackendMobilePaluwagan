@@ -18,7 +18,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/profile")
@@ -34,7 +33,7 @@ public class ProfileControler {
     private UserInfoRepo userInfoRepo;
 
     @Autowired
-    private LoanSseController loanSseController;
+    private SseController sseController;
 
     @GetMapping("/info")
     public UserProfileResponse userAllInfo(Authentication authentication){
@@ -67,7 +66,7 @@ public class ProfileControler {
         userInfo.setProfileImage(imageUrl);
         userInfoRepo.save(userInfo);
 
-        loanSseController.notifyLoan();
+        sseController.notifyUpdate();
         return ResponseEntity.ok(new ApiResponse<>(true, "Upload successful", imageUrl));
     }
 

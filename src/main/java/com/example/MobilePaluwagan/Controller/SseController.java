@@ -11,7 +11,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 @RestController
 @RequestMapping("/api")
-public class LoanSseController {
+public class SseController {
     private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 
 
@@ -24,13 +24,25 @@ public class LoanSseController {
             emitters.remove(emitter);
         });
         emitter.onTimeout(() -> {
+            emitter.complete();
             emitters.remove(emitter);
         });
+
+        emitter.onError((e) -> {
+            emitters.remove(emitter);
+        });
+
+        try {
+            emitter.send(SseEmitter.event().name("connect").data("Connected!"));
+        } catch (IOException e) {
+            emitter.completeWithError(e);
+            emitters.remove(emitter);
+        }
 
         return emitter;
     }
 
-    public void notifyLoan() {
+    public void notifyUpdate() {
         for (SseEmitter emitter : emitters){
             try {
                 emitter.send(SseEmitter.event()
@@ -38,6 +50,7 @@ public class LoanSseController {
                         .data("SSE is working!"));
                 System.out.println("Sent to client successfully");
             }catch (IOException e ){
+                emitter.completeWithError(e);
                 emitters.remove(emitter);
                 System.out.println("Failed to send, removed client");
             }

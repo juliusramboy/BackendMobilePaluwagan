@@ -1,6 +1,6 @@
 package com.example.MobilePaluwagan.Service;
 
-import com.example.MobilePaluwagan.Controller.LoanSseController;
+import com.example.MobilePaluwagan.Controller.SseController;
 import com.example.MobilePaluwagan.DTOs.Request.ProfileUpdateRequest;
 import com.example.MobilePaluwagan.DTOs.Response.ApiResponse;
 import com.example.MobilePaluwagan.DTOs.Response.UserProfileResponse;
@@ -15,8 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Optional;
-
 @Service
 public class ProfileService {
 
@@ -27,7 +25,7 @@ public class ProfileService {
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
-    private LoanSseController loanSseController;
+    private SseController sseController;
 
 
     public UserProfileResponse userAllInfo(Long userId){
@@ -132,7 +130,7 @@ public class ProfileService {
 
         UserInfo savedUser = userInfoRepo.save(info);
 
-        loanSseController.notifyLoan();
+        sseController.notifyUpdate();
         return new ApiResponse<>(
                 true,
                 "Successfully updated profile",

@@ -26,10 +26,6 @@ public class AdminSavingsController {
     @Autowired
     private SavingsService savingsService;
 
-//    @PostMapping("/deposit")
-//    public ResponseEntity<ApiResponse<?>> deposit(@RequestBody UserDepositRequest request){
-//        return;
-//    }
 
     @PostMapping("/payment")
     public ResponseEntity<ApiResponse<?>> acceptPendingPayments(@RequestBody AdminSavingsStatus request){

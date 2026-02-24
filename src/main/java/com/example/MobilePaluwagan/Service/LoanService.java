@@ -1,6 +1,6 @@
 package com.example.MobilePaluwagan.Service;
 
-import com.example.MobilePaluwagan.Controller.LoanSseController;
+import com.example.MobilePaluwagan.Controller.SseController;
 import com.example.MobilePaluwagan.DTOs.Request.AdminLoanStatus;
 import com.example.MobilePaluwagan.DTOs.Request.ApplyLoanRequest;
 import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterRequest;
@@ -42,7 +42,7 @@ public class LoanService {
     private LoanPaymentRepo loanPaymentRepo;
 
     @Autowired
-    private LoanSseController loanSseController;
+    private SseController sseController;
 
 
 
@@ -409,7 +409,7 @@ public class LoanService {
         changeTrue.setHasLoan(true);
         userRepo.save(changeTrue);
 
-        loanSseController.notifyLoan();
+        sseController.notifyUpdate();
 
         return new ApiResponse<>(
                 true,
