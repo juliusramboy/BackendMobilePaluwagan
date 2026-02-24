@@ -1,8 +1,7 @@
 package com.example.MobilePaluwagan.Service;
 
-import com.example.MobilePaluwagan.Controller.LoanSseController;
+import com.example.MobilePaluwagan.Controller.SseController;
 import com.example.MobilePaluwagan.DTOs.Request.AdminSavingsStatus;
-import com.example.MobilePaluwagan.DTOs.Request.MigrateDataWithdraw;
 import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterRequest;
 import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterRequestAdmin;
 import com.example.MobilePaluwagan.DTOs.Response.*;
@@ -42,7 +41,7 @@ public class SavingsService {
     private UserRepo userRepo;
 
     @Autowired
-    private LoanSseController loanSseController;
+    private SseController sseController;
 
     @Autowired
     private SavingsWithdrawApplicationRepo savingsWithdrawApplicationRepo;
@@ -116,7 +115,7 @@ public class SavingsService {
             bank.setHasSavingsDeposit(false);
             bank.setTargetAmount(null);
             userBankRepo.save(bank);
-            loanSseController.notifyLoan();
+            sseController.notifyUpdate();
             return new ApiResponse<>(true, "Withdrawal processed successfully", null);
         }
 
@@ -130,7 +129,7 @@ public class SavingsService {
             }
             if (request.getStatus() == Status.REJECTED) {
                 userSavingsRepo.delete(reference);
-                loanSseController.notifyLoan();
+                sseController.notifyUpdate();
                 return new ApiResponse<>(true, "Payment deleted", null);
             }
 
@@ -146,7 +145,7 @@ public class SavingsService {
             userBankRepo.save(userBank);
             reference.setStatus(Status.PAID);
             userSavingsRepo.save(reference);
-            loanSseController.notifyLoan();
+            sseController.notifyUpdate();
             return new ApiResponse<>(true, "Payment Added to User", null);
 
         }else {
@@ -175,7 +174,7 @@ public class SavingsService {
 
                 deposit = userSavingsRepo.save(userSavings);
 
-                loanSseController.notifyLoan();
+                sseController.notifyUpdate();
 
             
             UserDepositSavingsResponse responseData = mapToUserSavingsResponse(deposit);
@@ -208,13 +207,8 @@ public class SavingsService {
             );
         }
 
-
-
         UserInfo userInfo = userInfoRepo.findByUserId(user.getUserId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userid not found"));
         SavingsWithdrawApplication savingsWithdrawApplication = savingsWithdrawApplicationRepo.findByUserId(user.getUserId());
-
-
-       // BigDecimal balance = savingsWithdrawApplication.getAccountBalance().add(savingsWithdrawApplication.getAnnual());
 
         WithdrawSavingsInfo withdraw  = WithdrawSavingsInfo.builder().build();
 
@@ -385,7 +379,7 @@ public class SavingsService {
 
         userBankRepo.save(userBank);
 
-        loanSseController.notifyLoan();
+        sseController.notifyUpdate();
 
         return  new ApiResponse<>(
                 true,
