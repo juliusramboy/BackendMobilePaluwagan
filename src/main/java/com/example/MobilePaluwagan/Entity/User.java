@@ -1,9 +1,11 @@
 package com.example.MobilePaluwagan.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.List;
 
@@ -30,21 +32,28 @@ public class User {
     @Transient
     private String verificationOtp;
 
-
     @ManyToOne
     @JoinColumn(name = "role_id")
     private Role role;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
+    @ToString.Exclude
     private List<Token> tokens;
 
+    @JsonIgnore
     @OneToOne(mappedBy = "user")
+    @ToString.Exclude
     private UserInfo userInfo;
 
+    @JsonIgnore
     @OneToOne(mappedBy = "user")
+    @ToString.Exclude
     private UserBank userBank;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
+    @ToString.Exclude
     private List<UserSavings> userSavings;
 
 }

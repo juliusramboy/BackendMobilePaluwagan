@@ -1,9 +1,11 @@
 package com.example.MobilePaluwagan.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @NoArgsConstructor
@@ -23,6 +25,8 @@ public class Token {
     private boolean loggedOut;
 
     @ManyToOne
+    @ToString.Exclude
+    @JsonIgnore
     @JoinColumn(name = "user_id")
     private User user;
 }

@@ -64,6 +64,7 @@ public class UserInfo {
     private List<UserSavings> savingsApplications;
 
     @OneToOne
+    @JsonIgnore
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
 }

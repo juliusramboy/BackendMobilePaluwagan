@@ -92,6 +92,8 @@ public class LoginService {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED) .body(new LoginResponse("failed", null, null));
 
         } catch (Exception e) {
+            System.out.println("=== Login Error ===");
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new LoginResponse("failed", null, null));
 

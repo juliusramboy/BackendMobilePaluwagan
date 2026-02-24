@@ -1,5 +1,6 @@
 package com.example.MobilePaluwagan.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -41,12 +42,13 @@ public class UserSavings {
 
     private String reference;
 
-    @JsonManagedReference
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private UserInfo userInfo;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
 
