@@ -72,7 +72,7 @@ public class  LoanController {
     }
 
 
-    @GetMapping("loan/status/details")
+    @GetMapping("/loan/status/details")
     public Optional<LoanApplication> details(Authentication authentication){
         UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
         Long userId = userDetails.userId();
