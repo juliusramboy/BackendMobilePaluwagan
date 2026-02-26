@@ -22,9 +22,10 @@ public interface UserBankRepo extends JpaRepository<UserBank, Long> {
 
     Optional<UserBank> findByUserId(Long userId);
 
-    @Query("SELECT new com.example.MobilePaluwagan.DTOs.Response.SavingsPendingPaymentMemberResponse(us.amountDeposit, us.depositDate, us.reference, us.status) " +
+    @Query("SELECT new com.example.MobilePaluwagan.DTOs.Response.SavingsPendingPaymentMemberResponse(us.amountDeposit, us.depositDate, us.reference, us.status, ui.profileImage) " +
     "FROM UserBank ub " +
     "JOIN UserSavings us ON us.userId = ub.userId " +
+    "JOIN UserInfo ui ON ui.userId = ub.userId " +
     "WHERE ub.savingsId = :savingsId " +
     "AND us.status = 'PENDING'")
     List<SavingsPendingPaymentMemberResponse> findPendingPaymentBySavingsId(@Param("savingsId") String savingsId);

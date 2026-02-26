@@ -15,4 +15,5 @@ public class SavingsPendingPaymentMemberResponse {
     private LocalDateTime remitDate;
     private String reference;
     private Status status;
+    private String profileImage;
 }
