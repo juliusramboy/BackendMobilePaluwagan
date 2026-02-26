@@ -21,9 +21,9 @@ public class RateLimiterInterceptor implements HandlerInterceptor {
 
     private RateLimiter getLimiter(String ip) {
         try {
-            return limiters.get(ip, () -> RateLimiter.create(0.083));
+            return limiters.get(ip, () -> RateLimiter.create(10.0));
         } catch (ExecutionException e) {
-            return RateLimiter.create(0.083);
+            return RateLimiter.create(10.0);
         }
     }
 
