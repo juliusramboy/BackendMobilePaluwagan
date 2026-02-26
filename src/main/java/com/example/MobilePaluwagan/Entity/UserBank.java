@@ -39,6 +39,9 @@ public class UserBank {
     @Column(name = "has_savings_deposit")
     private boolean hasSavingsDeposit;
 
+    @Column(name = "loan_repayment_tally")
+    private BigDecimal loanRepaymentTally;
+
     @JsonIgnore
     @OneToOne
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
