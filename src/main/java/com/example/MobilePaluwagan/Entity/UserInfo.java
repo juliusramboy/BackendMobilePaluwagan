@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -57,14 +58,17 @@ public class UserInfo {
 
     @JsonIgnore
     @OneToMany(mappedBy = "userInfo")
+    @ToString.Exclude
     private List<LoanApplication> loanApplications;
 
     @JsonIgnore
     @OneToMany(mappedBy = "userInfo")
+    @ToString.Exclude
     private List<UserSavings> savingsApplications;
 
     @OneToOne
     @JsonIgnore
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @ToString.Exclude
     private User user;
 }
