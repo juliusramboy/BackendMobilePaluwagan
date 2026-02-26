@@ -231,7 +231,7 @@ public class SavingsService {
                 .maturityDate(user.getFirstDepositDate() != null
                         ? user.getFirstDepositDate().plusYears(1)
                         : null)
-
+                .profileImage(userInfo.getProfileImage())
                 .build();
 
         List<SavingsPendingPaymentMemberResponse> payments = userBankRepo.findPendingPaymentBySavingsId(savingsId);

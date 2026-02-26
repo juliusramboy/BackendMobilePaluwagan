@@ -19,4 +19,5 @@ public class UserSavingsInfo {
     private String savingsId;
     private BigDecimal accountBalance;
     private LocalDateTime maturityDate;
+    private String profileImage;
 }
