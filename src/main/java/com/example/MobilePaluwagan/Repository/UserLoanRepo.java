@@ -5,6 +5,7 @@ import com.example.MobilePaluwagan.Entity.LoanApplication;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 @Repository
@@ -13,4 +14,8 @@ public interface UserLoanRepo extends JpaRepository<Loan, Long> {
    Optional<Loan> findByUserId(Long userId);
 
     List<Loan> findAllByUserId(Long userId);
+
+    Loan findByApplicationID(Long applicationID);
+
+
 }
