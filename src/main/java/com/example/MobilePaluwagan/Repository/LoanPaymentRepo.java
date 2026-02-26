@@ -1,5 +1,6 @@
 package com.example.MobilePaluwagan.Repository;
 
+import com.example.MobilePaluwagan.Entity.Loan;
 import com.example.MobilePaluwagan.Entity.LoanPayment;
 import com.example.MobilePaluwagan.Entity.UserBank;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,6 +15,7 @@ import java.util.Optional;
 @Repository
 public interface LoanPaymentRepo extends JpaRepository<LoanPayment, Long> {
     Optional<LoanPayment> findByUserId(Long userId);
+    Optional<LoanPayment> findByLoanId(Long loanId);
 
     List<LoanPayment> findAllByUserId(Long userId);
     List<LoanPayment> findAllById(Long loanId);

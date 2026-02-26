@@ -381,14 +381,58 @@ public class LoanService {
        LoanApplication id = applicantId.get();
 
 
-       if (id.getStatus().equals(request.getStatus())){
+       if (id.getStatus() == Status.APPROVED && request.getStatus().equals(Status.APPROVED)){
            return new ApiResponse<>(
                    false,
-                   "Status is already" + request.getStatus(),
+                   "Status is already " + request.getStatus(),
                    null
 
            );
        }
+
+       if (request.getStatus().equals(Status.REJECTED)){
+           Loan userLoan = userLoanRepo.findByApplicationID(request.getApplicationID());
+
+
+
+           if (userLoan != null){
+               Optional<LoanPayment> payment = loanPaymentRepo.findByLoanId(userLoan.getId());
+
+               if (payment.isPresent()){
+                   return new ApiResponse<>(
+                           true,
+                           "You cannot reject this loan because the user has already started paying.",
+                           null
+                   );
+               }
+
+               userLoanRepo.delete(userLoan);
+
+               User user = userRepo.findById(id.getUserId()).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "userId not found"));
+               user.setHasLoan(false);
+               userRepo.save(user);
+
+               id.setStatus(Status.REJECTED);
+               loanApplicationRepo.save(id);
+               sseController.notifyUpdate();
+                return new ApiResponse<>(
+                        true,
+                        "Successful change the status of applicant and deleted the loan " + id.getStatus(),
+                        null
+                );
+           }else {
+               LoanApplication application = loanApplicationRepo.findByApplicationID(request.getApplicationID()).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Application Id not found in Loan Application"));
+               application.setStatus(Status.REJECTED);
+               loanApplicationRepo.save(application);
+                sseController.notifyUpdate();
+               return new ApiResponse<>(
+                       true,
+                       "Successful change the status of applicant " + id.getStatus(),
+                       null
+               );
+           }
+       }
+
         id.setStatus(request.getStatus());
         loanApplicationRepo.save(id);
 
