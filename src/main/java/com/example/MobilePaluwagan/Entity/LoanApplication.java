@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -63,5 +64,6 @@ public class LoanApplication {
     @JsonManagedReference
     @ManyToOne
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @ToString.Exclude
     private UserInfo userInfo;
 }
