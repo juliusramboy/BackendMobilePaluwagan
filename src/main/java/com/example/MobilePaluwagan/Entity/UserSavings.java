@@ -52,4 +52,9 @@ public class UserSavings {
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
 
+//    @ManyToOne
+//    @JsonIgnore
+//    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+//    private SavingsWithdrawApplication savingsWithdrawApplication;
+
 }

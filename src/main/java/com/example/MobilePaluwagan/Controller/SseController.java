@@ -53,7 +53,7 @@ public class SseController {
                 emitter.send(SseEmitter.event()
                         .name("loan-update")
                         .data("SSE is working!"));
-                System.out.println("Sent to client successfully");
+                //System.out.println("Sent to client successfully");
             }catch (IOException e ){
                 deadEmitters.add(emitter);
                 System.out.println("Failed to send, removed client");

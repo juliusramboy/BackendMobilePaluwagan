@@ -56,4 +56,9 @@ public class User {
     @ToString.Exclude
     private List<UserSavings> userSavings;
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "user")
+    @ToString.Exclude
+    private List<SavingsWithdrawApplication> savingsWithdrawApplications;
+
 }
