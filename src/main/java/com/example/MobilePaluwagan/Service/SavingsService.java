@@ -110,10 +110,10 @@ public class SavingsService {
             savingsWithdrawApplicationRepo.delete(withdraw);
             userSavingsRepo.deleteAll(savings);
 
-            bank.setAccountBalance(null);
+            bank.setAccountBalance(BigDecimal.ZERO);
             bank.setFirstDepositDate(null);
             bank.setHasSavingsDeposit(false);
-            bank.setTargetAmount(null);
+            bank.setTargetAmount(BigDecimal.ZERO);
             userBankRepo.save(bank);
             sseController.notifyUpdate();
             return new ApiResponse<>(true, "Withdrawal processed successfully", null);
