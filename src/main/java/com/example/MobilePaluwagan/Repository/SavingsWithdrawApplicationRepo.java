@@ -12,8 +12,11 @@ import java.util.Optional;
 public interface SavingsWithdrawApplicationRepo extends JpaRepository<SavingsWithdrawApplication, Long> {
 
     boolean existsByUserIdAndStatus(Long userId,Status status);
+    SavingsWithdrawApplication findByUserIdAndStatus(Long userId,Status status);
 
     SavingsWithdrawApplication findByUserId(Long userId);
+
+    boolean existsByUserId(Long userId);
     Optional<SavingsWithdrawApplication> findBySavingsId(String savingsId);
 
 }

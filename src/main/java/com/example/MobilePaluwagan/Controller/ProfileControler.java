@@ -55,9 +55,6 @@ public class ProfileControler {
 
     @PostMapping("/upload")
     public ResponseEntity<ApiResponse<?>> uploadProfile(@RequestParam("file")MultipartFile file, Authentication authentication) throws IOException {
-//        System.out.println("=== Upload Debug ===");
-//        System.out.println("Authentication: " + authentication);
-//        System.out.println("File: " + (file != null ? file.getOriginalFilename() : "null"));
         UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
         Long userId = userDetails.userId();
         System.out.println("UserId: " + userId);
