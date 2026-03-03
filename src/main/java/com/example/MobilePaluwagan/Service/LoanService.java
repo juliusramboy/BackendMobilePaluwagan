@@ -4,6 +4,7 @@ import com.example.MobilePaluwagan.Controller.SseController;
 import com.example.MobilePaluwagan.DTOs.Request.AdminLoanStatus;
 import com.example.MobilePaluwagan.DTOs.Request.ApplyLoanRequest;
 import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterRequest;
+import com.example.MobilePaluwagan.DTOs.Request.WeeklyAmortizationSchedule;
 import com.example.MobilePaluwagan.DTOs.Response.*;
 import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.*;
@@ -44,6 +45,9 @@ public class LoanService {
     @Autowired
     private SseController sseController;
 
+    @Autowired
+    private DueDateScheduleRepository dueDateScheduleRepo;
+
 
 
     public ApiResponse<UserAllLoansResponse> getAllTheInfo(Long userId){
@@ -51,6 +55,7 @@ public class LoanService {
         List<LoanApplication> applications = loanApplicationRepo.findAllByUserId(userId);
         List<Loan> loans = userLoanRepo.findAllByUserId(userId);
         List<LoanPayment> payments = loanPaymentRepo.findPaymentsByUserIdNative(userId);
+
 
         if (applications.isEmpty()) {
             UserAllLoansResponse response = UserAllLoansResponse.builder()
@@ -391,47 +396,15 @@ public class LoanService {
        }
 
        if (request.getStatus().equals(Status.REJECTED)){
-           Loan userLoan = userLoanRepo.findByApplicationID(request.getApplicationID());
-
-
-
-           if (userLoan != null){
-               Optional<LoanPayment> payment = loanPaymentRepo.findByLoanId(userLoan.getId());
-
-               if (payment.isPresent()){
-                   return new ApiResponse<>(
-                           true,
-                           "You cannot reject this loan because the user has already started paying.",
-                           null
-                   );
-               }
-
-               userLoanRepo.delete(userLoan);
-
-               User user = userRepo.findById(id.getUserId()).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "userId not found"));
-               user.setHasLoan(false);
-               userRepo.save(user);
-
-               id.setStatus(Status.REJECTED);
-               loanApplicationRepo.save(id);
-               sseController.notifyUpdate();
-                return new ApiResponse<>(
-                        true,
-                        "Successful change the status of applicant and deleted the loan " + id.getStatus(),
-                        null
-                );
-           }else {
                LoanApplication application = loanApplicationRepo.findByApplicationID(request.getApplicationID()).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Application Id not found in Loan Application"));
-               application.setStatus(Status.REJECTED);
-               loanApplicationRepo.save(application);
+               loanApplicationRepo.delete(application);
                 sseController.notifyUpdate();
                return new ApiResponse<>(
                        true,
-                       "Successful change the status of applicant " + id.getStatus(),
+                       "Successful Rejected the status of applicant and deleted" + id.getStatus(),
                        null
                );
            }
-       }
 
         id.setStatus(request.getStatus());
         loanApplicationRepo.save(id);
@@ -453,6 +426,8 @@ public class LoanService {
         changeTrue.setHasLoan(true);
         userRepo.save(changeTrue);
 
+        generateSchedule(request.getApplicationID());
+
         sseController.notifyUpdate();
 
         return new ApiResponse<>(
@@ -470,6 +445,27 @@ public class LoanService {
         counts.put("APPROVED", loanApplicationRepo.countByStatus(Status.APPROVED));
 
         return counts;
+    }
+
+    @Transactional
+    public void generateSchedule(Long applicationId){
+        LoanApplication application = loanApplicationRepo.findByApplicationID(applicationId).orElseThrow(()-> new RuntimeException("Application Id not found in Loan Application"));
+
+        List<DueDateSchedule> schedule = new ArrayList<>();
+
+        for (int week = 1; week <= application.getRepayPeriodWeeks(); week++){
+            LocalDate dueDate = application.getStartDate().plusWeeks(week);
+
+            DueDateSchedule entry = new DueDateSchedule();
+            entry.setApplicationId(application.getApplicationID());
+            entry.setWeek(week);
+            entry.setDueDate(dueDate);
+            entry.setPayment(application.getWeeklyPay());
+            entry.setStatus(Status.PENDING);
+
+            schedule.add(entry);
+        }
+        dueDateScheduleRepo.saveAll(schedule);
     }
 
 

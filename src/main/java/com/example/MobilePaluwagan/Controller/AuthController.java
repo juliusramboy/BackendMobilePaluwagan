@@ -8,13 +8,14 @@ import com.example.MobilePaluwagan.Entity.User;
 import com.example.MobilePaluwagan.Repository.UserRepo;
 import com.example.MobilePaluwagan.Repository.VerificationRepo;
 import com.example.MobilePaluwagan.Service.*;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("api/auth")
+@RequestMapping("/api/auth")
 public class AuthController {
 
     @Autowired
@@ -33,7 +34,7 @@ public class AuthController {
     private JWTService jwtService;
 
     @PostMapping("/register")
-    public ResponseEntity<RegisterResponse> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
 
         User existingUser = userRepo.findByEmail(request.getEmail());
 

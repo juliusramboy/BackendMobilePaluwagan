@@ -46,4 +46,7 @@ public class Loan {
 
     @Column(name = "end_date")
     private LocalDate endDate;
+
+    @Column(name = "loan_repayment_tally")
+    private BigDecimal loanRepaymentTally;
 }

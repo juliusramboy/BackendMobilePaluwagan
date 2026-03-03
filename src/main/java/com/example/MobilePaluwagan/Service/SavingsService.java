@@ -113,7 +113,6 @@ public class SavingsService {
             bank.setAccountBalance(BigDecimal.ZERO);
             bank.setFirstDepositDate(null);
             bank.setHasSavingsDeposit(false);
-            bank.setTargetAmount(BigDecimal.ZERO);
             userBankRepo.save(bank);
             sseController.notifyUpdate();
             return new ApiResponse<>(true, "Withdrawal processed successfully", null);
@@ -300,6 +299,8 @@ public class SavingsService {
     public ApiResponse<SavingsSummaryResponse> savingsAllData(Long userId){
         List<UserSavings> userSavings = userSavingsRepo.findByUserId(userId);
 
+        boolean withdraw = savingsWithdrawApplicationRepo.existsByUserId(userId);
+
         UserBank userBank = userBankRepo.findByUserId(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userId is not found"));
 
          String savingsId = userBank.getSavingsId();
@@ -349,6 +350,7 @@ public class SavingsService {
         response.setTargetAmount(userTargetAmount);
         response.setDepositHistoryList(savingsDepositHistoryList);
         response.setTargetReached(isTargetReached);
+        response.setHasWithdraw(withdraw);
         response.setAnnualMoney(userAnnual);
 
 
