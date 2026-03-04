@@ -188,7 +188,7 @@ public class LoanService {
         BigDecimal totalRepayable = loanAmount.add(totalInterest);
 
         // Get weeks and days
-        int weeks = (int) Math.floor(duration.getTotalWeeks());
+        int weeks = (int) Math.ceil(duration.getTotalWeeks());
         int days = (int) duration.getTotalDays();
 
         // Return loan summary as ApplyLoanResponse (not ApiResponse)
@@ -255,10 +255,6 @@ public class LoanService {
         UserInfo userInfo = userInfoRepo.findByUserId(userId)
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "UserId not found in Users"));
 
-        System.out.println("=== UserInfo Debug ===");
-        System.out.println("UserInfo object: " + userInfo);
-        System.out.println("UserInfo ID: " + userInfo.getId());  // ← Does UserInfo have getId()?
-        System.out.println("UserInfo userId: " + userInfo.getUserId());
 
         validateUserCanApplyForLoan(user);
 
@@ -283,15 +279,18 @@ public class LoanService {
         saveLoan.setStatus(Status.PENDING);
 
         loanApplicationRepo.save(saveLoan);
-        System.out.println("Saved loan ID: " + saveLoan.getId());
         LoanApplication verified = loanApplicationRepo.findById(saveLoan.getId()).orElse(null);
-        System.out.println("UserID in DB after save: " + (verified != null ? verified.getUserId() : "NULL"));
-        System.out.println("UserInfo in DB after save: " + (verified != null && verified.getUserInfo() != null ? verified.getUserInfo().getUserId() : "NULL"));
 
         return request.getApplicationId();
     }
 
     private void validateUserCanApplyForLoan(User user) {
+
+        UserInfo info = userInfoRepo.findByUserId(user.getId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (info.getAddress() == null || info.getBirthDay() == null|| info.getFirstName() == null || info.getGender() == null || info.getLastName() == null || info.getMiddleName() == null || info.getPhoneNumber() == null || info.getSuffix() == null || info.getProfileImage() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Please provide all required personal details before proceeding");
+        }
 
         if (user.isHasLoan()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You already have an active loan");
@@ -453,14 +452,27 @@ public class LoanService {
 
         List<DueDateSchedule> schedule = new ArrayList<>();
 
+        BigDecimal balance = application.getTotalRepayable();
+
         for (int week = 1; week <= application.getRepayPeriodWeeks(); week++){
             LocalDate dueDate = application.getStartDate().plusWeeks(week);
+
+            BigDecimal payment;
+            if(week == application.getRepayPeriodWeeks()) {
+                payment = balance;
+            } else {
+                payment = application.getWeeklyPay();
+            }
+
+            balance = balance.subtract(application.getWeeklyPay())
+                    .setScale(2, RoundingMode.HALF_UP);
 
             DueDateSchedule entry = new DueDateSchedule();
             entry.setApplicationId(application.getApplicationID());
             entry.setWeek(week);
             entry.setDueDate(dueDate);
-            entry.setPayment(application.getWeeklyPay());
+            entry.setPayment(payment);
+            entry.setRemainingBalance(balance);
             entry.setStatus(Status.PENDING);
 
             schedule.add(entry);

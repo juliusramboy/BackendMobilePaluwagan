@@ -31,6 +31,9 @@ public class DueDateSchedule {
 
     private BigDecimal payment;
 
+    @Column(name = "remaining_balance")
+    private BigDecimal remainingBalance;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status = Status.PENDING;

@@ -30,6 +30,9 @@ public class LoanPayment {
     @Column(name = "reference_number", length = 191)
     private String referenceNumber;
 
+    @Column(name = "bank_reference")
+    private String bankReference;
+
     @Column(name = "payment_date")
     private LocalDate paymentDate;
 
