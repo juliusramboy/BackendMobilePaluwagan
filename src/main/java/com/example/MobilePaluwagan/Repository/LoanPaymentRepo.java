@@ -3,6 +3,7 @@ package com.example.MobilePaluwagan.Repository;
 import com.example.MobilePaluwagan.Entity.Loan;
 import com.example.MobilePaluwagan.Entity.LoanPayment;
 import com.example.MobilePaluwagan.Entity.UserBank;
+import com.example.MobilePaluwagan.Entity.UserSavings;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,6 +20,9 @@ public interface LoanPaymentRepo extends JpaRepository<LoanPayment, Long> {
 
     List<LoanPayment> findAllByUserId(Long userId);
     List<LoanPayment> findAllById(Long loanId);
+
+    @Query("SELECT e FROM LoanPayment e ORDER BY e.id desc LIMIT 1")
+    Optional<LoanPayment> findLastRef();
 
     @Query(value = "SELECT lp.* FROM loan_payment lp " +
             "JOIN loan l ON lp.loan_id = l.id " +
