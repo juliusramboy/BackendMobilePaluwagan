@@ -31,19 +31,7 @@ public interface LoanPaymentRepo extends JpaRepository<LoanPayment, Long> {
             "WHERE l.user_id = :userId",
             nativeQuery = true)
     List<LoanPayment> findPaymentsByUserIdNative(@Param("userId") Long userId);
-
-//    @Query("SELECT lp FROM LoanPayment lp WHERE " +
-//            "(:reference IS NULL OR LOWER(lp.referenceNumber) LIKE LOWER(CONCAT('%', :reference, '%'))) AND " +
-//            "((:startDate IS NULL OR :endDate IS NULL) OR lp.paymentDate BETWEEN :startDate AND :endDate) AND " +
-//            "(:status IS NULL OR LOWER(lp.status) LIKE LOWER(CONCAT('%', :status, '%'))) AND " +
-//            "(:paymentMethod IS NULL OR LOWER(lp.paymentMethod) LIKE LOWER(CONCAT('%', :paymentMethod, '%')))")
-//    List<LoanPayment> findByFilters(
-//            @Param("reference") String reference,
-//            @Param("startDate") LocalDate startDate,
-//            @Param("endDate") LocalDate endDate,
-//            @Param("status") String status,
-//            @Param("paymentMethod") String paymentMethod
-//    );
+    
 
     @Query(value = "SELECT lp.* FROM loan_payment lp " +
             "JOIN loan l ON lp.loan_id = l.id " +
@@ -70,6 +58,7 @@ public interface LoanPaymentRepo extends JpaRepository<LoanPayment, Long> {
         l.weeklyPay,
         u.firstName,
         u.lastName,
+        u.profileImage,
         l.totalRepayable ,
         l.loanRepaymentTally
     )
@@ -89,7 +78,8 @@ public interface LoanPaymentRepo extends JpaRepository<LoanPayment, Long> {
         u.savingsId,
         u.accountBalance,
         ui.firstName,
-        ui.lastName
+        ui.lastName,
+        ui.profileImage
     )
     FROM UserBank u
     JOIN UserInfo ui ON ui.userId = u.userId
