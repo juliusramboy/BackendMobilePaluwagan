@@ -1,5 +1,6 @@
 package com.example.MobilePaluwagan.Repository;
 
+import com.example.MobilePaluwagan.DTOs.Response.AdminPaymentLoanSearchResponse;
 import com.example.MobilePaluwagan.Entity.Loan;
 import com.example.MobilePaluwagan.Entity.LoanPayment;
 import com.example.MobilePaluwagan.Entity.UserBank;
@@ -61,6 +62,24 @@ public interface LoanPaymentRepo extends JpaRepository<LoanPayment, Long> {
             @Param("status") String status,
             @Param("paymentMethod") String paymentMethod
     );
+
+    @Query("""
+    SELECT new com.example.MobilePaluwagan.DTOs.Response.AdminPaymentLoanSearchResponse(
+        l.applicationID,
+        l.weeklyPay,
+        u.firstName,
+        u.lastName,
+        l.totalRepayable ,
+        l.loanRepaymentTally
+    )
+    FROM Loan l
+    JOIN UserInfo u ON u.userId = l.userId
+    WHERE LOWER(u.firstName) LIKE LOWER(CONCAT('%', :name, '%'))
+    OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', :name, '%'))
+    OR LOWER(CONCAT(u.firstName, ' ', u.lastName)) LIKE LOWER(CONCAT('%', :name, '%'))
+    OR LOWER(CONCAT(u.lastName,  ' ', u.firstName)) LIKE LOWER(CONCAT('%', :name, '%'))
+""")
+    List<AdminPaymentLoanSearchResponse> searchApplicantsByName(@Param("name") String name);
 
 
 
