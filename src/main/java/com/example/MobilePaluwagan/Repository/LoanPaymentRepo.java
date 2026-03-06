@@ -31,7 +31,7 @@ public interface LoanPaymentRepo extends JpaRepository<LoanPayment, Long> {
             "WHERE l.user_id = :userId",
             nativeQuery = true)
     List<LoanPayment> findPaymentsByUserIdNative(@Param("userId") Long userId);
-    
+
 
     @Query(value = "SELECT lp.* FROM loan_payment lp " +
             "JOIN loan l ON lp.loan_id = l.id " +
