@@ -14,5 +14,6 @@ public class AdminPaymentSavingsSearchResponse {
     private BigDecimal accountBalance;
     private String firstName;
     private String lastName;
+    private String profileImage;
 
 }

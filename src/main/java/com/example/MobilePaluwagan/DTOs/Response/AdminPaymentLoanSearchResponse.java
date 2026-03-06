@@ -13,13 +13,15 @@ public class AdminPaymentLoanSearchResponse {
     private BigDecimal weeklyPay;
     private String firstName;
     private String lastName;
+    private String profileImage;
     private BigDecimal remainingBalance;
 
-    public AdminPaymentLoanSearchResponse(Long applicationId, BigDecimal weeklyPay, String firstName, String lastName, BigDecimal totalRepayable, BigDecimal loanRepaymentTally) {
+    public AdminPaymentLoanSearchResponse(Long applicationId, BigDecimal weeklyPay, String firstName, String lastName, String profileImage, BigDecimal totalRepayable, BigDecimal loanRepaymentTally) {
         this.applicationId = applicationId;
         this.weeklyPay = weeklyPay;
         this.firstName = firstName;
         this.lastName = lastName;
+        this.profileImage = profileImage;
         this.remainingBalance = totalRepayable.subtract(loanRepaymentTally);
     }
 }
