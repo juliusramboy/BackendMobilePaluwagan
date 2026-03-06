@@ -2,6 +2,7 @@ package com.example.MobilePaluwagan.Controller;
 
 import com.example.MobilePaluwagan.DTOs.Request.PaymentLoanRequest;
 import com.example.MobilePaluwagan.DTOs.Response.AdminPaymentLoanSearchResponse;
+import com.example.MobilePaluwagan.DTOs.Response.AdminPaymentSavingsSearchResponse;
 import com.example.MobilePaluwagan.DTOs.Response.ApiResponse;
 import com.example.MobilePaluwagan.Entity.DueDateSchedule;
 import com.example.MobilePaluwagan.Service.PaymentService;
@@ -29,13 +30,22 @@ public class AdminPaymentController {
     }
 
     @GetMapping("/loan/search")
-    public ResponseEntity<List<AdminPaymentLoanSearchResponse>> searchApplicant(@RequestParam String name){
-        List<AdminPaymentLoanSearchResponse> result = paymentService.searchApplicant(name);
+    public ResponseEntity<List<AdminPaymentLoanSearchResponse>> searchLoanApplicant(@RequestParam String name){
+        List<AdminPaymentLoanSearchResponse> result = paymentService.searchLoanApplicant(name);
 
         if(result.isEmpty()){
             return ResponseEntity.noContent().build();
         }
+        return ResponseEntity.ok(result);
+    }
 
+    @GetMapping("/savings/search")
+    public ResponseEntity<List<AdminPaymentSavingsSearchResponse>> searchSavingsApplicant(@RequestParam String name){
+        List<AdminPaymentSavingsSearchResponse> result = paymentService.searchSavingsApplicant(name);
+
+        if(result.isEmpty()){
+            return ResponseEntity.noContent().build();
+        }
         return ResponseEntity.ok(result);
     }
 }

@@ -4,6 +4,7 @@ import com.example.MobilePaluwagan.Controller.SseController;
 import com.example.MobilePaluwagan.DTOs.Request.PaymentLoanRequest;
 import com.example.MobilePaluwagan.DTOs.Request.WeeklyAmortizationSchedule;
 import com.example.MobilePaluwagan.DTOs.Response.AdminPaymentLoanSearchResponse;
+import com.example.MobilePaluwagan.DTOs.Response.AdminPaymentSavingsSearchResponse;
 import com.example.MobilePaluwagan.DTOs.Response.ApiResponse;
 import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.DueDateScheduleRepository;
@@ -161,8 +162,12 @@ public class PaymentService {
         return new ApiResponse<>(true, "Payment processed successfully.", null);
     }
 
-    public List<AdminPaymentLoanSearchResponse> searchApplicant(String name){
-        return loanPaymentRepo.searchApplicantsByName(name);
+    public List<AdminPaymentLoanSearchResponse> searchLoanApplicant(String name){
+        return loanPaymentRepo.searchApplicantLoanByName(name);
+    }
+
+    public List<AdminPaymentSavingsSearchResponse> searchSavingsApplicant(String name){
+        return loanPaymentRepo.searchApplicantSavingsByName(name);
     }
 
 
