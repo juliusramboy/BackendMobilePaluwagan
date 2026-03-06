@@ -49,11 +49,14 @@ public class SavingsService {
     @Autowired
     private LedgerRepo ledgerRepo;
 
+    @Autowired
+    private NotificationService notificationService;
+
     @Transactional
     public ApiResponse<?> adminAcceptPayment(AdminSavingsStatus request) {
         UserBank userBank = userBankRepo.findBySavingsId(request.getSavingsId());
         List<UserSavings> userSavings = userSavingsRepo.findByUserId(userBank.getUserId());
-
+        UserInfo info = userInfoRepo.findByUserId(userBank.getUserId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found"));
         Optional<UserSavings> savingsWithReference = userSavings.stream()
                 .filter(s -> request.getReference().equals(s.getReference()))
                 .findFirst();
@@ -66,6 +69,7 @@ public class SavingsService {
             UserBank bank = userBankRepo.findBySavingsId(request.getSavingsId());
             SavingsWithdrawApplication withdraw = savingsWithdrawApplicationRepo.findBySavingsId(request.getSavingsId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "no record found in withdraw application"));
             List<UserSavings> savings = userSavingsRepo.findBySavingsId(request.getSavingsId());
+
 
             if (bank == null){
                 return new ApiResponse<>(
@@ -155,6 +159,7 @@ public class SavingsService {
             userBankRepo.save(userBank);
             reference.setStatus(Status.PAID);
             userSavingsRepo.save(reference);
+            notificationService.notifyUserPaymentMade(reference.getUserId(), userBank.getSavingsId(), info.getFirstName(), BigDecimal.valueOf(reference.getAmountDeposit()));
             sseController.notifyUpdate();
             return new ApiResponse<>(true, "Payment Added to User", null);
 
@@ -167,6 +172,8 @@ public class SavingsService {
 
     public ApiResponse<UserDepositSavingsResponse>  userDeposit(Long userId, double depositAmount, LocalDate depositDate){
         UserBank user = userBankRepo.findByUserId(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userId not found"));
+
+        UserInfo info = userInfoRepo.findByUserId(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userId not found"));
 
         ApiResponse<UserDepositSavingsResponse> x = checkUserDepositInput(userId, depositAmount, depositDate);
         if (x != null) return x;
@@ -185,8 +192,7 @@ public class SavingsService {
                 deposit = userSavingsRepo.save(userSavings);
 
                 sseController.notifyUpdate();
-
-            
+                notificationService.notifyAdminPaymentMade( user.getSavingsId(), info.getFirstName(), depositAmount);
             UserDepositSavingsResponse responseData = mapToUserSavingsResponse(deposit);
 
             return new ApiResponse<>(
@@ -442,6 +448,9 @@ public class SavingsService {
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "User not found"));
 
+        UserInfo userInfo = userInfoRepo.findByUserId(userId).orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "User not found"));
+
         boolean hasApplication  = savingsWithdrawApplicationRepo
                 .existsByUserIdAndStatus(userId,Status.WITHDRAW);
 
@@ -511,6 +520,8 @@ public class SavingsService {
         } else {
             message = "Successfully applied for withdrawal with ₱" + annual + " annual bonus!";
         }
+
+        notificationService.notifySavingsWithdraw(user.getSavingsId(),userInfo.getFirstName());
 
         return new ApiResponse<>(
                 true,

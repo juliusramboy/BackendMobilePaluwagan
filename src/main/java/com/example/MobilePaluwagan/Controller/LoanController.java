@@ -28,12 +28,6 @@ public class  LoanController {
     @Autowired
     private LoanService loanService;
 
-    @GetMapping("/loan")
-    public ResponseEntity<String> dashboard(Principal principal) {
-        return ResponseEntity.ok("Welcome to the LoanPanel, " + principal.getName());
-    }
-
-
 
     @GetMapping("/loan/user-details")
     public ResponseEntity<ApiResponse<UserAllLoansResponse>> getLoanInfoFromUser(Authentication authentication){

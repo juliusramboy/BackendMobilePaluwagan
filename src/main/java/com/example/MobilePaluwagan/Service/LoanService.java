@@ -48,6 +48,11 @@ public class LoanService {
     @Autowired
     private DueDateScheduleRepository dueDateScheduleRepo;
 
+    @Autowired
+    private NotificationService notificationService;
+
+
+
 
 
     public ApiResponse<UserAllLoansResponse> getAllTheInfo(Long userId){
@@ -281,6 +286,8 @@ public class LoanService {
         loanApplicationRepo.save(saveLoan);
         LoanApplication verified = loanApplicationRepo.findById(saveLoan.getId()).orElse(null);
 
+        notificationService.notifyLoanSubmitted(String.valueOf(request.getApplicationId()), userInfo.getFirstName());
+
         return request.getApplicationId();
     }
 
@@ -381,7 +388,6 @@ public class LoanService {
     public ApiResponse<?> loanAdminChangeStats(AdminLoanStatus request){
 
         Optional<LoanApplication> applicantId = loanApplicationRepo.findByApplicationID(request.getApplicationID());
-
        LoanApplication id = applicantId.get();
 
 
@@ -397,6 +403,7 @@ public class LoanService {
        if (request.getStatus().equals(Status.REJECTED)){
                LoanApplication application = loanApplicationRepo.findByApplicationID(request.getApplicationID()).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Application Id not found in Loan Application"));
                loanApplicationRepo.delete(application);
+               notificationService.notifyLoanRejected(id.getId(), String.valueOf(request.getApplicationID()));
                 sseController.notifyUpdate();
                return new ApiResponse<>(
                        true,
@@ -426,7 +433,7 @@ public class LoanService {
         userRepo.save(changeTrue);
 
         generateSchedule(request.getApplicationID());
-
+        notificationService.notifyLoanApproved(id.getId(), String.valueOf(request.getApplicationID()));
         sseController.notifyUpdate();
 
         return new ApiResponse<>(

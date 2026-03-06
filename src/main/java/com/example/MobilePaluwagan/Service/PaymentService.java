@@ -7,10 +7,7 @@ import com.example.MobilePaluwagan.DTOs.Response.AdminPaymentLoanSearchResponse;
 import com.example.MobilePaluwagan.DTOs.Response.AdminPaymentSavingsSearchResponse;
 import com.example.MobilePaluwagan.DTOs.Response.ApiResponse;
 import com.example.MobilePaluwagan.Entity.*;
-import com.example.MobilePaluwagan.Repository.DueDateScheduleRepository;
-import com.example.MobilePaluwagan.Repository.LoanApplicationRepo;
-import com.example.MobilePaluwagan.Repository.LoanPaymentRepo;
-import com.example.MobilePaluwagan.Repository.UserLoanRepo;
+import com.example.MobilePaluwagan.Repository.*;
 import com.google.common.math.Quantiles;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -44,11 +41,21 @@ public class PaymentService {
     @Autowired
     private SseController  sseController;
 
+    @Autowired
+    private UserInfoRepo userInfoRepo;
+
+    @Autowired
+    private NotificationService notificationService;
+
+
+
 
     @Transactional
     public ApiResponse<?> processPayment(PaymentLoanRequest request) {
 
         Loan user = userLoanRepo.findByApplicationID(request.getApplicationId());
+
+        UserInfo userInfo = userInfoRepo.findByUserId(user.getId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         if (user.getLoanRepaymentTally().compareTo(user.getTotalRepayable()) >= 0) {
             return new ApiResponse<>(false, "The loan is already paid", null);
@@ -157,6 +164,7 @@ public class PaymentService {
 
         user.setLoanRepaymentTally(user.getLoanRepaymentTally().add(amountPaid));
         userLoanRepo.save(user);
+        notificationService.notifyUserPaymentMade(user.getId(), String.valueOf(request.getApplicationId()), userInfo.getFirstName(), request.getAmount());
         sseController.notifyUpdate();
 
         return new ApiResponse<>(true, "Payment processed successfully.", null);
