@@ -1,6 +1,7 @@
 package com.example.MobilePaluwagan.Repository;
 
 import com.example.MobilePaluwagan.DTOs.Response.AdminPaymentLoanSearchResponse;
+import com.example.MobilePaluwagan.DTOs.Response.AdminPaymentSavingsSearchResponse;
 import com.example.MobilePaluwagan.Entity.Loan;
 import com.example.MobilePaluwagan.Entity.LoanPayment;
 import com.example.MobilePaluwagan.Entity.UserBank;
@@ -79,8 +80,32 @@ public interface LoanPaymentRepo extends JpaRepository<LoanPayment, Long> {
     OR LOWER(CONCAT(u.firstName, ' ', u.lastName)) LIKE LOWER(CONCAT('%', :name, '%'))
     OR LOWER(CONCAT(u.lastName,  ' ', u.firstName)) LIKE LOWER(CONCAT('%', :name, '%'))
 """)
-    List<AdminPaymentLoanSearchResponse> searchApplicantsByName(@Param("name") String name);
+    List<AdminPaymentLoanSearchResponse> searchApplicantLoanByName(@Param("name") String name);
 
+
+
+    @Query("""
+    SELECT new com.example.MobilePaluwagan.DTOs.Response.AdminPaymentSavingsSearchResponse(
+        u.savingsId,
+        u.accountBalance,
+        ui.firstName,
+        ui.lastName
+    )
+    FROM UserBank u
+    JOIN UserInfo ui ON ui.userId = u.userId
+    WHERE EXISTS (
+        SELECT 1 FROM User us
+        WHERE us.id = u.userId
+        AND us.hasSavingsAccount = true
+    )
+    AND (
+        LOWER(ui.firstName) LIKE LOWER(CONCAT('%', :name, '%'))
+        OR LOWER(ui.lastName)  LIKE LOWER(CONCAT('%', :name, '%'))
+        OR LOWER(CONCAT(ui.firstName, ' ', ui.lastName)) LIKE LOWER(CONCAT('%', :name, '%'))
+        OR LOWER(CONCAT(ui.lastName,  ' ', ui.firstName)) LIKE LOWER(CONCAT('%', :name, '%'))
+    )
+""")
+    List<AdminPaymentSavingsSearchResponse> searchApplicantSavingsByName(@Param("name") String name);
 
 
 }
