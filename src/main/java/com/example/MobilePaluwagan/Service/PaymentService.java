@@ -3,6 +3,7 @@ package com.example.MobilePaluwagan.Service;
 import com.example.MobilePaluwagan.Controller.SseController;
 import com.example.MobilePaluwagan.DTOs.Request.PaymentLoanRequest;
 import com.example.MobilePaluwagan.DTOs.Request.WeeklyAmortizationSchedule;
+import com.example.MobilePaluwagan.DTOs.Response.AdminPaymentLoanSearchResponse;
 import com.example.MobilePaluwagan.DTOs.Response.ApiResponse;
 import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.DueDateScheduleRepository;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.ResourceTransactionManager;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
@@ -41,10 +43,15 @@ public class PaymentService {
     @Autowired
     private SseController  sseController;
 
+
     @Transactional
     public ApiResponse<?> processPayment(PaymentLoanRequest request) {
 
         Loan user = userLoanRepo.findByApplicationID(request.getApplicationId());
+
+        if (user.getLoanRepaymentTally().compareTo(user.getTotalRepayable()) >= 0) {
+            return new ApiResponse<>(false, "The loan is already paid", null);
+        }
 
         DueDateSchedule current = dueDateScheduleRepository
                 .findFirstPendingOrPartial(user.getApplicationID())
@@ -62,7 +69,7 @@ public class PaymentService {
             current.setStatus(Status.PARTIAL);
             current.setPayment(shortage);
             dueDateScheduleRepository.save(current);
-            
+
             Optional<DueDateSchedule> nextWeekOpt = dueDateScheduleRepository
                     .findFirstByApplicationIdAndStatusOrderByDueDateAsc(
                             current.getApplicationId(), Status.PENDING);
@@ -147,9 +154,15 @@ public class PaymentService {
         transaction.setStatus(Status.PAID);
         loanPaymentRepo.save(transaction);
 
+        user.setLoanRepaymentTally(user.getLoanRepaymentTally().add(amountPaid));
+        userLoanRepo.save(user);
         sseController.notifyUpdate();
 
         return new ApiResponse<>(true, "Payment processed successfully.", null);
+    }
+
+    public List<AdminPaymentLoanSearchResponse> searchApplicant(String name){
+        return loanPaymentRepo.searchApplicantsByName(name);
     }
 
 
