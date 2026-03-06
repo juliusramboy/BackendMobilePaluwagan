@@ -61,6 +61,7 @@ public class SavingsService {
                 .findBySavingsId(request.getSavingsId());
 
 
+
         if(request.getStatus() == Status.WITHDRAW && withdrawWithReference.isPresent()){
             UserBank bank = userBankRepo.findBySavingsId(request.getSavingsId());
             SavingsWithdrawApplication withdraw = savingsWithdrawApplicationRepo.findBySavingsId(request.getSavingsId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "no record found in withdraw application"));
@@ -81,6 +82,8 @@ public class SavingsService {
                         null
                 );
             }
+
+
             BigDecimal balance = withdraw.getAccountBalance().add(withdraw.getAnnual());
             //from withdrawApplication
             Ledger withdrawApplication = Ledger.builder()
@@ -118,6 +121,14 @@ public class SavingsService {
             return new ApiResponse<>(true, "Withdrawal processed successfully", null);
         }
 
+        if (request.getStatus() == Status.REJECTED) {
+            SavingsWithdrawApplication withdraw = savingsWithdrawApplicationRepo.findBySavingsId(request.getSavingsId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "no record found in withdraw application"));
+            savingsWithdrawApplicationRepo.delete(withdraw);
+            sseController.notifyUpdate();
+            return new ApiResponse<>(true, "Withdraw deleted", null);
+        }
+
+
         if (savingsWithReference.isPresent()) {
             Status status = savingsWithReference.get().getStatus();
             UserSavings reference = savingsWithReference.get();
@@ -126,8 +137,8 @@ public class SavingsService {
             if (request.getStatus() == status){
                 return new ApiResponse<>(true, "Payment already processed", null);
             }
+
             if (request.getStatus() == Status.REJECTED) {
-                userSavingsRepo.delete(reference);
                 sseController.notifyUpdate();
                 return new ApiResponse<>(true, "Payment deleted", null);
             }
