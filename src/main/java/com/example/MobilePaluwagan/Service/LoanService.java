@@ -270,8 +270,8 @@ public class LoanService {
         LoanApplication saveLoan = new LoanApplication();
         saveLoan.setApplicationID(request.getApplicationId());
         saveLoan.setUserId(user.getId());
-        System.out.println("userId "+ userId);
-        System.out.println("user.getID "+ user.getId());
+//        System.out.println("userId "+ userId);
+//        System.out.println("user.getID "+ user.getId());
         saveLoan.setStartDate(request.getStartDate());
         saveLoan.setEndDate(request.getEndDate());
         saveLoan.setRepayPeriodDays(request.getRepayPeriodDays());

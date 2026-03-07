@@ -58,4 +58,10 @@ app:
   logo:
     url: ${LOGO_URL}
 
-
+logging:
+  level:
+    org:
+      apache:
+        catalina:
+          connector:
+            CoyoteAdapter: ERROR

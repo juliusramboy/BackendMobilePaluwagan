@@ -357,8 +357,8 @@ public class SavingsService {
 
 
 
-        System.out.println(totalSavings);
-        System.out.println(userAnnual);
+//        System.out.println(totalSavings);
+//        System.out.println(userAnnual);
 
 
         SavingsSummaryResponse response = new SavingsSummaryResponse();
