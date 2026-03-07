@@ -15,8 +15,8 @@ import java.util.concurrent.TimeUnit;
 public class RateLimiterInterceptor implements HandlerInterceptor {
 
     private final Cache<String, RateLimiter> limiters = CacheBuilder.newBuilder()
-            .expireAfterAccess(1, TimeUnit.HOURS)
-            .maximumSize(10_000)
+            .expireAfterAccess(30, TimeUnit.MINUTES)
+            .maximumSize(500)
             .build();
 
     private RateLimiter getLimiter(String ip) {
@@ -31,7 +31,14 @@ public class RateLimiterInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request,
                              HttpServletResponse response,
                              Object handler) throws Exception {
-        String clientIp = request.getRemoteAddr();
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        String clientIp;
+
+        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+            clientIp = xForwardedFor.split(",")[0].trim();
+        }else {
+            clientIp = request.getRemoteAddr();
+        }
 
         if (!getLimiter(clientIp).tryAcquire()) {
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
