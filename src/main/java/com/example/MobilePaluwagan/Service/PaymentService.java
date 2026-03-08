@@ -55,7 +55,7 @@ public class PaymentService {
 
         Loan user = userLoanRepo.findByApplicationID(request.getApplicationId());
 
-        UserInfo userInfo = userInfoRepo.findByUserId(user.getId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        UserInfo userInfo = userInfoRepo.findByUserId(user.getUserId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         if (user.getLoanRepaymentTally().compareTo(user.getTotalRepayable()) >= 0) {
             return new ApiResponse<>(false, "The loan is already paid", null);
@@ -164,7 +164,7 @@ public class PaymentService {
 
         user.setLoanRepaymentTally(user.getLoanRepaymentTally().add(amountPaid));
         userLoanRepo.save(user);
-        notificationService.notifyUserPaymentMade(user.getId(), String.valueOf(request.getApplicationId()), userInfo.getFirstName(), request.getAmount());
+        notificationService.notifyUserPaymentMade(user.getUserId(), String.valueOf(request.getApplicationId()), userInfo.getFirstName(), request.getAmount());
         sseController.notifyUpdate();
 
         return new ApiResponse<>(true, "Payment processed successfully.", null);
