@@ -1,5 +1,6 @@
 package com.example.MobilePaluwagan.Controller;
 
+import com.example.MobilePaluwagan.DTOs.Response.NotificationResponse;
 import com.example.MobilePaluwagan.Entity.Notification;
 import com.example.MobilePaluwagan.Repository.NotificationRepository;
 import com.example.MobilePaluwagan.Service.NotificationService;
@@ -21,13 +22,13 @@ public class NotificationController {
 
     // user — get all notifications
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Notification>> getUserNotifications(@PathVariable Long userId) {
+    public ResponseEntity<List<NotificationResponse>> getUserNotifications(@PathVariable Long userId) {
         return ResponseEntity.ok(notificationService.getUserNotifications(userId));
     }
 
     // admin — get all notifications
     @GetMapping("/admin")
-    public ResponseEntity<List<Notification>> getAdminNotifications() {
+    public ResponseEntity<List<NotificationResponse>> getAdminNotifications() {
         return ResponseEntity.ok(notificationService.getAdminNotifications());
     }
 
@@ -51,13 +52,13 @@ public class NotificationController {
     }
 
     // mark all as read for a user
-    @DeleteMapping("/user/{userId}/read-all")
+    @PatchMapping("/user/{userId}/read-all")
     public ResponseEntity<Void> markAllAsReadUser(@PathVariable Long userId) {
         notificationService.markAllAsRead(userId);
         return ResponseEntity.ok().build();
     }
     // mark all as read for admin
-    @DeleteMapping("/admin/{userId}/read-all")
+    @PatchMapping("/admin/{userId}/read-all")
     public ResponseEntity<Void> markAllAsReadAdmin() {
         notificationService.markAllAdminAsRead();
         return ResponseEntity.ok().build();
