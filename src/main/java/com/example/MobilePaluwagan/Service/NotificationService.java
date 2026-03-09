@@ -152,15 +152,14 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
-    public void markAllAsRead(Long userId) {
-        List<Notification> notifs = notificationRepository.findByUserIdAndIsAdminFalseOrderByCreatedAtDesc(userId);
+    public void markSelectedAsRead(List<Long> notificationIds) {
+        List<Notification> notifs = notificationRepository.findAllById(notificationIds);
         notifs.forEach(n -> n.setIsRead(true));
         notificationRepository.saveAll(notifs);
     }
 
-    public void markAllAdminAsRead() {
-        List<Notification> notifs = notificationRepository
-                .findByIsAdminTrueOrderByCreatedAtDesc();
+    public void markAllAdminAsRead(List<Long>  notificationIds) {
+        List<Notification> notifs = notificationRepository.findAllById(notificationIds);
         notifs.forEach(n -> n.setIsRead(true));
         notificationRepository.saveAll(notifs);
     }

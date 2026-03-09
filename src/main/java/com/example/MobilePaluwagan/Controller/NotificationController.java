@@ -14,8 +14,6 @@ import java.util.List;
 @RequestMapping("/api/notifications")
 public class NotificationController {
 
-    @Autowired
-    private NotificationRepository notificationRepository;
 
     @Autowired
     private NotificationService notificationService;
@@ -26,16 +24,34 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.getUserNotifications(userId));
     }
 
-    // admin — get all notifications
-    @GetMapping("/admin")
-    public ResponseEntity<List<NotificationResponse>> getAdminNotifications() {
-        return ResponseEntity.ok(notificationService.getAdminNotifications());
-    }
-
     // user — get unread count (bell badge)
     @GetMapping("/user/{userId}/unread-count")
     public ResponseEntity<Long> getUserUnreadCount(@PathVariable Long userId) {
         return ResponseEntity.ok(notificationService.getUserUnreadCount(userId));
+    }
+
+
+    // mark single notification as read
+    @PatchMapping("/user/{notificationId}/read")
+    public ResponseEntity<Void> markAsRead(@PathVariable Long notificationId) {
+        notificationService.markAsRead(notificationId);
+        return ResponseEntity.ok().build();
+    }
+
+    // mark all as read for designated for user
+    @PatchMapping("/user/read-selected")
+    public ResponseEntity<Void> markSelectedAsRead(@RequestBody List<Long> notificationIds) {
+        notificationService.markSelectedAsRead(notificationIds);
+        return ResponseEntity.ok().build();
+    }
+
+
+
+
+    // admin — get all notifications
+    @GetMapping("/admin")
+    public ResponseEntity<List<NotificationResponse>> getAdminNotifications() {
+        return ResponseEntity.ok(notificationService.getAdminNotifications());
     }
 
     // admin — get unread count (bell badge)
@@ -44,23 +60,16 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.getAdminUnreadCount());
     }
 
-    // mark single notification as read
-    @DeleteMapping("/{notificationId}/read")
-    public ResponseEntity<Void> markAsRead(@PathVariable Long notificationId) {
+    @PatchMapping("/admin/{notificationId}/read")
+    public ResponseEntity<Void> markAsReadAdmin(@PathVariable Long notificationId) {
         notificationService.markAsRead(notificationId);
         return ResponseEntity.ok().build();
     }
 
-    // mark all as read for a user
-    @PatchMapping("/user/{userId}/read-all")
-    public ResponseEntity<Void> markAllAsReadUser(@PathVariable Long userId) {
-        notificationService.markAllAsRead(userId);
-        return ResponseEntity.ok().build();
-    }
-    // mark all as read for admin
-    @PatchMapping("/admin/{userId}/read-all")
-    public ResponseEntity<Void> markAllAsReadAdmin() {
-        notificationService.markAllAdminAsRead();
+    // mark all as read for designated for admin
+    @PatchMapping("/admin/read-selected")
+    public ResponseEntity<Void> markAllAsReadAdmin(@RequestBody List<Long> notificationIds) {
+        notificationService.markAllAdminAsRead(notificationIds);
         return ResponseEntity.ok().build();
     }
 }
