@@ -56,7 +56,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/loan/updates").permitAll()
                 .requestMatchers("/images/**").permitAll()
                 .requestMatchers("/images/**").permitAll()
-                .requestMatchers("/api/notification/**").permitAll()
+                .requestMatchers("/api/notifications/**").permitAll()
                 .anyRequest().authenticated());
         http.exceptionHandling(ex -> ex .authenticationEntryPoint(jwtAuthenticationEntryPoint));
         http.formLogin(customizer -> withDefaults());

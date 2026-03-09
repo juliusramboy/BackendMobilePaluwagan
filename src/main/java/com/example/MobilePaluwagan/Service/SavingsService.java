@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -204,6 +205,21 @@ public class SavingsService {
 
     }
 
+    public AdminTallySavings getTallySavings(){
+
+        BigDecimal totalDeposits = Optional.ofNullable(userSavingsRepo.sumAllDeposits())
+                .orElse(BigDecimal.valueOf(0.0));
+
+        int totalMembers = Optional.of(userRepo.countAllSavingsMembers()).orElse(0);
+        int totalPending = Optional.of(userSavingsRepo.countAllPendingDeposits()).orElse(0);
+
+        return AdminTallySavings.builder()
+                .overAllSavings(totalDeposits)
+                .totalMembers(totalMembers)
+                .totalPending(Math.toIntExact(totalPending))
+                .build();
+    }
+
     public ApiResponse<?> getAllSavingsMembers(){
         return new ApiResponse<>(
                 true,
@@ -327,6 +343,7 @@ public class SavingsService {
 
         List<SavingsDepositHistory> savingsDepositHistoryList = userSavings.stream()
                 .filter(status -> status.getStatus() == Status.PAID)
+                .sorted(Comparator.comparing(UserSavings::getDepositDate).reversed())
                 .map(this::allHistory)
                 .collect(Collectors.toList());
 

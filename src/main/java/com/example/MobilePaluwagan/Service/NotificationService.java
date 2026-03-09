@@ -136,7 +136,7 @@ public class NotificationService {
 
     public Long getUserUnreadCount(Long userId) {
         return notificationRepository
-                .countByUserIdAndIsAdminFalse(userId);
+                .countByUserIdAndIsAdminTrue(userId);
     }
 
     public Long getAdminUnreadCount() {

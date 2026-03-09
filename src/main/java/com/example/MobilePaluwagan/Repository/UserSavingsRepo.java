@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +20,13 @@ public interface UserSavingsRepo extends JpaRepository<UserSavings, Long> {
     boolean existsByUserIdAndStatus(long userId, Status status);
     boolean existsByReference(String reference);
     List<UserSavings> findBySavingsId(String savingsId);
+
+
+    @Query("SELECT SUM(us.amountDeposit) FROM UserSavings us")
+    BigDecimal sumAllDeposits();
+
+    @Query("SELECT COUNT(us) FROM UserSavings us WHERE us.status = 'PENDING'")
+    int countAllPendingDeposits();
 
 
     @Query("SELECT e FROM UserSavings e ORDER BY e.id desc LIMIT 1")
@@ -86,6 +94,8 @@ public interface UserSavingsRepo extends JpaRepository<UserSavings, Long> {
             @Param("status") String status
 
     );
+
+
 
 
 }
