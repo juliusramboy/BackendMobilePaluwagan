@@ -4,6 +4,7 @@ import com.example.MobilePaluwagan.DTOs.Request.AdminSavingsStatus;
 import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterRequest;
 import com.example.MobilePaluwagan.DTOs.Request.PaymentFilterRequestAdmin;
 import com.example.MobilePaluwagan.DTOs.Request.SavingsResponseAdmin;
+import com.example.MobilePaluwagan.DTOs.Response.AdminTallySavings;
 import com.example.MobilePaluwagan.DTOs.Response.ApiResponse;
 import com.example.MobilePaluwagan.DTOs.Response.SavingsDepositHistory;
 import com.example.MobilePaluwagan.DTOs.Response.SavingsResponse;
@@ -11,6 +12,7 @@ import com.example.MobilePaluwagan.Entity.UserSavings;
 import com.example.MobilePaluwagan.Service.SavingsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +39,13 @@ public class AdminSavingsController {
     public ResponseEntity<ApiResponse<?>> getAllSavingsMembers() {
         ApiResponse<?>members = savingsService.getAllSavingsMembers();
         return ResponseEntity.ok(members);
+    }
+
+    @GetMapping("/total")
+    public ResponseEntity<AdminTallySavings> getAllSavingsAccountBalance() {
+        AdminTallySavings tally = savingsService.getTallySavings();
+
+        return ResponseEntity.ok(tally);
     }
 
     @GetMapping("/members/{savingsId}")

@@ -12,7 +12,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     List<Notification> findByUserIdAndIsAdminFalseOrderByCreatedAtDesc(Long userId);
     List<Notification> findByIsAdminTrueOrderByCreatedAtDesc();
 
-    Long countByUserIdAndIsAdminFalse(Long userId);
+    Long countByUserIdAndIsAdminTrue(Long userId);
     Long countByIsAdminTrue();
 
     void deleteByUserIdAndIsAdminFalse(Long userId);   // delete all user notifs
