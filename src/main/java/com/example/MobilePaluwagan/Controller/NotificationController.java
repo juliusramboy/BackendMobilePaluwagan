@@ -73,16 +73,12 @@ public class NotificationController {
         return ResponseEntity.ok().build();
     }
 
-    // delete — all notifications user
-    @DeleteMapping("/user/{userId}/clear-all")
-    public ResponseEntity<Void> clearUserAllNotifications(@PathVariable long userId) {
-        notificationService.clearUserAllNotifications(userId);
+    // delete — all notifications both user and admin
+    @DeleteMapping("/clear-all")
+    public ResponseEntity<Void> clearUserAllNotifications(@RequestBody List<Long> notificationIds) {
+        notificationService.clearAllNotifications(notificationIds);
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/admin/clear-all")
-    public ResponseEntity<Void> clearAdminAllNotifications() {
-        notificationService.clearAdminAllNotifications();
-        return ResponseEntity.ok().build();
-    }
+
 }
