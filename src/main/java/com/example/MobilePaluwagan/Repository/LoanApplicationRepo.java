@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.awt.print.Pageable;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +25,10 @@ public interface LoanApplicationRepo extends JpaRepository<LoanApplication, Long
     boolean existsByUserIdAndStatusIn(Long userId, List<Status> statuses);
 
     Optional<LoanApplication> findByApplicationID(Long applicationID);
+
+    boolean existsByUserIdAndStatus(Long userId, Status status);
+
+    Optional<LoanApplication> findTopByUserIdAndStatusInOrderByApplicationIDDesc(Long userId, List<Status> statuses);
 
     @Query("SELECT new com.example.MobilePaluwagan.DTOs.Response.LoanApplicantsAdmin(" +
             "la.userId, la.applicationID, la.totalRepayable, la.weeklyPay, la.requestedAmount, la.interestRate, la.interest, la.repayPeriodDays, la.repayPeriodWeeks, la.startDate, la.endDate, la.status, lu.firstName, lu.lastName, lu.profileImage) " +
