@@ -433,7 +433,7 @@ public class LoanService {
         userRepo.save(changeTrue);
 
         generateSchedule(request.getApplicationID());
-        notificationService.notifyLoanApproved(id.getId(), String.valueOf(request.getApplicationID()));
+        notificationService.notifyLoanApproved(id.getUserId(), String.valueOf(request.getApplicationID()));
         sseController.notifyUpdate();
 
         return new ApiResponse<>(
