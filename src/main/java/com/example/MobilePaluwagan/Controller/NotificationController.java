@@ -5,6 +5,7 @@ import com.example.MobilePaluwagan.Entity.Notification;
 import com.example.MobilePaluwagan.Repository.NotificationRepository;
 import com.example.MobilePaluwagan.Service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,8 +21,8 @@ public class NotificationController {
 
     // user — get all notifications
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<NotificationResponse>> getUserNotifications(@PathVariable Long userId) {
-        return ResponseEntity.ok(notificationService.getUserNotifications(userId));
+    public ResponseEntity<Page<NotificationResponse>> getUserNotifications(@PathVariable Long userId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(notificationService.getUserNotifications(userId, page, size));
     }
 
     // user — get unread count (bell badge)
@@ -47,11 +48,10 @@ public class NotificationController {
 
 
 
-
     // admin — get all notifications
     @GetMapping("/admin")
-    public ResponseEntity<List<NotificationResponse>> getAdminNotifications() {
-        return ResponseEntity.ok(notificationService.getAdminNotifications());
+    public ResponseEntity<Page<NotificationResponse>> getAdminNotifications( @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok( notificationService.getAdminNotifications(page, size));
     }
 
     // admin — get unread count (bell badge)
@@ -70,6 +70,19 @@ public class NotificationController {
     @PatchMapping("/admin/read-selected")
     public ResponseEntity<Void> markAllAsReadAdmin(@RequestBody List<Long> notificationIds) {
         notificationService.markAllAdminAsRead(notificationIds);
+        return ResponseEntity.ok().build();
+    }
+
+    // delete — all notifications user
+    @DeleteMapping("/user/{userId}/clear-all")
+    public ResponseEntity<Void> clearUserAllNotifications(@PathVariable long userId) {
+        notificationService.clearUserAllNotifications(userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/admin/clear-all")
+    public ResponseEntity<Void> clearAdminAllNotifications() {
+        notificationService.clearAdminAllNotifications();
         return ResponseEntity.ok().build();
     }
 }

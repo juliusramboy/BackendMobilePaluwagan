@@ -5,6 +5,9 @@ import com.example.MobilePaluwagan.Entity.Notification;
 import com.example.MobilePaluwagan.Entity.NotificationType;
 import com.example.MobilePaluwagan.Repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -118,20 +121,18 @@ public class NotificationService {
 
     // --- Fetch Notifications ---
 
-    public List<NotificationResponse> getUserNotifications(Long userId) {
+    public Page<NotificationResponse> getUserNotifications(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
         return notificationRepository
-                .findByUserIdAndIsAdminFalseOrderByCreatedAtDesc(userId)
-                .stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
+                .findByUserIdAndIsAdminFalseOrderByCreatedAtDesc(userId, pageable)
+                .map(this::toDTO);
     }
 
-    public List<NotificationResponse> getAdminNotifications() {
+    public Page<NotificationResponse> getAdminNotifications(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
         return notificationRepository
-                .findByIsAdminTrueOrderByCreatedAtDesc()
-                .stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
+                .findByIsAdminTrueOrderByCreatedAtDesc(pageable)
+                .map(this::toDTO);
     }
 
     // --- Unread Count (for bell icon badge) ---
@@ -164,5 +165,15 @@ public class NotificationService {
         List<Notification> notifs = notificationRepository.findAllById(notificationIds);
         notifs.forEach(n -> n.setIsRead(true));
         notificationRepository.saveAll(notifs);
+    }
+
+    // --- Clear All Notification ---
+
+    public void clearUserAllNotifications(Long userId) {
+        notificationRepository.deleteByUserIdAndIsAdminFalse(userId);
+    }
+
+    public void clearAdminAllNotifications() {
+        notificationRepository.deleteByIsAdminTrue();
     }
 }
