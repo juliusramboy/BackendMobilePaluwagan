@@ -46,7 +46,7 @@ public class NotificationService {
         notificationRepository.save(adminNotif);
     }
 
-    public void notifySavingsWithdraw(String savingsId, String userName) {
+    public void notifySavingsWithdraw(String accountNumber,String savingsId, String userName) {
         Notification adminNotif = new Notification();
         adminNotif.setIsAdmin(true);
         adminNotif.setTitle("New Withdrawal Application");
@@ -55,6 +55,7 @@ public class NotificationService {
         adminNotif.setReferenceId(savingsId);
         adminNotif.setIsRead(false);
         adminNotif.setCreatedAt(LocalDateTime.now());
+        adminNotif.setAccountNumber(applicationId);
         notificationRepository.save(adminNotif);
     }
 
