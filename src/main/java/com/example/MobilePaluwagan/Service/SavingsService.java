@@ -544,7 +544,7 @@ public class SavingsService {
             message = "Successfully applied for withdrawal with ₱" + annual + " annual bonus!";
         }
 
-        notificationService.notifySavingsWithdraw(user.getSavingsId(),userInfo.getFirstName());
+        notificationService.notifySavingsWithdraw(user.getSavingsId(),user.getSavingsId(),userInfo.getFirstName());
 
         return new ApiResponse<>(
                 true,
