@@ -10,6 +10,7 @@ import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -78,16 +79,13 @@ public class LoanService {
         }
 
 
-        BigDecimal totalPaid = payments.stream()
-                .filter(p  -> "PAID".equalsIgnoreCase(p.getStatus().name()))
-                .map(LoanPayment::getAmountPaid)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalPaid = Optional.ofNullable(loanPaymentRepo.sumAllPaidByUserId(userId))
+                .orElse(BigDecimal.ZERO);
 
 
 
-        BigDecimal totalLoanAmount = loans.stream()
-                .map(Loan::getTotalRepayable)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalLoanAmount = Optional.ofNullable(userLoanRepo.sumTotalRepayableByUserId(userId))
+                .orElse(BigDecimal.ZERO);
 
 
         BigDecimal remainingBalance = BigDecimal.ZERO;
@@ -130,16 +128,6 @@ public class LoanService {
                         .build())
                 .toList();
 
-//        List<PaymentInfo> paymentInfos = payments.stream()
-//                .map(payment -> PaymentInfo.builder()
-//                        .paymentId(payment.getId())
-//                        .referenceNumber(payment.getReferenceNumber())
-//                        .amountPaid(BigDecimal.valueOf(payment.getAmountPaid()))
-//                        .paymentDate(payment.getPaymentDate())
-//                        .paymentMethod(payment.getPaymentMethod().name())
-//                        .paymentStatus(payment.getStatus().name())
-//                        .build())
-//                .toList();
 
         UserAllLoansResponse response = UserAllLoansResponse.builder()
                 .applications(applicationInfos)
@@ -304,8 +292,8 @@ public class LoanService {
         }
 
 
-        boolean hasActiveLoan = loanApplicationRepo.findAllByUserId(user.getId()).stream()
-                .anyMatch(data -> data.getStatus() == Status.PENDING);
+
+        boolean hasActiveLoan = loanApplicationRepo.existsByUserIdAndStatus(user.getId(), Status.PENDING);
 
         if (hasActiveLoan){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -317,9 +305,11 @@ public class LoanService {
 
     public Optional<LoanApplication> getDetails(Long userId){
 
-        Optional<LoanApplication> latestApplication = loanApplicationRepo.findAllByUserId(userId).stream()
-                .filter(app -> app.getStatus() == Status.PENDING || app.getStatus() == Status.APPROVED)
-                .max(Comparator.comparing(LoanApplication::getApplicationID));
+        Optional<LoanApplication> latestApplication = loanApplicationRepo
+                .findTopByUserIdAndStatusInOrderByApplicationIDDesc(
+                        userId,
+                        List.of(Status.PENDING, Status.APPROVED)
+                );
 
         return latestApplication;
     }

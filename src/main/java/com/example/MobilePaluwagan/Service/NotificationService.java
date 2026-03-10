@@ -25,6 +25,7 @@ public class NotificationService {
                 notif.getMessage(),
                 notif.getType().name(),
                 notif.getIsRead(),
+                notif.getAccountNumber(),
                 notif.getCreatedAt()
         );
     }
@@ -99,7 +100,7 @@ public class NotificationService {
 
     }
 
-    public void notifyAdminPaymentMade(String applicationId, String userName, Double amount) {
+    public void notifyAdminPaymentMade(String applicationId, String userName, Double amount, String referenceId) {
 
         // Notify admin
         Notification adminNotif = new Notification();
@@ -110,6 +111,7 @@ public class NotificationService {
         adminNotif.setType(NotificationType.SAVINGS);
         adminNotif.setReferenceId(applicationId);
         adminNotif.setIsRead(false);
+        adminNotif.setAccountNumber(applicationId);
         adminNotif.setCreatedAt(LocalDateTime.now());
         notificationRepository.save(adminNotif);
     }
@@ -136,7 +138,7 @@ public class NotificationService {
 
     public Long getUserUnreadCount(Long userId) {
         return notificationRepository
-                .countByUserIdAndIsAdminTrue(userId);
+                .countByUserIdAndIsReadFalseAndIsAdminFalse(userId);
     }
 
     public Long getAdminUnreadCount() {

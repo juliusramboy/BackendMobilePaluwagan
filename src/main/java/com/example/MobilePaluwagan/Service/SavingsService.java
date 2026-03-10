@@ -123,14 +123,22 @@ public class SavingsService {
             bank.setHasSavingsDeposit(false);
             userBankRepo.save(bank);
             sseController.notifyUpdate();
+            notificationService.notifyUserPaymentMade(bank.getUserId(), userBank.getSavingsId(), info.getFirstName(), bank.getAccountBalance());
             return new ApiResponse<>(true, "Withdrawal processed successfully", null);
         }
 
         if (request.getStatus() == Status.REJECTED) {
-            SavingsWithdrawApplication withdraw = savingsWithdrawApplicationRepo.findBySavingsId(request.getSavingsId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "no record found in withdraw application"));
-            savingsWithdrawApplicationRepo.delete(withdraw);
-            sseController.notifyUpdate();
-            return new ApiResponse<>(true, "Withdraw deleted", null);
+            Optional<SavingsWithdrawApplication> withdraw = savingsWithdrawApplicationRepo.findBySavingsId(request.getSavingsId());
+
+            if (withdraw.isPresent()) {
+                SavingsWithdrawApplication withdrawApplication = withdraw.get();
+                savingsWithdrawApplicationRepo.delete(withdrawApplication);
+                sseController.notifyUpdate();
+                notificationService.notifyUserPaymentMade(withdrawApplication.getUserId(), userBank.getSavingsId(), info.getFirstName(), withdrawApplication.getAccountBalance());
+                return new ApiResponse<>(true, "Withdraw Application Rejected", null);
+            }
+            userSavingsRepo.deleteBySavingsIdAndStatus(request.getSavingsId());
+            return new ApiResponse<>(true, "Savings Payment Rejected", null);
         }
 
 
@@ -193,7 +201,7 @@ public class SavingsService {
                 deposit = userSavingsRepo.save(userSavings);
 
                 sseController.notifyUpdate();
-                notificationService.notifyAdminPaymentMade( user.getSavingsId(), info.getFirstName(), depositAmount);
+                notificationService.notifyAdminPaymentMade( user.getSavingsId(), info.getFirstName(), depositAmount, userSavings.getReference());
             UserDepositSavingsResponse responseData = mapToUserSavingsResponse(deposit);
 
             return new ApiResponse<>(
@@ -341,16 +349,14 @@ public class SavingsService {
 
          BigDecimal userTargetAmount = userBank.getTargetAmount();
 
-        List<SavingsDepositHistory> savingsDepositHistoryList = userSavings.stream()
-                .filter(status -> status.getStatus() == Status.PAID)
-                .sorted(Comparator.comparing(UserSavings::getDepositDate).reversed())
+        List<SavingsDepositHistory> savingsDepositHistoryList = userSavingsRepo
+                .findAllByUserIdAndStatusOrderByDepositDateDesc(userId, Status.PAID)
+                .stream()
                 .map(this::allHistory)
                 .collect(Collectors.toList());
 
-        BigDecimal totalSavings = userSavings.stream()
-                .filter(amount -> "PAID".equalsIgnoreCase(amount.getStatus().name()))
-                .map(amount -> BigDecimal.valueOf(amount.getAmountDeposit()))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalSavings = Optional.ofNullable(userSavingsRepo.sumAllPaidByUserId(userId))
+                .orElse(BigDecimal.ZERO);
 
         BigDecimal savingsBase = new BigDecimal("5000");
         BigDecimal annualBase = new BigDecimal("500");

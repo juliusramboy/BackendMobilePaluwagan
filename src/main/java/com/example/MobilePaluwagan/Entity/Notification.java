@@ -37,6 +37,9 @@ public class Notification {
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(name = "account_number")
+    private String accountNumber;
+
     @Column(name = "reference_id")
     private String referenceId;
 }
