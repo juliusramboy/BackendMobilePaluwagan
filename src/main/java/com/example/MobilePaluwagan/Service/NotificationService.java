@@ -169,11 +169,9 @@ public class NotificationService {
 
     // --- Clear All Notification ---
 
-    public void clearUserAllNotifications(Long userId) {
-        notificationRepository.deleteByUserIdAndIsAdminFalse(userId);
+    public void clearAllNotifications(List<Long> notificationIds) {
+        notificationRepository.deleteAllById(notificationIds);
     }
 
-    public void clearAdminAllNotifications() {
-        notificationRepository.deleteByIsAdminTrue();
-    }
+
 }
