@@ -143,9 +143,9 @@ public class NotificationService {
                 .countByUserIdAndIsReadFalseAndIsAdminFalse(userId);
     }
 
-    public Long getAdminUnreadCount(Long userId) {
+    public Long getAdminUnreadCount() {
         return notificationRepository
-                .countByUserIdAndIsReadFalseAndIsAdminFalse(userId);
+                .countByIsAdminTrueAndIsReadFalse();
     }
 
     // --- Mark as Read ---

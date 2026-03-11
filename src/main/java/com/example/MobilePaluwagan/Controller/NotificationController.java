@@ -56,8 +56,8 @@ public class NotificationController {
 
     // admin — get unread count (bell badge)
     @GetMapping("/admin/unread-count")
-    public ResponseEntity<Long> getAdminUnreadCount(Long userId) {
-        return ResponseEntity.ok(notificationService.getUserUnreadCount(userId));
+    public ResponseEntity<Long> getAdminUnreadCount() {
+        return ResponseEntity.ok(notificationService.getAdminUnreadCount());
     }
 
     @PatchMapping("/admin/{notificationId}/read")
