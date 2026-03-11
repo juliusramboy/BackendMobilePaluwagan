@@ -70,7 +70,7 @@ public interface UserSavingsRepo extends JpaRepository<UserSavings, Long> {
     "JOIN u.userInfo ui " +
     "JOIN u.userBank ub " +
     "LEFT JOIN UserSavings us ON us.userId = u.id AND  us.status = 'PENDING' " +
-    "LEFT JOIN SavingsWithdrawApplication sw ON sw.status = 'WITHDRAW' " +
+    "LEFT JOIN SavingsWithdrawApplication sw ON us.userId = sw.userId AND sw.status = 'WITHDRAW' " +
     "WHERE u.hasSavingsAccount = true " +
     "GROUP BY u.id, ui.firstName, ui.lastName, ub.savingsId, ub.accountBalance, ub.targetAmount, ui.profileImage")
     List<SavingsMemberOverview> findAllMembers();
