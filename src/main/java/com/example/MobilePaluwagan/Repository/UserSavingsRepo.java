@@ -72,7 +72,9 @@ public interface UserSavingsRepo extends JpaRepository<UserSavings, Long> {
     "LEFT JOIN UserSavings us ON us.userId = u.id AND  us.status = 'PENDING' " +
     "LEFT JOIN SavingsWithdrawApplication sw ON u.id = sw.userId AND sw.status = 'WITHDRAW' " +
     "WHERE u.hasSavingsAccount = true " +
-    "GROUP BY u.id, ui.firstName, ui.lastName, ub.savingsId, ub.accountBalance, ub.targetAmount, ui.profileImage")
+    "GROUP BY u.id, ui.firstName, ui.lastName, ub.savingsId, ub.accountBalance, ub.targetAmount, ui.profileImage " +
+    "ORDER BY " +
+    "CASE WHEN COUNT(us) > 0 OR COUNT(sw) > 0 THEN 0 ELSE 1 END ASC")
     List<SavingsMemberOverview> findAllMembers();
 
     @Query(value = "SELECT us.* FROM user_savings us " +
