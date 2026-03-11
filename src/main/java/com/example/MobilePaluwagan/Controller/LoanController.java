@@ -9,6 +9,7 @@ import com.example.MobilePaluwagan.Entity.LoanPayment;
 import com.example.MobilePaluwagan.Entity.UserPrinciple;
 import com.example.MobilePaluwagan.Service.LoanService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -83,7 +84,10 @@ public class  LoanController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) String paymentMethod) {
+            @RequestParam(required = false) String paymentMethod,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+    ) {
 
         // Get the logged-in user's ID
         UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
@@ -91,7 +95,7 @@ public class  LoanController {
 
         // Step 1: Build the filter object with userId
         PaymentFilterRequest filter = PaymentFilterRequest.builder()
-                .userId(userId)  // IMPORTANT: Set the user ID
+                .userId(userId)
                 .reference(reference)
                 .startDate(startDate)
                 .endDate(endDate)
@@ -100,10 +104,11 @@ public class  LoanController {
                 .build();
 
         // Step 2: Get filtered payments from service
-        List<LoanPayment> loanPayments = loanService.filterUserPayments(filter);
+        Page<LoanPayment> loanPayments = loanService.filterUserPayments(filter, page, size);
 
         // Step 3: Convert entities to DTOs
-        List<PaymentInfo> paymentDTOs = loanPayments.stream()
+        List<PaymentInfo> paymentDTOs = loanPayments.getContent() // ← getContent()
+                .stream()
                 .map(loanService::convertToDTO)
                 .collect(Collectors.toList());
 
@@ -118,6 +123,10 @@ public class  LoanController {
                 .message(message)
                 .filters(filter.hasFilters() ? filter : null)
                 .payment(paymentDTOs)
+                .currentPage(loanPayments.getNumber())
+                .totalPages(loanPayments.getTotalPages())
+                .totalElements(loanPayments.getTotalElements())
+                .last(loanPayments.isLast())
                 .build();
 
         return ResponseEntity.ok(response);

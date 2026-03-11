@@ -15,4 +15,8 @@ public class SavingsDetailResponse {
     private UserSavingsInfo user;
     private List<SavingsPendingPaymentMemberResponse> payments;
     private WithdrawSavingsInfo withdraw;
+    private int currentPage;
+    private int totalPages;
+    private long totalElements;
+    private boolean last;
 }

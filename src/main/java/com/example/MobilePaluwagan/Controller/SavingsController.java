@@ -9,6 +9,7 @@ import com.example.MobilePaluwagan.Entity.UserSavings;
 import com.example.MobilePaluwagan.Repository.UserSavingsRepo;
 import com.example.MobilePaluwagan.Service.SavingsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -73,11 +74,11 @@ public class SavingsController {
 
 
     @GetMapping("/summary")
-    public ResponseEntity<ApiResponse<SavingsSummaryResponse>> history(Authentication authentication) {
+    public ResponseEntity<ApiResponse<SavingsSummaryResponse>> history(Authentication authentication, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size) {
         UserPrinciple user = (UserPrinciple) authentication.getPrincipal();
         Long userId = user.userId();
 
-        ApiResponse<SavingsSummaryResponse> history = savingsService.savingsAllData(userId);
+        ApiResponse<SavingsSummaryResponse> history = savingsService.savingsAllData(userId,page, size);
 
         return ResponseEntity.ok(history);
     }

@@ -49,8 +49,12 @@ public class AdminSavingsController {
     }
 
     @GetMapping("/members/{savingsId}")
-    public ResponseEntity<ApiResponse<?>> getAllPendingPayments(@PathVariable String savingsId) {
-        ApiResponse<?> pendingPayments = savingsService.getAllPendingPayments(savingsId);
+    public ResponseEntity<ApiResponse<?>> getAllPendingPayments(
+            @PathVariable String savingsId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        ApiResponse<?> pendingPayments = savingsService
+                .getAllPendingPayments(savingsId, page, size);
         return ResponseEntity.ok(pendingPayments);
     }
 

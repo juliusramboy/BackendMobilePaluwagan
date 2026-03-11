@@ -19,4 +19,8 @@ public class SavingsSummaryResponse {
     private BigDecimal targetAmount;
     private boolean hasWithdraw;
     private List<SavingsDepositHistory> depositHistoryList;
+    private int currentPage;
+    private int totalPages;
+    private long totalElements;
+    private boolean last;           
 }

@@ -1,8 +1,6 @@
 package com.example.MobilePaluwagan.Controller;
 
 import com.example.MobilePaluwagan.DTOs.Response.NotificationResponse;
-import com.example.MobilePaluwagan.Entity.Notification;
-import com.example.MobilePaluwagan.Repository.NotificationRepository;
 import com.example.MobilePaluwagan.Service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
