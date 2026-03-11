@@ -125,7 +125,7 @@ public class NotificationService {
     public Page<NotificationResponse> getUserNotifications(Long userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return notificationRepository
-                .findByUserIdAndIsAdminFalseOrderByCreatedAtDesc(userId, pageable)
+                .findByUserIdAndIsAdminFalseOrderByIsReadAscCreatedAtDesc(userId, pageable)
                 .map(this::toDTO);
     }
 
