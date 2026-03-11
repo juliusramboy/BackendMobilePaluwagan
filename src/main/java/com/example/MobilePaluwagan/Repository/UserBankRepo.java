@@ -3,6 +3,8 @@ package com.example.MobilePaluwagan.Repository;
 import com.example.MobilePaluwagan.DTOs.Response.SavingsPendingPaymentMemberResponse;
 import com.example.MobilePaluwagan.Entity.User;
 import com.example.MobilePaluwagan.Entity.UserBank;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -28,6 +30,8 @@ public interface UserBankRepo extends JpaRepository<UserBank, Long> {
     "JOIN UserInfo ui ON ui.userId = ub.userId " +
     "WHERE ub.savingsId = :savingsId " +
     "AND us.status = 'PENDING'")
-    List<SavingsPendingPaymentMemberResponse> findPendingPaymentBySavingsId(@Param("savingsId") String savingsId);
+    Page<SavingsPendingPaymentMemberResponse> findPendingPaymentBySavingsId(
+            @Param("savingsId") String savingsId,
+            Pageable pageable);
 
 }

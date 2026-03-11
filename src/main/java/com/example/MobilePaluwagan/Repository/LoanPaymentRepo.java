@@ -6,6 +6,8 @@ import com.example.MobilePaluwagan.Entity.Loan;
 import com.example.MobilePaluwagan.Entity.LoanPayment;
 import com.example.MobilePaluwagan.Entity.UserBank;
 import com.example.MobilePaluwagan.Entity.UserSavings;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -49,14 +51,23 @@ public interface LoanPaymentRepo extends JpaRepository<LoanPayment, Long> {
             "AND (:status IS NULL OR lp.status = :status) " +
             "AND (:paymentMethod IS NULL OR lp.payment_method = :paymentMethod) " +
             "ORDER BY lp.payment_date DESC",
+            countQuery = "SELECT COUNT(*) FROM loan_payment lp " +  // ← add this
+                    "JOIN loan l ON lp.loan_id = l.id " +
+                    "WHERE l.user_id = :userId " +
+                    "AND (:reference IS NULL OR LOWER(lp.reference_number) LIKE LOWER(CONCAT('%', :reference, '%'))) " +
+                    "AND (:startDate IS NULL OR lp.payment_date >= :startDate) " +
+                    "AND (:endDate IS NULL OR lp.payment_date <= :endDate) " +
+                    "AND (:status IS NULL OR lp.status = :status) " +
+                    "AND (:paymentMethod IS NULL OR lp.payment_method = :paymentMethod)",
             nativeQuery = true)
-    List<LoanPayment> findPaymentsByUserIdWithFilters(
+    Page<LoanPayment> findPaymentsByUserIdWithFilters(
             @Param("userId") Long userId,
             @Param("reference") String reference,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,
             @Param("status") String status,
-            @Param("paymentMethod") String paymentMethod
+            @Param("paymentMethod") String paymentMethod,
+            Pageable pageable
     );
 
     @Query("""

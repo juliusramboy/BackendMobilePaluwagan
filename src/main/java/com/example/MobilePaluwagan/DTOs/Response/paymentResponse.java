@@ -17,4 +17,8 @@ public class paymentResponse {
     private String message;
     private PaymentFilterRequest filters;
     private List<PaymentInfo> payment;
+    private int currentPage;
+    private int totalPages;
+    private long totalElements;
+    private boolean last;
 }

@@ -4,6 +4,8 @@ import com.example.MobilePaluwagan.DTOs.Response.SavingsMemberOverview;
 import com.example.MobilePaluwagan.Entity.Status;
 import com.example.MobilePaluwagan.Entity.UserSavings;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -28,7 +30,7 @@ public interface UserSavingsRepo extends JpaRepository<UserSavings, Long> {
     @Query("DELETE FROM UserSavings us WHERE us.savingsId = :savingsId AND us.status = 'PENDING'")
     void deleteBySavingsIdAndStatus(@Param("savingsId") String savingsId);
 
-   List<UserSavings> findAllByUserIdAndStatusOrderByDepositDateDesc(Long  userId, Status status);
+   Page<UserSavings> findAllByUserIdAndStatusOrderByDepositDateDesc(Long  userId, Status status, Pageable pageable);
 
 
     @Query("SELECT SUM(us.amountDeposit) FROM UserSavings us")

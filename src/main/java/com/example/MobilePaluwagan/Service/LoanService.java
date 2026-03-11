@@ -10,7 +10,9 @@ import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -132,7 +134,6 @@ public class LoanService {
         UserAllLoansResponse response = UserAllLoansResponse.builder()
                 .applications(applicationInfos)
                 .loans(loanInfos)
-                //.payments(paymentInfos)
                 .totalAmountPaid(totalPaid)
                 .paymentProgress(progressMessage)
                 .remainingBalance(remainingBalance)
@@ -352,14 +353,16 @@ public class LoanService {
 //        );
 //    }
 
-    public List<LoanPayment> filterUserPayments(PaymentFilterRequest filter) {
+    public Page<LoanPayment> filterUserPayments(PaymentFilterRequest filter, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
         return loanPaymentRepo.findPaymentsByUserIdWithFilters(
                 filter.getUserId(),
                 filter.getReference(),
                 filter.getStartDate(),
                 filter.getEndDate(),
                 filter.getStatus(),
-                filter.getPaymentMethod()
+                filter.getPaymentMethod(),
+                pageable
         );
     }
 

@@ -9,6 +9,9 @@ import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -236,10 +239,10 @@ public class SavingsService {
         );
     }
 
-    public ApiResponse<?> getAllPendingPayments(String savingsId){
+    public ApiResponse<?> getAllPendingPayments(String savingsId, int page, int size) {
         UserBank user = userBankRepo.findBySavingsId(savingsId);
 
-        if (user == null){
+        if (user == null) {
             return new ApiResponse<>(
                     false,
                     "Savings Id not exist in records",
@@ -247,13 +250,17 @@ public class SavingsService {
             );
         }
 
-        UserInfo userInfo = userInfoRepo.findByUserId(user.getUserId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userid not found"));
-        SavingsWithdrawApplication savingsWithdrawApplication = savingsWithdrawApplicationRepo.findByUserId(user.getUserId());
+        UserInfo userInfo = userInfoRepo.findByUserId(user.getUserId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userid not found"));
 
-        WithdrawSavingsInfo withdraw  = WithdrawSavingsInfo.builder().build();
+        SavingsWithdrawApplication savingsWithdrawApplication =
+                savingsWithdrawApplicationRepo.findByUserId(user.getUserId());
+
+        WithdrawSavingsInfo withdraw = WithdrawSavingsInfo.builder().build();
 
         if (savingsWithdrawApplication != null) {
-            BigDecimal balance = savingsWithdrawApplication.getAccountBalance().add(savingsWithdrawApplication.getAnnual());
+            BigDecimal balance = savingsWithdrawApplication.getAccountBalance()
+                    .add(savingsWithdrawApplication.getAnnual());
             withdraw = WithdrawSavingsInfo.builder()
                     .withdrawDate(savingsWithdrawApplication.getWithdrawDate())
                     .reference(savingsWithdrawApplication.getReference())
@@ -274,17 +281,22 @@ public class SavingsService {
                 .profileImage(userInfo.getProfileImage())
                 .build();
 
-        List<SavingsPendingPaymentMemberResponse> payments = userBankRepo.findPendingPaymentBySavingsId(savingsId);
+        Pageable pageable = PageRequest.of(page, size);
+        Page<SavingsPendingPaymentMemberResponse> paymentsPage =
+                userBankRepo.findPendingPaymentBySavingsId(savingsId, pageable);
 
         return new ApiResponse<>(
                 true,
                 "Success",
                 SavingsDetailResponse.builder()
                         .user(userSavingsInfo)
-                        .payments(payments)
+                        .payments(paymentsPage.getContent())
+                        .currentPage(paymentsPage.getNumber())
+                        .totalPages(paymentsPage.getTotalPages())
+                        .totalElements(paymentsPage.getTotalElements())
+                        .last(paymentsPage.isLast())
                         .withdraw(withdraw)
                         .build()
-
         );
     }
 
@@ -337,7 +349,7 @@ public class SavingsService {
         return userSavings;
     }
 
-    public ApiResponse<SavingsSummaryResponse> savingsAllData(Long userId){
+    public ApiResponse<SavingsSummaryResponse> savingsAllData(Long userId, int page, int size){
         List<UserSavings> userSavings = userSavingsRepo.findByUserId(userId);
 
         boolean withdraw = savingsWithdrawApplicationRepo.existsByUserId(userId);
@@ -349,11 +361,11 @@ public class SavingsService {
 
          BigDecimal userTargetAmount = userBank.getTargetAmount();
 
-        List<SavingsDepositHistory> savingsDepositHistoryList = userSavingsRepo
-                .findAllByUserIdAndStatusOrderByDepositDateDesc(userId, Status.PAID)
-                .stream()
-                .map(this::allHistory)
-                .collect(Collectors.toList());
+        Pageable pageable = PageRequest.of(page, size);
+        Page<SavingsDepositHistory> savingsDepositHistoryList = userSavingsRepo
+                .findAllByUserIdAndStatusOrderByDepositDateDesc(userId, Status.PAID, pageable)
+                .map(this::allHistory);
+
 
         BigDecimal totalSavings = Optional.ofNullable(userSavingsRepo.sumAllPaidByUserId(userId))
                 .orElse(BigDecimal.ZERO);
@@ -380,15 +392,15 @@ public class SavingsService {
 
 
 
-//        System.out.println(totalSavings);
-//        System.out.println(userAnnual);
-
-
         SavingsSummaryResponse response = new SavingsSummaryResponse();
         response.setSavingsId(savingsId);
         response.setTotalSavingsBalance(totalSavings);
         response.setTargetAmount(userTargetAmount);
-        response.setDepositHistoryList(savingsDepositHistoryList);
+        response.setDepositHistoryList(savingsDepositHistoryList.getContent());
+        response.setCurrentPage(savingsDepositHistoryList.getNumber());
+        response.setTotalPages(savingsDepositHistoryList.getTotalPages());
+        response.setTotalElements(savingsDepositHistoryList.getTotalElements());
+        response.setLast(savingsDepositHistoryList.isLast());
         response.setTargetReached(isTargetReached);
         response.setHasWithdraw(withdraw);
         response.setAnnualMoney(userAnnual);
