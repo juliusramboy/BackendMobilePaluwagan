@@ -16,7 +16,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     Page<Notification> findByIsAdminTrueOrderByCreatedAtDesc(Pageable pageable);
 
     Long countByUserIdAndIsReadFalseAndIsAdminFalse(Long userId);
-    Long countByIsAdminTrue();
+//    Long countByAdminIdAndIsReadFalseAndIsAdminFalse();
 
 
 }

@@ -55,7 +55,7 @@ public class NotificationService {
         adminNotif.setReferenceId(savingsId);
         adminNotif.setIsRead(false);
         adminNotif.setCreatedAt(LocalDateTime.now());
-        adminNotif.setAccountNumber(applicationId);
+        adminNotif.setAccountNumber(accountNumber);
         notificationRepository.save(adminNotif);
     }
 
@@ -143,9 +143,9 @@ public class NotificationService {
                 .countByUserIdAndIsReadFalseAndIsAdminFalse(userId);
     }
 
-    public Long getAdminUnreadCount() {
+    public Long getAdminUnreadCount(Long userId) {
         return notificationRepository
-                .countByIsAdminTrue();
+                .countByUserIdAndIsReadFalseAndIsAdminFalse(userId);
     }
 
     // --- Mark as Read ---
