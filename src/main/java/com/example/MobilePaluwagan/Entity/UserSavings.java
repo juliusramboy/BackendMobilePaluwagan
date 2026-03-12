@@ -40,6 +40,9 @@ public class UserSavings {
     @Column(name = "deposit_date")
     private LocalDateTime depositDate;
 
+    @Column(name = "bank_reference")
+    private String bankReference;
+
     private String reference;
 
     @ManyToOne

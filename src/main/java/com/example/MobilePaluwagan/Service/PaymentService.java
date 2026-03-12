@@ -18,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -48,6 +49,9 @@ public class PaymentService {
     @Autowired
     private UserBankRepo userBankRepo;
 
+    @Autowired
+    private UserSavingsRepo userSavingsRepo;
+
 
 
 
@@ -68,7 +72,7 @@ public class PaymentService {
                         HttpStatus.NOT_FOUND, "No pending payments found for loan"));
 
         BigDecimal requireAmount = current.getPayment();
-        BigDecimal amountPaid = request.getAmount();
+        BigDecimal amountPaid = BigDecimal.valueOf(request.getAmount());
 
         if (amountPaid.compareTo(requireAmount) < 0) {
 
@@ -165,7 +169,7 @@ public class PaymentService {
 
         user.setLoanRepaymentTally(user.getLoanRepaymentTally().add(amountPaid));
         userLoanRepo.save(user);
-        notificationService.notifyUserPaymentMade(user.getUserId(), String.valueOf(request.getApplicationId()), userInfo.getFirstName(), request.getAmount());
+        notificationService.notifyUserPaymentMade(user.getUserId(), String.valueOf(request.getApplicationId()), userInfo.getFirstName(), BigDecimal.valueOf(request.getAmount()));
         sseController.notifyUpdate();
 
         return new ApiResponse<>(true, "Payment processed successfully.", null);
@@ -175,9 +179,25 @@ public class PaymentService {
        UserBank userbank =  userBankRepo.findBySavingsId(request.getApplicationId());
 
        if(userbank != null){
-           BigDecimal addPaymentAmount = request.getAmount().add(request.getAmount());
+           BigDecimal addPaymentAmount = userbank.getAccountBalance().add(BigDecimal.valueOf(request.getAmount()));
            userbank.setAccountBalance(addPaymentAmount);
            userBankRepo.save(userbank);
+
+
+           UserSavings savings = new UserSavings();
+           savings.setSavingsId(request.getApplicationId());
+           savings.setDepositDate(LocalDateTime.now());
+           savings.setAmountDeposit(request.getAmount());
+           savings.setUserId(userbank.getUserId());
+           savings.setReference(generateRef());
+           String bankRef = request.getBankReference();
+           savings.setBankReference(
+                   (bankRef == null || bankRef.trim().isEmpty()) ? null : bankRef
+           );
+           savings.setStatus(Status.PAID);
+
+           userSavingsRepo.save(savings);
+
 
            return new ApiResponse<>(true, "Savings payment processed successfully.", null);
        }else{

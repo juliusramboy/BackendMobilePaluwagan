@@ -23,7 +23,7 @@ public class AdminPaymentController {
         return loanPayment;
     }
 
-    @PostMapping
+    @PostMapping("/savings")
     public ApiResponse<?> sendPayment(@RequestBody PaymentAdminRequest paymentAdminRequest) {
         ApiResponse<?> savingsPayment = paymentService.processSavingsPayment(paymentAdminRequest);
         return savingsPayment;

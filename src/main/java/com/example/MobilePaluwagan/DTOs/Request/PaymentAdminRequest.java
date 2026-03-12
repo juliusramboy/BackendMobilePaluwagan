@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 public class PaymentAdminRequest {
 
     private String applicationId;
-    private BigDecimal amount;
+    private Double amount;
     private String reference;
     private PaymentMethod paymentMethod;
     @Nullable
