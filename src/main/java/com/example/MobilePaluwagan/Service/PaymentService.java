@@ -1,7 +1,7 @@
 package com.example.MobilePaluwagan.Service;
 
 import com.example.MobilePaluwagan.Controller.SseController;
-import com.example.MobilePaluwagan.DTOs.Request.PaymentLoanRequest;
+import com.example.MobilePaluwagan.DTOs.Request.PaymentAdminRequest;
 import com.example.MobilePaluwagan.DTOs.Response.*;
 import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.*;
@@ -52,9 +52,9 @@ public class PaymentService {
 
 
     @Transactional
-    public ApiResponse<?> processPayment(PaymentLoanRequest request) {
+    public ApiResponse<?> processLoanPayment(PaymentAdminRequest request) {
 
-        Loan user = userLoanRepo.findByApplicationID(request.getApplicationId());
+        Loan user = userLoanRepo.findByApplicationID(Long.valueOf(request.getApplicationId()));
 
         UserInfo userInfo = userInfoRepo.findByUserId(user.getUserId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
@@ -171,10 +171,33 @@ public class PaymentService {
         return new ApiResponse<>(true, "Payment processed successfully.", null);
     }
 
+    public ApiResponse<?> processSavingsPayment(PaymentAdminRequest request){
+       UserBank userbank =  userBankRepo.findBySavingsId(request.getApplicationId());
+
+       if(userbank != null){
+           BigDecimal addPaymentAmount = request.getAmount().add(request.getAmount());
+           userbank.setAccountBalance(addPaymentAmount);
+           userBankRepo.save(userbank);
+
+           return new ApiResponse<>(true, "Savings payment processed successfully.", null);
+       }else{
+           return new ApiResponse<>(false, "Savings not found", null);
+       }
+
+    }
+
+
+
     public LoanApplicationResponseAdmin searchLoanApplicant(String name, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        Page<AdminPaymentLoanSearchResponse> result = loanPaymentRepo.searchApplicantLoanByName(name, pageable);;
+        Page<AdminPaymentLoanSearchResponse> result;
+
+        if (name == null) {
+            result = loanPaymentRepo.findAllLoanApplicants(pageable);
+        }else{
+            result = loanPaymentRepo.searchApplicantLoanByName(name, pageable);
+        }
 
 
         return LoanApplicationResponseAdmin.builder()
@@ -191,8 +214,13 @@ public class PaymentService {
     public SavingsApplicationResponseAdmin searchSavingsApplicant(String name, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        Page<AdminPaymentSavingsSearchResponse> result = userBankRepo.searchApplicantSavingsByName(name, pageable);
+        Page<AdminPaymentSavingsSearchResponse> result;
 
+        if (name == null) {
+            result = userBankRepo.findAllSavingsMembers(pageable);
+        }else{
+            result = userBankRepo.searchApplicantSavingsByName(name, pageable);
+        }
 
         return SavingsApplicationResponseAdmin.builder()
                 .success(true)
