@@ -163,7 +163,10 @@ public class PaymentService {
         transaction.setPaymentDate(LocalDate.now());
         transaction.setPaymentMethod(request.getPaymentMethod());
         transaction.setReferenceNumber(generateRef());
-        transaction.setBankReference(request.getBankReference());
+        String bankRef = request.getBankReference();
+        transaction.setBankReference(
+                (bankRef == null || bankRef.trim().isEmpty()) ? null : bankRef
+        );
         transaction.setStatus(Status.PAID);
         loanPaymentRepo.save(transaction);
 
