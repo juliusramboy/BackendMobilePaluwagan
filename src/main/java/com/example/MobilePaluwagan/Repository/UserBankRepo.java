@@ -39,6 +39,7 @@ public interface UserBankRepo extends JpaRepository<UserBank, Long> {
     SELECT new com.example.MobilePaluwagan.DTOs.Response.AdminPaymentSavingsSearchResponse(
         u.savingsId,
         u.accountBalance,
+        u.targetAmount,
         ui.firstName,
         ui.lastName,
         ui.profileImage
@@ -63,9 +64,10 @@ public interface UserBankRepo extends JpaRepository<UserBank, Long> {
     SELECT new com.example.MobilePaluwagan.DTOs.Response.AdminPaymentSavingsSearchResponse(
         us.savingsId,
             us.accountBalance,
-                u.firstName,
-                    u.lastName,
-                        u.profileImage
+                us.targetAmount,
+                    u.firstName,
+                        u.lastName,
+                            u.profileImage
     )
         FROM UserBank us
             JOIN UserInfo  u ON u.userId = us.userId
