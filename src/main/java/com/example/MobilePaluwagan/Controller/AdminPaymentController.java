@@ -29,7 +29,7 @@ public class AdminPaymentController {
 
     @GetMapping("/loan/search")
     public ResponseEntity<LoanApplicationResponseAdmin> searchLoanApplicant(
-            @RequestParam(required = false) String name,
+            @RequestParam String name,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
@@ -38,7 +38,7 @@ public class AdminPaymentController {
 
     @GetMapping("/savings/search")
     public ResponseEntity<SavingsApplicationResponseAdmin> searchSavingsApplicant(
-           @RequestParam(required = false) String name,
+           @RequestParam String name,
            @RequestParam(defaultValue =  "0") int page,
            @RequestParam(defaultValue =  "10") int size
     ){

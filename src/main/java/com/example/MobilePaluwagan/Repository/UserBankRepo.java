@@ -69,6 +69,11 @@ public interface UserBankRepo extends JpaRepository<UserBank, Long> {
     )
         FROM UserBank us
             JOIN UserInfo  u ON u.userId = us.userId
+                WHERE EXISTS (
+                    SELECT 1 FROM User us
+                        WHERE us.id = u.userId
+                            AND us.hasSavingsAccount = true
+                    )
     """)
     Page<AdminPaymentSavingsSearchResponse> findAllSavingsMembers(Pageable pageable);
 

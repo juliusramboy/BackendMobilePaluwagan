@@ -174,19 +174,12 @@ public class PaymentService {
     public LoanApplicationResponseAdmin searchLoanApplicant(String name, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        Page<AdminPaymentLoanSearchResponse> result;
+        Page<AdminPaymentLoanSearchResponse> result = loanPaymentRepo.searchApplicantLoanByName(name, pageable);;
 
-        if (name == null || name.trim().isEmpty()) {
-            // ← No search — return ALL
-            result = loanPaymentRepo.findAllLoanApplicants(pageable);
-        } else {
-            // ← Has search — filter by name
-            result = loanPaymentRepo.searchApplicantLoanByName(name, pageable);
-        }
 
         return LoanApplicationResponseAdmin.builder()
                 .success(true)
-                .message(name == null ? "All applicants" : "Search results for: " + name)
+                .message("Results for: " + name)
                 .paymentLoans(result.getContent())
                 .currentPage(result.getNumber())
                 .totalPages(result.getTotalPages())
@@ -198,19 +191,12 @@ public class PaymentService {
     public SavingsApplicationResponseAdmin searchSavingsApplicant(String name, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        Page<AdminPaymentSavingsSearchResponse> result;
+        Page<AdminPaymentSavingsSearchResponse> result = userBankRepo.searchApplicantSavingsByName(name, pageable);
 
-        if (name == null || name.trim().isEmpty()) {
-            // ← No search — return ALL
-            result = userBankRepo.findAllSavingsMembers(pageable);
-        } else {
-            // ← Has search — filter by name
-            result = userBankRepo.searchApplicantSavingsByName(name, pageable);
-        }
 
         return SavingsApplicationResponseAdmin.builder()
                 .success(true)
-                .message(name == null ? "All Members" : "Search results for: " + name)
+                .message("Results for: " + name)
                 .paymentSavings(result.getContent())
                 .totalPages(result.getTotalPages())
                 .totalElements(result.getTotalElements())
