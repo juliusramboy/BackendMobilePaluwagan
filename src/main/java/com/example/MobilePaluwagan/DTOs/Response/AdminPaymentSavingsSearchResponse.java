@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 public class AdminPaymentSavingsSearchResponse {
     private String savingsId;
     private BigDecimal accountBalance;
+    private BigDecimal targetAmount;
     private String firstName;
     private String lastName;
     private String profileImage;
