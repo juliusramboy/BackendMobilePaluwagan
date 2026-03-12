@@ -22,5 +22,5 @@ public class SavingsSummaryResponse {
     private int currentPage;
     private int totalPages;
     private long totalElements;
-    private boolean last;           
+    private boolean last;
 }

@@ -87,7 +87,22 @@ public interface LoanPaymentRepo extends JpaRepository<LoanPayment, Long> {
     OR LOWER(CONCAT(u.firstName, ' ', u.lastName)) LIKE LOWER(CONCAT('%', :name, '%'))
     OR LOWER(CONCAT(u.lastName,  ' ', u.firstName)) LIKE LOWER(CONCAT('%', :name, '%'))
 """)
-    List<AdminPaymentLoanSearchResponse> searchApplicantLoanByName(@Param("name") String name);
+    Page<AdminPaymentLoanSearchResponse> searchApplicantLoanByName(@Param("name") String name, Pageable pageable);
+
+    @Query("""
+    SELECT new com.example.MobilePaluwagan.DTOs.Response.AdminPaymentLoanSearchResponse(
+        l.applicationID,
+        l.weeklyPay,
+        u.firstName,
+        u.lastName,
+        u.profileImage,
+        l.totalRepayable,
+        l.loanRepaymentTally
+    )
+    FROM Loan l
+    JOIN UserInfo u ON u.userId = l.userId
+""")
+    Page<AdminPaymentLoanSearchResponse> findAllApplicants(Pageable pageable);
 
 
 

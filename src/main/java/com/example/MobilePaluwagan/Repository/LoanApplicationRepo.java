@@ -4,12 +4,13 @@ import com.example.MobilePaluwagan.DTOs.Response.ApplicantsFullInfoAdmin;
 import com.example.MobilePaluwagan.DTOs.Response.LoanApplicantsAdmin;
 import com.example.MobilePaluwagan.Entity.LoanApplication;
 import com.example.MobilePaluwagan.Entity.Status;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.awt.print.Pageable;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,14 +36,9 @@ public interface LoanApplicationRepo extends JpaRepository<LoanApplication, Long
             "FROM LoanApplication la " +
             "JOIN la.userInfo lu " +
             "WHERE la.status = :status")
-    List<LoanApplicantsAdmin> findLoanByStatus(@Param("status") Status status);
+    Page<LoanApplicantsAdmin> findLoanByStatus(@Param("status") Status status, Pageable pageable);
 
-//    @Query("SELECT new com.example.MobilePaluwagan.DTOs.Response.ApplicantsFullInfoAdmin(" +
-//    "la.applicationID, la.requestedAmount, la.interestRate, la.interest, la.weeklyPay, la.totalRepayable, la.repayPeriodDays, la.repayPeriodWeeks, la.startDate, la.endDate, lu.firstName, lu.lastName) " +
-//            "FROM LoanApplication la " +
-//            "JOIN UserInfo lu ON la.userId = lu.userId " +
-//            "WHERE la.applicationID = :applicationID")
-//    ApplicantsFullInfoAdmin findLoanApplicantsFullInfo(@Param("applicationID") Long applicationID);
+
 
     @Query("SELECT new com.example.MobilePaluwagan.DTOs.Response.ApplicantsFullInfoAdmin(" +
             "la.applicationID, la.requestedAmount, la.interestRate, la.interest, " +

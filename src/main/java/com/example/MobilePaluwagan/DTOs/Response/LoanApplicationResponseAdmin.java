@@ -11,10 +11,10 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoanApplicationResponse {
+public class LoanApplicationResponseAdmin {
     private boolean success;
     private String message;
-    private List<LoanApplicantsAdmin> applicants;
+    private List<AdminPaymentLoanSearchResponse> paymentLoans;
     private int currentPage;
     private int totalPages;
     private long totalElements;

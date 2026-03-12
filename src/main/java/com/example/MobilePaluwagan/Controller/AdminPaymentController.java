@@ -4,6 +4,7 @@ import com.example.MobilePaluwagan.DTOs.Request.PaymentLoanRequest;
 import com.example.MobilePaluwagan.DTOs.Response.AdminPaymentLoanSearchResponse;
 import com.example.MobilePaluwagan.DTOs.Response.AdminPaymentSavingsSearchResponse;
 import com.example.MobilePaluwagan.DTOs.Response.ApiResponse;
+import com.example.MobilePaluwagan.DTOs.Response.LoanApplicationResponseAdmin;
 import com.example.MobilePaluwagan.Entity.DueDateSchedule;
 import com.example.MobilePaluwagan.Service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,13 +31,12 @@ public class AdminPaymentController {
     }
 
     @GetMapping("/loan/search")
-    public ResponseEntity<List<AdminPaymentLoanSearchResponse>> searchLoanApplicant(@RequestParam String name){
-        List<AdminPaymentLoanSearchResponse> result = paymentService.searchLoanApplicant(name);
+    public ResponseEntity<LoanApplicationResponseAdmin> searchLoanApplicant(
+            @RequestParam(required = false) String name,          
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
 
-        if(result.isEmpty()){
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(paymentService.searchLoanApplicant(name, page, size));
     }
 
     @GetMapping("/savings/search")
