@@ -1,10 +1,7 @@
 package com.example.MobilePaluwagan.Controller;
 
 import com.example.MobilePaluwagan.DTOs.Request.PaymentLoanRequest;
-import com.example.MobilePaluwagan.DTOs.Response.AdminPaymentLoanSearchResponse;
-import com.example.MobilePaluwagan.DTOs.Response.AdminPaymentSavingsSearchResponse;
-import com.example.MobilePaluwagan.DTOs.Response.ApiResponse;
-import com.example.MobilePaluwagan.DTOs.Response.LoanApplicationResponseAdmin;
+import com.example.MobilePaluwagan.DTOs.Response.*;
 import com.example.MobilePaluwagan.Entity.DueDateSchedule;
 import com.example.MobilePaluwagan.Service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +29,7 @@ public class AdminPaymentController {
 
     @GetMapping("/loan/search")
     public ResponseEntity<LoanApplicationResponseAdmin> searchLoanApplicant(
-            @RequestParam(required = false) String name,          
+            @RequestParam(required = false) String name,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
@@ -40,12 +37,12 @@ public class AdminPaymentController {
     }
 
     @GetMapping("/savings/search")
-    public ResponseEntity<List<AdminPaymentSavingsSearchResponse>> searchSavingsApplicant(@RequestParam String name){
-        List<AdminPaymentSavingsSearchResponse> result = paymentService.searchSavingsApplicant(name);
+    public ResponseEntity<SavingsApplicationResponseAdmin> searchSavingsApplicant(
+           @RequestParam(required = false) String name,
+           @RequestParam(defaultValue =  "0") int page,
+           @RequestParam(defaultValue =  "10") int size
+    ){
 
-        if(result.isEmpty()){
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(paymentService.searchSavingsApplicant(name, page, size));
     }
 }

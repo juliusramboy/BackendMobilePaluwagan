@@ -2,11 +2,9 @@ package com.example.MobilePaluwagan.Service;
 
 import com.example.MobilePaluwagan.Controller.SseController;
 import com.example.MobilePaluwagan.DTOs.Request.PaymentLoanRequest;
-import com.example.MobilePaluwagan.DTOs.Request.WeeklyAmortizationSchedule;
 import com.example.MobilePaluwagan.DTOs.Response.*;
 import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.*;
-import com.google.common.math.Quantiles;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +13,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.support.ResourceTransactionManager;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
@@ -47,6 +44,9 @@ public class PaymentService {
 
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private UserBankRepo userBankRepo;
 
 
 
@@ -178,7 +178,7 @@ public class PaymentService {
 
         if (name == null || name.trim().isEmpty()) {
             // ← No search — return ALL
-            result = loanPaymentRepo.findAllApplicants(pageable);
+            result = loanPaymentRepo.findAllLoanApplicants(pageable);
         } else {
             // ← Has search — filter by name
             result = loanPaymentRepo.searchApplicantLoanByName(name, pageable);
@@ -195,8 +195,27 @@ public class PaymentService {
                 .build();
     }
 
-    public List<AdminPaymentSavingsSearchResponse> searchSavingsApplicant(String name){
-        return loanPaymentRepo.searchApplicantSavingsByName(name);
+    public SavingsApplicationResponseAdmin searchSavingsApplicant(String name, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<AdminPaymentSavingsSearchResponse> result;
+
+        if (name == null || name.trim().isEmpty()) {
+            // ← No search — return ALL
+            result = userBankRepo.findAllSavingsMembers(pageable);
+        } else {
+            // ← Has search — filter by name
+            result = userBankRepo.searchApplicantSavingsByName(name, pageable);
+        }
+
+        return SavingsApplicationResponseAdmin.builder()
+                .success(true)
+                .message(name == null ? "All Members" : "Search results for: " + name)
+                .paymentSavings(result.getContent())
+                .totalPages(result.getTotalPages())
+                .totalElements(result.getTotalElements())
+                .last(result.isLast())
+                .build();
     }
 
 
