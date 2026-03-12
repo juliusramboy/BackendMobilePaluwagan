@@ -315,29 +315,37 @@ public class LoanService {
         return latestApplication;
     }
 
-    public ApiResponse<List<LoanApplicantsAdmin>> getPendingApplicants(){
-        return new ApiResponse<>(
-                true,
-                "Successful",
-                loanApplicationRepo.findLoanByStatus(Status.PENDING)
-        );
+    public LoanApplicationResponse getPendingApplicants(Status status, int page, int size){
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<LoanApplicantsAdmin> applicantsAdminPage = loanApplicationRepo.findLoanByStatus(status, pageable);
+
+        return LoanApplicationResponse.builder()
+                .success(true)
+                .message("Successfully retrieved approved applicants")
+                .applicants(applicantsAdminPage.getContent())
+                .currentPage(applicantsAdminPage.getNumber())
+                .totalPages(applicantsAdminPage.getTotalPages())
+                .totalElements(applicantsAdminPage.getTotalElements())
+                .last(applicantsAdminPage.isLast())
+                .build();
     }
 
-    public ApiResponse<List<LoanApplicantsAdmin>> getApproveApplicants(){
-        return new ApiResponse<>(
-                true,
-                "Successful",
-                loanApplicationRepo.findLoanByStatus(Status.APPROVED)
-        );
-    }
-
-    public ApiResponse<List<LoanApplicantsAdmin>> getRejectedApplicants(){
-        return new ApiResponse<>(
-                true,
-                "Successful",
-                loanApplicationRepo.findLoanByStatus(Status.REJECTED)
-        );
-    }
+//    public ApiResponse<List<LoanApplicantsAdmin>> getApproveApplicants(){
+//        return new ApiResponse<>(
+//                true,
+//                "Successful",
+//                loanApplicationRepo.findLoanByStatus(Status.APPROVED)
+//        );
+//    }
+//
+//    public ApiResponse<List<LoanApplicantsAdmin>> getRejectedApplicants(){
+//        return new ApiResponse<>(
+//                true,
+//                "Successful",
+//                loanApplicationRepo.findLoanByStatus(Status.REJECTED)
+//        );
+//    }
 
     public ApplicantsFullInfoAdmin applicantsFullInfo(Long applicationID){
         return loanApplicationRepo.findLoanApplicantsFullInfo(applicationID);

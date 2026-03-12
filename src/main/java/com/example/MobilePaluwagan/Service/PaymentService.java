@@ -3,15 +3,16 @@ package com.example.MobilePaluwagan.Service;
 import com.example.MobilePaluwagan.Controller.SseController;
 import com.example.MobilePaluwagan.DTOs.Request.PaymentLoanRequest;
 import com.example.MobilePaluwagan.DTOs.Request.WeeklyAmortizationSchedule;
-import com.example.MobilePaluwagan.DTOs.Response.AdminPaymentLoanSearchResponse;
-import com.example.MobilePaluwagan.DTOs.Response.AdminPaymentSavingsSearchResponse;
-import com.example.MobilePaluwagan.DTOs.Response.ApiResponse;
+import com.example.MobilePaluwagan.DTOs.Response.*;
 import com.example.MobilePaluwagan.Entity.*;
 import com.example.MobilePaluwagan.Repository.*;
 import com.google.common.math.Quantiles;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.ResourceTransactionManager;
@@ -170,8 +171,28 @@ public class PaymentService {
         return new ApiResponse<>(true, "Payment processed successfully.", null);
     }
 
-    public List<AdminPaymentLoanSearchResponse> searchLoanApplicant(String name){
-        return loanPaymentRepo.searchApplicantLoanByName(name);
+    public LoanApplicationResponseAdmin searchLoanApplicant(String name, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<AdminPaymentLoanSearchResponse> result;
+
+        if (name == null || name.trim().isEmpty()) {
+            // ← No search — return ALL
+            result = loanPaymentRepo.findAllApplicants(pageable);
+        } else {
+            // ← Has search — filter by name
+            result = loanPaymentRepo.searchApplicantLoanByName(name, pageable);
+        }
+
+        return LoanApplicationResponseAdmin.builder()
+                .success(true)
+                .message(name == null ? "All applicants" : "Search results for: " + name)
+                .paymentLoans(result.getContent())
+                .currentPage(result.getNumber())
+                .totalPages(result.getTotalPages())
+                .totalElements(result.getTotalElements())
+                .last(result.isLast())
+                .build();
     }
 
     public List<AdminPaymentSavingsSearchResponse> searchSavingsApplicant(String name){
