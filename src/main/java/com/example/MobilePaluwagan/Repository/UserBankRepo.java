@@ -1,5 +1,6 @@
 package com.example.MobilePaluwagan.Repository;
 
+import com.example.MobilePaluwagan.DTOs.Response.AdminPaymentSavingsSearchResponse;
 import com.example.MobilePaluwagan.DTOs.Response.SavingsPendingPaymentMemberResponse;
 import com.example.MobilePaluwagan.Entity.User;
 import com.example.MobilePaluwagan.Entity.UserBank;
@@ -33,5 +34,42 @@ public interface UserBankRepo extends JpaRepository<UserBank, Long> {
     Page<SavingsPendingPaymentMemberResponse> findPendingPaymentBySavingsId(
             @Param("savingsId") String savingsId,
             Pageable pageable);
+
+    @Query("""
+    SELECT new com.example.MobilePaluwagan.DTOs.Response.AdminPaymentSavingsSearchResponse(
+        u.savingsId,
+        u.accountBalance,
+        ui.firstName,
+        ui.lastName,
+        ui.profileImage
+    )
+    FROM UserBank u
+    JOIN UserInfo ui ON ui.userId = u.userId
+    WHERE EXISTS (
+        SELECT 1 FROM User us
+        WHERE us.id = u.userId
+        AND us.hasSavingsAccount = true
+    )
+    AND (
+        LOWER(ui.firstName) LIKE LOWER(CONCAT('%', :name, '%'))
+        OR LOWER(ui.lastName)  LIKE LOWER(CONCAT('%', :name, '%'))
+        OR LOWER(CONCAT(ui.firstName, ' ', ui.lastName)) LIKE LOWER(CONCAT('%', :name, '%'))
+        OR LOWER(CONCAT(ui.lastName,  ' ', ui.firstName)) LIKE LOWER(CONCAT('%', :name, '%'))
+    )
+""")
+    Page<AdminPaymentSavingsSearchResponse> searchApplicantSavingsByName(@Param("name") String name, Pageable pageable);
+
+    @Query("""
+    SELECT new com.example.MobilePaluwagan.DTOs.Response.AdminPaymentSavingsSearchResponse(
+        us.savingsId,
+            us.accountBalance,
+                u.firstName,
+                    u.lastName,
+                        u.profileImage
+    )
+        FROM UserBank us
+            JOIN UserInfo  u ON u.userId = us.userId
+    """)
+    Page<AdminPaymentSavingsSearchResponse> findAllSavingsMembers(Pageable pageable);
 
 }
