@@ -27,19 +27,6 @@ public class AdminLoanController {
         return ResponseEntity.ok(loanService.getPendingApplicants(status, page, size));
     }
 
-//    @GetMapping("/approve")
-//    @PreAuthorize("hasRole('ADMIN')")
-//    public ResponseEntity<ApiResponse<List<LoanApplicantsAdmin>>> getAllApproveApplications() {
-//        ApiResponse<List<LoanApplicantsAdmin>> approve = loanService.getApproveApplicants();
-//        return ResponseEntity.ok(approve);
-//    }
-//
-//    @GetMapping("/rejected")
-//    @PreAuthorize("hasRole('ADMIN')")
-//    public ResponseEntity<ApiResponse<List<LoanApplicantsAdmin>>> getAllRejectedApplications() {
-//        ApiResponse<List<LoanApplicantsAdmin>> rejected = loanService.getRejectedApplicants();
-//        return ResponseEntity.ok(rejected);
-//    }
 
     @GetMapping("/details/{applicationId}")
     @PreAuthorize("hasRole('ADMIN')")

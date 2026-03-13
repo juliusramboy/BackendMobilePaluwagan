@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -34,7 +35,7 @@ public class LoanPayment {
     private String bankReference;
 
     @Column(name = "payment_date")
-    private LocalDate paymentDate;
+    private LocalDateTime paymentDate;
 
     @Column(name = "amount_paid")
     private BigDecimal amountPaid;

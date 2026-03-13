@@ -402,10 +402,15 @@ public class LoanService {
        }
 
        if (request.getStatus().equals(Status.REJECTED)){
-               LoanApplication application = loanApplicationRepo.findByApplicationID(request.getApplicationID()).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Application Id not found in Loan Application"));
-               loanApplicationRepo.delete(application);
-               notificationService.notifyLoanRejected(id.getId(), String.valueOf(request.getApplicationID()));
-                sseController.notifyUpdate();
+           User user = userRepo.findById(id.getUserId()).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+           LoanApplication application = loanApplicationRepo.findByApplicationID(request.getApplicationID()).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Application Id not found in Loan Application"));
+           loanApplicationRepo.delete(application);
+           notificationService.notifyLoanRejected(id.getId(), String.valueOf(request.getApplicationID()));
+
+           user.setHasLoan(false);
+               userRepo.save(user);
+
+               sseController.notifyUpdate();
                return new ApiResponse<>(
                        true,
                        "Successful Rejected the status of applicant and deleted" + id.getStatus(),
