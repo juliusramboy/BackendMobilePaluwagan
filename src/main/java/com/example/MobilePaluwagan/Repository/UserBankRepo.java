@@ -17,11 +17,9 @@ import java.util.Optional;
 @Repository
 public interface UserBankRepo extends JpaRepository<UserBank, Long> {
 
-    Optional<UserBank> findByAccountBalance(Long accountBalance);
 
     UserBank findBySavingsId(String savingsId);
 
-//    Optional<UserBank> findByTargetAmount(Long targetAmount);
 
     Optional<UserBank> findByUserId(Long userId);
 

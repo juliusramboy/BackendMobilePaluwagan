@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface LedgerRepo extends JpaRepository<Ledger, Long> {
 
+    Ledger findByUserId(Long userId);
 }

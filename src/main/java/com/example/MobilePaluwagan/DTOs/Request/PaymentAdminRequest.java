@@ -21,5 +21,5 @@ public class PaymentAdminRequest {
     private String reference;
     private PaymentMethod paymentMethod;
     @Nullable
-    private String BankReference;
+    private String bankReference;
 }

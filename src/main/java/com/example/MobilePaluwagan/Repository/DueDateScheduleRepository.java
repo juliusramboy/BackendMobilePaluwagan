@@ -16,6 +16,7 @@ public interface DueDateScheduleRepository extends JpaRepository<DueDateSchedule
 
     Optional<DueDateSchedule> findFirstByApplicationIdAndStatusOrderByDueDateAsc(Long applicationId, Status status);
     List<DueDateSchedule> findByApplicationIdAndStatus(Long applicationId, Status status);
+    List<DueDateSchedule> findByApplicationId(Long applicationId);
 
     long countByApplicationIdAndStatus(Long applicationId, Status status);
 

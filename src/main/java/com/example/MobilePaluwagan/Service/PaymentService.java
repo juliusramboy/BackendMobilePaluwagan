@@ -52,7 +52,20 @@ public class PaymentService {
     @Autowired
     private UserSavingsRepo userSavingsRepo;
 
+    @Autowired
+    private LedgerRepo ledgerRepo;
 
+    @Autowired
+    private UserRepo userRepo;
+
+    @Autowired
+    private DueDateScheduleRepository dueDateSchedule;
+
+    @Autowired
+    private LoanApplicationRepo loanApplicationRepo;
+
+    @Autowired
+    private UserLoanRepo loanUserLoanRepo;
 
 
     @Transactional
@@ -61,7 +74,7 @@ public class PaymentService {
         Loan user = userLoanRepo.findByApplicationID(Long.valueOf(request.getApplicationId()));
 
         UserInfo userInfo = userInfoRepo.findByUserId(user.getUserId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-
+        checkForMaturityDateLoan(request.getApplicationId());
         if (user.getLoanRepaymentTally().compareTo(user.getTotalRepayable()) >= 0) {
             return new ApiResponse<>(false, "The loan is already paid", null);
         }
@@ -160,7 +173,7 @@ public class PaymentService {
         transaction.setLoanId(user.getId());
         transaction.setUserId(user.getUserId());
         transaction.setAmountPaid(amountPaid);
-        transaction.setPaymentDate(LocalDate.now());
+        transaction.setPaymentDate(LocalDateTime.now());
         transaction.setPaymentMethod(request.getPaymentMethod());
         transaction.setReferenceNumber(generateRef());
         String bankRef = request.getBankReference();
@@ -176,6 +189,44 @@ public class PaymentService {
         sseController.notifyUpdate();
 
         return new ApiResponse<>(true, "Payment processed successfully.", null);
+    }
+
+    private void checkForMaturityDateLoan(String applicationId) {
+        Loan userLoan = userLoanRepo.findByApplicationID(Long.valueOf(applicationId));
+
+        if (userLoan == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Application Id Not Found");
+        }
+
+        List<LoanPayment> payment = loanPaymentRepo.findByLoanId(userLoan.getId());
+
+        int tally = userLoan.getTotalRepayable().compareTo(userLoan.getLoanRepaymentTally());
+
+        if(tally <= 0){
+            User user = userRepo.findById(userLoan.getUserId()).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+            List<DueDateSchedule> schedule = dueDateSchedule.findByApplicationId(Long.valueOf(applicationId));
+            LoanApplication application = loanApplicationRepo.findByApplicationID(Long.valueOf(applicationId)).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Application Id Not Found"));
+
+            List<Ledger> loanLedger = payment.stream()
+                    .map(payments -> Ledger.builder()
+                            .savingsId(String.valueOf(userLoan.getApplicationID()))
+                            .userId(payments.getUserId())
+                            .amount(payments.getAmountPaid())
+                            .depositDate(payments.getPaymentDate())
+                            .reference(payments.getReferenceNumber())
+                            .build())
+                    .toList();
+
+            ledgerRepo.saveAll(loanLedger);
+            user.setHasLoan(false);
+            userRepo.save(user);
+            
+            dueDateSchedule.deleteAll(schedule);
+            loanPaymentRepo.deleteAll(payment);
+            loanUserLoanRepo.delete(userLoan);
+            loanApplicationRepo.delete(application);
+        }
+
     }
 
     public ApiResponse<?> processSavingsPayment(PaymentAdminRequest request){
@@ -225,7 +276,7 @@ public class PaymentService {
 
         return LoanApplicationResponseAdmin.builder()
                 .success(true)
-                .message("Results for: " + name)
+                .message(name == null?"All Applicants" : "Search results for: " + name)
                 .paymentLoans(result.getContent())
                 .currentPage(result.getNumber())
                 .totalPages(result.getTotalPages())
