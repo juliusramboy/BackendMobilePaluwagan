@@ -276,7 +276,7 @@ public class LoanService {
         LoanApplication verified = loanApplicationRepo.findById(saveLoan.getId()).orElse(null);
 
         notificationService.notifyLoanSubmitted(String.valueOf(request.getApplicationId()), userInfo.getFirstName());
-
+        sseController.notifyUpdate();
         return request.getApplicationId();
     }
 
