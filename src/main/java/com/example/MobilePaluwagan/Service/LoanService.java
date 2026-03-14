@@ -388,11 +388,9 @@ public class LoanService {
     @Transactional
     public ApiResponse<?> loanAdminChangeStats(AdminLoanStatus request){
 
-        Optional<LoanApplication> applicantId = loanApplicationRepo.findByApplicationID(request.getApplicationID());
-       LoanApplication id = applicantId.get();
+        LoanApplication applicantId = loanApplicationRepo.findByApplicationID(request.getApplicationID()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Application ID not found"));
 
-
-       if (id.getStatus() == Status.APPROVED && request.getStatus().equals(Status.APPROVED)){
+       if (applicantId.getStatus() == Status.APPROVED && request.getStatus().equals(Status.APPROVED)){
            return new ApiResponse<>(
                    false,
                    "Status is already " + request.getStatus(),
@@ -402,53 +400,58 @@ public class LoanService {
        }
 
        if (request.getStatus().equals(Status.REJECTED)){
-           User user = userRepo.findById(id.getUserId()).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-           LoanApplication application = loanApplicationRepo.findByApplicationID(request.getApplicationID()).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Application Id not found in Loan Application"));
-           notificationService.notifyLoanRejected(id.getId(), String.valueOf(request.getApplicationID()));
-            Loan loan = userLoanRepo.findByApplicationID(request.getApplicationID());
+           User user = userRepo.findById(applicantId.getUserId()).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+           LoanApplication application = loanApplicationRepo.findByApplicationID(request.getApplicationID()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Application Id not found in Loan Application"));
+           notificationService.notifyLoanRejected(applicantId.getId(), String.valueOf(request.getApplicationID()));
            List<DueDateSchedule> dueDate = dueDateScheduleRepo.findByApplicationId(request.getApplicationID());
 
-           dueDateScheduleRepo.deleteAll(dueDate);
-           userLoanRepo.delete(loan);
-           user.setHasLoan(false);
-           userRepo.save(user);
-           loanApplicationRepo.delete(application);
+           if (dueDate != null && !dueDate.isEmpty()){
+               dueDateScheduleRepo.deleteAll(dueDate);
+           }
 
-               sseController.notifyUpdate();
+            Loan loan = userLoanRepo.findByApplicationID(request.getApplicationID());
+            if (loan != null){
+                userLoanRepo.delete(loan);
+                user.setHasLoan(false);
+                userRepo.save(user);
+            }
+
+
+           loanApplicationRepo.delete(application);
+           sseController.notifyUpdate();
                return new ApiResponse<>(
                        true,
-                       "Successful Rejected the status of applicant and deleted" + id.getStatus(),
+                       "Successful Rejected the status of applicant and deleted" + applicantId.getStatus(),
                        null
                );
            }
 
-        id.setStatus(request.getStatus());
-        loanApplicationRepo.save(id);
+
+        loanApplicationRepo.save(applicantId);
 
         Loan loan = new Loan();
-        loan.setApplicationID(id.getApplicationID());
-        loan.setUserId(id.getUserId());
-        loan.setAmount(id.getRequestedAmount());
-        loan.setTotalRepayable(id.getTotalRepayable());
-        loan.setWeeklyPay(id.getWeeklyPay());
-        loan.setInterest(id.getInterest());
-        loan.setInterestRate(id.getInterestRate());
-        loan.setStartDate(id.getStartDate());
-        loan.setEndDate(id.getEndDate());
+        loan.setApplicationID(applicantId.getApplicationID());
+        loan.setUserId(applicantId.getUserId());
+        loan.setAmount(applicantId.getRequestedAmount());
+        loan.setTotalRepayable(applicantId.getTotalRepayable());
+        loan.setWeeklyPay(applicantId.getWeeklyPay());
+        loan.setInterest(applicantId.getInterest());
+        loan.setInterestRate(applicantId.getInterestRate());
+        loan.setStartDate(applicantId.getStartDate());
+        loan.setEndDate(applicantId.getEndDate());
         userLoanRepo.save(loan);
 
-        Optional<User> user = userRepo.findById(id.getUserId());
-        User changeTrue = user.get();
-        changeTrue.setHasLoan(true);
-        userRepo.save(changeTrue);
+        User user = userRepo.findById(applicantId.getUserId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        user.setHasLoan(true);
+        userRepo.save(user);
 
         generateSchedule(request.getApplicationID());
-        notificationService.notifyLoanApproved(id.getUserId(), String.valueOf(request.getApplicationID()));
+        notificationService.notifyLoanApproved(applicantId.getUserId(), String.valueOf(request.getApplicationID()));
         sseController.notifyUpdate();
 
         return new ApiResponse<>(
                 true,
-                "Successful change the status of applicant " + id.getStatus(),
+                "Successful change the status of applicant " + applicantId.getStatus(),
                 null
         );
     }
