@@ -220,7 +220,7 @@ public class PaymentService {
             ledgerRepo.saveAll(loanLedger);
             user.setHasLoan(false);
             userRepo.save(user);
-            
+
             dueDateSchedule.deleteAll(schedule);
             loanPaymentRepo.deleteAll(payment);
             loanUserLoanRepo.delete(userLoan);
