@@ -404,11 +404,15 @@ public class LoanService {
        if (request.getStatus().equals(Status.REJECTED)){
            User user = userRepo.findById(id.getUserId()).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
            LoanApplication application = loanApplicationRepo.findByApplicationID(request.getApplicationID()).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Application Id not found in Loan Application"));
-           loanApplicationRepo.delete(application);
            notificationService.notifyLoanRejected(id.getId(), String.valueOf(request.getApplicationID()));
+            Loan loan = userLoanRepo.findByApplicationID(request.getApplicationID());
+           List<DueDateSchedule> dueDate = dueDateScheduleRepo.findByApplicationId(request.getApplicationID());
 
+           dueDateScheduleRepo.deleteAll(dueDate);
+           userLoanRepo.delete(loan);
            user.setHasLoan(false);
-               userRepo.save(user);
+           userRepo.save(user);
+           loanApplicationRepo.delete(application);
 
                sseController.notifyUpdate();
                return new ApiResponse<>(
