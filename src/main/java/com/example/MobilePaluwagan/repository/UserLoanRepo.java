@@ -14,7 +14,7 @@ public interface UserLoanRepo extends JpaRepository<Loan, Long> {
 
    Optional<Loan> findByUserId(Long userId);
 
-    List<Loan> findAllByUserId(Long userId);
+    Loan findAllByUserId(Long userId);
 
     Loan findByApplicationID(Long applicationID);
 
