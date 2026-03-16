@@ -22,8 +22,8 @@ public interface LoanPaymentRepo extends JpaRepository<LoanPayment, Long> {
     List<LoanPayment> findAllByUserId(Long userId);
     List<LoanPayment> findAllById(Long loanId);
 
-    @Query("SELECT SUM(lp.amountPaid) FROM LoanPayment lp WHERE lp.userId = :userId AND lp.status = 'PAID'")
-    BigDecimal sumAllPaidByUserId(@Param("userId") Long userId);
+    @Query("SELECT SUM(lp.amountPaid) FROM LoanPayment lp WHERE lp.loanId  = :loanId AND lp.status = 'PAID'")
+    BigDecimal sumAllPaidByLoanId(@Param("loanId") Long loanId);
 
 
 

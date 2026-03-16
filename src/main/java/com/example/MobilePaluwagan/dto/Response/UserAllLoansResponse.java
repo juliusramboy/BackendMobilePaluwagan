@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 public class UserAllLoansResponse {
     private List<LoanApplicationInfo> applications;
-    private List<LoanInfo> loans;
+    private LoanInfo loans;
     private List<PaymentInfo> payments;
 
     private boolean eligible;

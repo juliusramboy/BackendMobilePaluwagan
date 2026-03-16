@@ -60,14 +60,14 @@ public class LoanService {
     public ApiResponse<UserAllLoansResponse> getAllTheInfo(Long userId){
         Optional<UserInfo> userInfo = userInfoRepo.findByUserId(userId);
         List<LoanApplication> applications = loanApplicationRepo.findAllByUserId(userId);
-        List<Loan> loans = userLoanRepo.findAllByUserId(userId);
+        Loan loans = userLoanRepo.findAllByUserId(userId);
         List<LoanPayment> payments = loanPaymentRepo.findPaymentsByUserIdNative(userId);
 
 
         if (applications.isEmpty()) {
             UserAllLoansResponse response = UserAllLoansResponse.builder()
                     .applications(List.of())
-                    .loans(List.of())
+                    .loans(null)
                     .payments(List.of())
                     .totalAmountPaid(BigDecimal.ZERO)
                     .paymentProgress("")
@@ -80,7 +80,7 @@ public class LoanService {
         }
 
 
-        BigDecimal totalPaid = Optional.ofNullable(loanPaymentRepo.sumAllPaidByUserId(userId))
+        BigDecimal totalPaid = Optional.ofNullable(loanPaymentRepo.sumAllPaidByUserId(loans.getId()))
                 .orElse(BigDecimal.ZERO);
 
 
@@ -116,23 +116,21 @@ public class LoanService {
                         .build())
                 .toList();
 
-        List<LoanInfo> loanInfos = loans.stream()
-                .map(loan -> LoanInfo.builder()
-                        .loanId(loan.getId())
-                        .totalLoan(loan.getAmount())
-                        .totalRepayable(loan.getTotalRepayable())
-                        .interestRate(BigDecimal.valueOf(loan.getInterestRate()))
-                        .interest(BigDecimal.valueOf(loan.getInterest()))
-                        .weeklyPay(loan.getWeeklyPay())
-                        .endDate(loan.getEndDate())
-                        .startDate(loan.getStartDate())
-                        .build())
-                .toList();
+        LoanInfo loanInfo = LoanInfo.builder()
+                .loanId(loans.getId())
+                .totalLoan(loans.getAmount())
+                .totalRepayable(loans.getTotalRepayable())
+                .interestRate(BigDecimal.valueOf(loans.getInterestRate()))
+                .interest(BigDecimal.valueOf(loans.getInterest()))
+                .weeklyPay(loans.getWeeklyPay())
+                .endDate(loans.getEndDate())
+                .startDate(loans.getStartDate())
+                .build();
 
 
         UserAllLoansResponse response = UserAllLoansResponse.builder()
                 .applications(applicationInfos)
-                .loans(loanInfos)
+                .loans(loanInfo)
                 .totalAmountPaid(totalPaid)
                 .paymentProgress(progressMessage)
                 .remainingBalance(remainingBalance)
