@@ -1,0 +1,23 @@
+package com.example.MobilePaluwagan.dto.Response;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+@Data
+@Builder
+@AllArgsConstructor
+public class UserAllLoansResponse {
+    private List<LoanApplicationInfo> applications;
+    private List<LoanInfo> loans;
+    private List<PaymentInfo> payments;
+
+    private boolean eligible;
+    private BigDecimal totalAmountPaid;
+    private String paymentProgress;
+    private BigDecimal remainingBalance;
+    private String userName;
+}

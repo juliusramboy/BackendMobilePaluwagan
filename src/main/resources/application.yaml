@@ -18,6 +18,14 @@ spring:
       max-lifetime: 1800000
       connection-test-query: SELECT 1
 
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6379}
+      password: ${SPRING_REDIS_PASSWORD:}
+      ssl:
+        enabled: ${SPRING_REDIS_SSL:false}
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -25,9 +33,9 @@ spring:
       hibernate:
         format_sql: true
         jdbc:
-          batch_size: 30        # ← add this
-        order_inserts: true     # ← add this
-        order_updates: true     # ← add this
+          batch_size: 30
+        order_inserts: true
+        order_updates: true
 
   mail:
     host: smtp.gmail.com
