@@ -80,7 +80,7 @@ public class LoanService {
         }
 
 
-        BigDecimal totalPaid = Optional.ofNullable(loanPaymentRepo.sumAllPaidByUserId(loans.getId()))
+        BigDecimal totalPaid = Optional.ofNullable(loanPaymentRepo.sumAllPaidByLoanId(applications.getFirst().getId()))
                 .orElse(BigDecimal.ZERO);
 
 
