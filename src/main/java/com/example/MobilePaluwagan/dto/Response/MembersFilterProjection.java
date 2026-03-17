@@ -3,9 +3,7 @@ package com.example.MobilePaluwagan.dto.Response;
 import java.time.LocalDate;
 
 public interface MembersFilterProjection {
-    String getFirst_name();
-
-    String getLast_name();
+    String getFullName();
 
     String getRole_name();
 

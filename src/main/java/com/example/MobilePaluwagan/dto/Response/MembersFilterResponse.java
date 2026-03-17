@@ -13,13 +13,12 @@ import java.time.LocalDate;
 @Builder
 public class MembersFilterResponse {
 
-    private String name;
-    private String surname;
+    private String fullName;
     private String role;
     private LocalDate verifiedDate;
 
 
     public boolean hasFilters(){
-        return name != null && surname != null && role != null;
+        return  fullName != null && role != null;
     }
 }

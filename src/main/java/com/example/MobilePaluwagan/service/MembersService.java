@@ -21,25 +21,24 @@ public class MembersService {
 
 
     private final UserInfoRepo userInfoRepo;
-
     private final RoleRepo roleRepo;
-
     private final UserRepo userRepo;
-
     private final UserBankRepo userBankRepo;
+//    private final LedgerRepo ledgerRepo;
+//    private final NotificationRepository notificationRepo;
+//    private final DueDateScheduleRepository  dueDateScheduleRepo;
 
-    private final VerificationRepo verificationRepo;
 
-    private final RegisterService registerService;
-
-    public MembersService(UserInfoRepo userInfoRepo,  RoleRepo roleRepo, UserRepo userRepo, UserBankRepo userBankRepo,  VerificationRepo verificationRepo,  RegisterService registerService) {
+    public MembersService(UserInfoRepo userInfoRepo,  RoleRepo roleRepo, UserRepo userRepo, UserBankRepo userBankRepo,  LedgerRepo ledgerRepo,  NotificationRepository notificationRepo, DueDateScheduleRepository dueDateScheduleRepo) {
 
         this.userInfoRepo = userInfoRepo;
         this.roleRepo = roleRepo;
         this.userRepo = userRepo;
         this.userBankRepo = userBankRepo;
-        this.verificationRepo = verificationRepo;
-        this.registerService = registerService;
+//        this.ledgerRepo = ledgerRepo;
+//        this.notificationRepo = notificationRepo;
+//        this.dueDateScheduleRepo = dueDateScheduleRepo;
+
     }
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
@@ -48,14 +47,12 @@ public class MembersService {
         Pageable pageable = PageRequest.of(page, size);
 
         // ← Convert empty string to null
-        String name = (filter.getName() != null && !filter.getName().isEmpty())
-                ? filter.getName() : null;
-        String surname = (filter.getSurname() != null && !filter.getSurname().isEmpty())
-                ? filter.getSurname() : null;
+        String fullName  = (filter.getFullName() != null && !filter.getFullName().isEmpty())
+                ? filter.getFullName() : null;
         String role = (filter.getRole() != null && !filter.getRole().isEmpty())
                 ? filter.getRole() : null;
 
-        return userInfoRepo.filterMembers(name, surname, role, pageable);
+        return userInfoRepo.filterMembers(fullName, role, pageable);
     }
 
 
@@ -96,4 +93,15 @@ public class MembersService {
 
         return new ResponseEntity<>(userdataWithId.getId(), HttpStatus.OK);
     }
+
+//    public void deleteMember(Long userId){
+//
+//        dueDateScheduleRepo.findByUserId(userId);
+//        ledgerRepo.deleteById(userId);
+//        notificationRepo.deleteById(userId);
+//        userBankRepo.deleteById(userId);
+//        userInfoRepo.deleteById(userId);
+//        userRepo.deleteById(userId);
+//
+//    }
 }
