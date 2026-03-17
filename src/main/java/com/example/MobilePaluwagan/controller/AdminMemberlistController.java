@@ -29,15 +29,13 @@ public class AdminMemberlistController {
 
     @GetMapping("/search")
     public ResponseEntity<?> searchMemberlist(
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) String surname,
+            @RequestParam(required = false) String fullName,
             @RequestParam(required = false) String role,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
 
         MembersFilterResponse filter = MembersFilterResponse.builder()
-                .name(name)
-                .surname(surname)
+                .fullName(fullName)
                 .role(role)
                 .build();
 
