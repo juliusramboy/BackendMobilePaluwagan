@@ -1,18 +1,18 @@
 package com.example.MobilePaluwagan.controller;
 
+import com.example.MobilePaluwagan.dto.Request.RegisterRequest;
 import com.example.MobilePaluwagan.dto.Response.MembersFilterResponse;
+import com.example.MobilePaluwagan.entity.User;
 import com.example.MobilePaluwagan.entity.UserInfo;
 import com.example.MobilePaluwagan.repository.UserInfoRepo;
 import com.example.MobilePaluwagan.service.MembersService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/admin/memberlist")
@@ -42,5 +42,10 @@ public class AdminMemberlistController {
                 .build();
 
         return ResponseEntity.ok(membersService.filterMembers(filter, page, size));
+    }
+
+    @PostMapping("/admin")
+    public ResponseEntity<?> addAdmin(@Valid @RequestBody RegisterRequest request){
+        return membersService.adminRegister(request);
     }
 }
