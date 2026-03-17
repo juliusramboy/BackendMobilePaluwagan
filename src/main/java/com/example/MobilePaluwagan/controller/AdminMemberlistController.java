@@ -42,7 +42,7 @@ public class AdminMemberlistController {
         return ResponseEntity.ok(membersService.filterMembers(filter, page, size));
     }
 
-    @PostMapping("/admin")
+    @PostMapping("/register-admin")
     public ResponseEntity<?> addAdmin(@Valid @RequestBody RegisterRequest request){
         return membersService.adminRegister(request);
     }
