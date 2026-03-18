@@ -14,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 
 @Service
@@ -68,6 +69,7 @@ public class MembersService {
         user.setEmail(register.getEmail());
         user.setPassword(hashedPassword);
         user.setRole(defaultRole);
+        user.setActive(true);
 
         User userdataWithId = userRepo.save(user);
 
@@ -82,6 +84,7 @@ public class MembersService {
         userInfo.setLastName(register.getLastName());
         userInfo.setSuffix(register.getSuffix());
         userInfo.setPhoneNumber(register.getPhoneNumber());
+        userInfo.setVerifiedDate(LocalDate.now());
 
         userInfoRepo.save(userInfo);
 

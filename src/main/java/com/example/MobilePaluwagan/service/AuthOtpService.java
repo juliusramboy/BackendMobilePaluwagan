@@ -104,30 +104,6 @@ public class AuthOtpService {
 
             if (encoder.matches(password, user.getPassword())) {
 
-                if(user.getRole().getRoleName().equals("ROLE_ADMIN") && !user.isActive()){
-                    UserVerification verification = verificationRepo.findByUserId(user.getId());
-
-                    if(verification != null){
-                        verificationRepo.delete(verification);
-                    }
-
-                    String plainNewOtp = registerService.generateOtp();
-                    String hashedNewOtp = encoder.encode(plainNewOtp);
-
-
-                    UserVerification userVerification = new UserVerification();
-                    userVerification.setUserId(user.getId());
-                    userVerification.setOtpHash(hashedNewOtp);
-                    userVerification.setExpiresAt(LocalDateTime.now().plusMinutes(5));
-                    userVerification.setCreatedAt(LocalDateTime.now());
-
-                    verificationRepo.save(userVerification);
-
-                    emailService.sendOtpInLogin(user.getEmail(), plainNewOtp);
-
-                    return new OtpResponse("We send an email to verify your admin account ", user.getId());
-                }
-
                 if(user.isActive()){
                     UserVerification verification = verificationRepo.findByUserId(user.getId());
 

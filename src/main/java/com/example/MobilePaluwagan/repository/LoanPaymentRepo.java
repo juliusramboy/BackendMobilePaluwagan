@@ -19,7 +19,7 @@ public interface LoanPaymentRepo extends JpaRepository<LoanPayment, Long> {
     Optional<LoanPayment> findByUserId(Long userId);
     List<LoanPayment> findByLoanId(Long loanId);
 
-    List<LoanPayment> findAllByUserId(Long userId);
+    Page<LoanPayment> findAllByUserId(Long userId, Pageable pageable);
     List<LoanPayment> findAllById(Long loanId);
 
     @Query("SELECT SUM(lp.amountPaid) FROM LoanPayment lp WHERE lp.loanId  = :loanId AND lp.status = 'PAID'")

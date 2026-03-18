@@ -4,28 +4,33 @@ import com.example.MobilePaluwagan.controller.SseController;
 import com.example.MobilePaluwagan.dto.Request.ProfileUpdateRequest;
 import com.example.MobilePaluwagan.dto.Response.ApiResponse;
 import com.example.MobilePaluwagan.dto.Response.UserProfileResponse;
+import com.example.MobilePaluwagan.entity.LoanPayment;
 import com.example.MobilePaluwagan.entity.User;
 import com.example.MobilePaluwagan.entity.UserInfo;
+import com.example.MobilePaluwagan.repository.LoanPaymentRepo;
 import com.example.MobilePaluwagan.repository.UserInfoRepo;
 import com.example.MobilePaluwagan.repository.UserRepo;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
 @Service
+@RequiredArgsConstructor
 public class ProfileService {
 
-    @Autowired
-    private UserInfoRepo userInfoRepo;
-    @Autowired
-    private UserRepo userRepo;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private SseController sseController;
+    private final UserInfoRepo userInfoRepo;
+    private final UserRepo userRepo;
+    private final PasswordEncoder passwordEncoder;
+    private final SseController sseController;
+    private final LoanPaymentRepo loanPaymentRepo;
 
 
     public UserProfileResponse userAllInfo(Long userId){
@@ -137,6 +142,11 @@ public class ProfileService {
                 "Profile updated"
         );
     }
+
+    public Page<LoanPayment> getAllLoanPayments(Long userId, int page, int size) {
+        return loanPaymentRepo.findAllByUserId(userId, PageRequest.of(page, size));
+    }
+
 
 
 }
