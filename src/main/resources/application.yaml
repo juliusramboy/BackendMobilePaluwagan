@@ -37,6 +37,12 @@ spring:
         order_inserts: true
         order_updates: true
 
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+
   mail:
     host: smtp.gmail.com
     port: 587
@@ -69,6 +75,12 @@ app:
     allowed-cors: ${ALLOWED_ORIGINS}
   logo:
     url: ${LOGO_URL}
+
+paymongo:
+  secret-key: ${PAYMONGO_SECRET_KEY}
+  public-key: ${PAYMONGO_PUBLIC_KEY}
+  base-url: https://api.paymongo.com/v1
+  webhook-secret: ${PAYMONGO_WEBHOOK_SECRET}
 
 logging:
   level:

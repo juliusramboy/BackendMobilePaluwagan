@@ -191,6 +191,126 @@ public class PaymentService {
         return new ApiResponse<>(true, "Payment processed successfully.", null);
     }
 
+    @Transactional
+    public void processLoanLogic(String applicationId, BigDecimal amountPaid,
+                                 PaymentMethod paymentMethod, String bankReference) {
+
+        Loan user = userLoanRepo.findByApplicationID(Long.valueOf(applicationId));
+
+        UserInfo userInfo = userInfoRepo.findByUserId(user.getUserId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        checkForMaturityDateLoan(String.valueOf(user.getApplicationID()));
+
+        if (user.getLoanRepaymentTally().compareTo(user.getTotalRepayable()) >= 0) {
+            throw new RuntimeException("The loan is already paid");
+        }
+
+        DueDateSchedule current = dueDateScheduleRepository
+                .findFirstPendingOrPartial(user.getApplicationID())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "No pending payments found for loan"));
+
+        BigDecimal requireAmount = current.getPayment();
+
+        if (amountPaid.compareTo(requireAmount) < 0) {
+            // Partial payment
+            BigDecimal shortage = requireAmount.subtract(amountPaid)
+                    .setScale(2, RoundingMode.HALF_UP);
+            current.setStatus(Status.PARTIAL);
+            current.setPayment(shortage);
+            dueDateScheduleRepository.save(current);
+
+            Optional<DueDateSchedule> nextWeekOpt = dueDateScheduleRepository
+                    .findFirstByApplicationIdAndStatusOrderByDueDateAsc(
+                            current.getApplicationId(), Status.PENDING);
+
+            if (nextWeekOpt.isPresent()) {
+                DueDateSchedule nextWeek = nextWeekOpt.get();
+                nextWeek.setPayment(nextWeek.getPayment()
+                        .add(shortage)
+                        .setScale(2, RoundingMode.HALF_UP));
+                dueDateScheduleRepository.save(nextWeek);
+            }
+
+        } else if (amountPaid.compareTo(requireAmount) == 0) {
+            // Exact payment
+            long remainingCount = dueDateScheduleRepository
+                    .countPendingOrPartial(current.getApplicationId());
+            if (remainingCount == 1) {
+                current.setRemainingBalance(BigDecimal.ZERO);
+            }
+            current.setStatus(Status.PAID);
+            dueDateScheduleRepository.save(current);
+
+        } else {
+            // Overpayment
+            long remainingCount = dueDateScheduleRepository
+                    .countPendingOrPartial(current.getApplicationId());
+            if (remainingCount == 1) {
+                current.setRemainingBalance(BigDecimal.ZERO);
+            }
+            current.setStatus(Status.PAID);
+            dueDateScheduleRepository.save(current);
+
+            BigDecimal excess = amountPaid.subtract(requireAmount)
+                    .setScale(2, RoundingMode.HALF_UP);
+
+            List<DueDateSchedule> futureWeeks = dueDateScheduleRepository
+                    .findByApplicationIdAndStatus(current.getApplicationId(), Status.PENDING);
+
+            for (DueDateSchedule futureWeek : futureWeeks) {
+                if (excess.compareTo(BigDecimal.ZERO) <= 0) break;
+
+                BigDecimal futurePayment = futureWeek.getPayment();
+
+                if (excess.compareTo(futurePayment) >= 0) {
+                    excess = excess.subtract(futurePayment)
+                            .setScale(2, RoundingMode.HALF_UP);
+                    futureWeek.setStatus(Status.PAID);
+                    dueDateScheduleRepository.save(futureWeek);
+                } else {
+                    BigDecimal reducePayment = futureWeek.getPayment()
+                            .subtract(excess)
+                            .setScale(2, RoundingMode.HALF_UP);
+                    BigDecimal reduceBalance = futureWeek.getRemainingBalance()
+                            .subtract(excess)
+                            .setScale(2, RoundingMode.HALF_UP);
+                    futureWeek.setPayment(reducePayment);
+                    futureWeek.setRemainingBalance(reduceBalance);
+                    dueDateScheduleRepository.save(futureWeek);
+                    excess = BigDecimal.ZERO;
+                    break;
+                }
+            }
+        }
+
+        // Save LoanPayment
+        LoanPayment transaction = new LoanPayment();
+        transaction.setLoanId(user.getId());
+        transaction.setUserId(user.getUserId());
+        transaction.setAmountPaid(amountPaid);
+        transaction.setPaymentDate(LocalDateTime.now());
+        transaction.setPaymentMethod(paymentMethod);
+        transaction.setReferenceNumber(generateRef());
+        transaction.setBankReference(bankReference);
+        transaction.setStatus(Status.PAID);
+        loanPaymentRepo.save(transaction);
+
+        // Update loan tally
+        user.setLoanRepaymentTally(user.getLoanRepaymentTally().add(amountPaid));
+        userLoanRepo.save(user);
+
+        // Notify user
+        notificationService.notifyUserPaymentMade(
+                user.getUserId(),
+                String.valueOf(user.getApplicationID()),
+                userInfo.getFirstName(),
+                amountPaid
+        );
+        sseController.notifyUpdate();
+    }
+
     private void checkForMaturityDateLoan(String applicationId) {
         Loan userLoan = userLoanRepo.findByApplicationID(Long.valueOf(applicationId));
 
@@ -229,6 +349,46 @@ public class PaymentService {
 
     }
 
+    @Transactional
+    public void processSavingsOnlinePayment(String savingsId, BigDecimal amountPaid,
+                                    PaymentMethod paymentMethod, String bankReference) {
+
+
+        // Find the savings account
+        UserBank userbank = userBankRepo.findBySavingsId(String.valueOf(savingsId));
+
+        if (userbank == null) {
+            throw new RuntimeException("Savings account not found!");
+        }
+
+        if (!userbank.isHasSavingsDeposit()){
+            userbank.setFirstDepositDate(LocalDateTime.now());
+            userbank.setHasSavingsDeposit(true);
+            userBankRepo.save(userbank);
+        }
+
+        // Add amount to balance
+        BigDecimal newBalance = userbank.getAccountBalance().add(amountPaid);
+        userbank.setAccountBalance(newBalance);
+        userBankRepo.save(userbank);
+
+        // Save savings transaction
+        UserSavings savings = new UserSavings();
+        savings.setSavingsId(String.valueOf(savingsId));
+        savings.setDepositDate(LocalDateTime.now());
+        savings.setAmountDeposit(amountPaid.doubleValue());
+        savings.setUserId(userbank.getUserId());
+        savings.setReference(generateRef());
+        savings.setBankReference(
+                (bankReference == null || bankReference.trim().isEmpty()) ? null : bankReference
+        );
+        savings.setStatus(Status.PAID);
+        userSavingsRepo.save(savings);
+
+        System.out.println("Savings payment processed successfully! ✅");
+        sseController.notifyUpdate();
+    }
+
     public ApiResponse<?> processSavingsPayment(PaymentAdminRequest request){
        UserBank userbank =  userBankRepo.findBySavingsId(request.getApplicationId());
 
@@ -259,6 +419,9 @@ public class PaymentService {
        }
 
     }
+
+
+
 
 
 

@@ -1,13 +1,17 @@
 package com.example.MobilePaluwagan.controller;
 
+import com.example.MobilePaluwagan.annotation.Idempotent;
 import com.example.MobilePaluwagan.dto.Request.ApplyLoanRequest;
 import com.example.MobilePaluwagan.dto.Request.CalculateLoanRequest;
 import com.example.MobilePaluwagan.dto.Request.PaymentFilterRequest;
+import com.example.MobilePaluwagan.dto.Request.PaymongoRequest;
 import com.example.MobilePaluwagan.dto.Response.*;
 import com.example.MobilePaluwagan.entity.LoanApplication;
 import com.example.MobilePaluwagan.entity.LoanPayment;
 import com.example.MobilePaluwagan.entity.UserPrinciple;
 import com.example.MobilePaluwagan.service.LoanService;
+import com.example.MobilePaluwagan.service.PayMongoService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -17,16 +21,19 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor()
 public class  LoanController {
 
-    @Autowired
-    private LoanService loanService;
+
+    private final LoanService loanService;
+    private final PayMongoService  payMongoService;
 
 
     @GetMapping("/loan/user-details")
@@ -129,6 +136,23 @@ public class  LoanController {
                 .build();
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/create-link")
+    @Idempotent
+    public ResponseEntity<ApiResponse<?>> createPaymentLink(@RequestBody PaymongoRequest request, Authentication authentication) {
+        try {
+            UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
+            Long userId = userDetails.userId();
+            String checkUrl = payMongoService.createPaymentLink(userId, request);
+
+
+            return ResponseEntity.ok(new ApiResponse<>(true, "Payment link created", checkUrl));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body(new ApiResponse<>(false, e.getMessage(), null));
+        }
     }
 
 
