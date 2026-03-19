@@ -42,6 +42,7 @@ spring:
       write-dates-as-timestamps: false
     deserialization:
       fail-on-unknown-properties: false
+    time-zone: Asia/Manila
 
   mail:
     host: smtp.gmail.com

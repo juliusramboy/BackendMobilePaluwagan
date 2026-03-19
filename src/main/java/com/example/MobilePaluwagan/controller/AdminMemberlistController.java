@@ -61,4 +61,9 @@ public class AdminMemberlistController {
             return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
         }
     }
+
+    @DeleteMapping("/member")
+    public ResponseEntity<?> deleteMember(@RequestParam Long userId){
+        return membersService.deleteMember(userId);
+    }
 }

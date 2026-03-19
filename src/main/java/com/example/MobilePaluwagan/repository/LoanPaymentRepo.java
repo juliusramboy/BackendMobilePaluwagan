@@ -25,7 +25,7 @@ public interface LoanPaymentRepo extends JpaRepository<LoanPayment, Long> {
     @Query("SELECT SUM(lp.amountPaid) FROM LoanPayment lp WHERE lp.loanId  = :loanId AND lp.status = 'PAID'")
     BigDecimal sumAllPaidByLoanId(@Param("loanId") Long loanId);
 
-
+    Optional<LoanPayment> findTopByLoanIdOrderByPaymentDateDesc(Long loanId);
 
 
     @Query("SELECT e FROM LoanPayment e ORDER BY e.id desc LIMIT 1")

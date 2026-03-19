@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 @Repository
@@ -20,6 +21,10 @@ public interface UserLoanRepo extends JpaRepository<Loan, Long> {
 
     @Query("SELECT SUM(l.totalRepayable) FROM Loan l WHERE l.userId = :userId")
     BigDecimal sumTotalRepayableByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT l FROM Loan l WHERE l.endDate < :today " +
+            "AND l.loanRepaymentTally < l.totalRepayable")
+    List<Loan> findOverdueLoans(@Param("today") LocalDate today);
 
 
 }
