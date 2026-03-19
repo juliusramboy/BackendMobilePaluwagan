@@ -1,13 +1,17 @@
 package com.example.MobilePaluwagan.controller;
 
+import com.example.MobilePaluwagan.annotation.Idempotent;
 import com.example.MobilePaluwagan.dto.Request.PaymentFilterRequest;
+import com.example.MobilePaluwagan.dto.Request.PaymongoRequest;
 import com.example.MobilePaluwagan.dto.Request.UserCreateSavingsAccount;
 import com.example.MobilePaluwagan.dto.Request.UserDepositSavingsRequest;
 import com.example.MobilePaluwagan.dto.Response.*;
 import com.example.MobilePaluwagan.entity.UserPrinciple;
 import com.example.MobilePaluwagan.entity.UserSavings;
 import com.example.MobilePaluwagan.repository.UserSavingsRepo;
+import com.example.MobilePaluwagan.service.PayMongoService;
 import com.example.MobilePaluwagan.service.SavingsService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -18,15 +22,19 @@ import java.security.Principal;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/savings")
+@RequiredArgsConstructor()
 public class SavingsController {
 
-    @Autowired
-    private SavingsService savingsService;
-    @Autowired
-    private UserSavingsRepo userSavingsRepo;
+
+    private final SavingsService savingsService;
+
+    private final UserSavingsRepo userSavingsRepo;
+    private final PayMongoService  payMongoService;
+
 
     @GetMapping("/savings")
     public ResponseEntity<String> dashboard(Principal principal) {
@@ -123,6 +131,23 @@ public class SavingsController {
                 .build();
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/create-link")
+    @Idempotent
+    public ResponseEntity<ApiResponse<?>> createPaymentLink(@RequestBody PaymongoRequest request, Authentication authentication) {
+        try {
+            UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
+            Long userId = userDetails.userId();
+            String checkUrl = payMongoService.createPaymentLink(userId, request);
+
+
+            return ResponseEntity.ok(new ApiResponse<>(true, "Payment link created", checkUrl));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body(new ApiResponse<>(false, e.getMessage(), null));
+        }
     }
 
 

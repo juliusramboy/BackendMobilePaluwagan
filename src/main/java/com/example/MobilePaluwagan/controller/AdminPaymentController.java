@@ -2,21 +2,29 @@ package com.example.MobilePaluwagan.controller;
 
 import com.example.MobilePaluwagan.annotation.Idempotent;
 import com.example.MobilePaluwagan.dto.Request.PaymentAdminRequest;
+import com.example.MobilePaluwagan.dto.Request.PaymongoRequest;
 import com.example.MobilePaluwagan.dto.Response.*;
 import com.example.MobilePaluwagan.service.PaymentService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.MobilePaluwagan.service.PayMongoService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.util.Base64;
+import java.util.Map;
 
 
 @RestController
 @RequestMapping("api/admin/payment")
 @PreAuthorize("hasRole('ADMIN')")
+@RequiredArgsConstructor
 public class AdminPaymentController {
 
-    @Autowired
-    PaymentService paymentService;
+
+    private final PaymentService paymentService;
+    private final PayMongoService payMongoService;
 
     @PostMapping("/loan")
     @Idempotent
@@ -50,4 +58,5 @@ public class AdminPaymentController {
 
         return ResponseEntity.ok(paymentService.searchSavingsApplicant(name, page, size));
     }
+
 }

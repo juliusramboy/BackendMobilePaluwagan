@@ -9,6 +9,7 @@ public enum Status {
     ACTIVE,
     SUCCESS,
     FAILED,
-    PARTIAL
+    PARTIAL,
+    CANCELLED
 }
 

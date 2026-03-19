@@ -56,6 +56,7 @@ public class SecurityConfig {
                 .requestMatchers("/images/**").permitAll()
                 .requestMatchers("/images/**").permitAll()
                 .requestMatchers("/api/notifications/**").permitAll()
+                .requestMatchers("/api/webhook/**").permitAll()
                 .anyRequest().authenticated());
         http.exceptionHandling(ex -> ex .authenticationEntryPoint(jwtAuthenticationEntryPoint));
         http.formLogin(customizer -> withDefaults());
