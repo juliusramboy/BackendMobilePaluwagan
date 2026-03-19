@@ -22,7 +22,14 @@ public interface DueDateScheduleRepository extends JpaRepository<DueDateSchedule
     @Query("SELECT d FROM DueDateSchedule d WHERE d.applicationId = :applicationId " +
             "AND (d.status = 'PENDING' OR d.status = 'PARTIAL') " +
             "ORDER BY " +
-            "CASE WHEN d.status = 'PENDING' THEN 1 ELSE 2 END, " + // PENDING first, PARTIAL last
+            "CASE WHEN d.status = 'PARTIAL' THEN 1 ELSE 2 END, " + // PENDING first, PARTIAL last
+            "d.dueDate ASC LIMIT 1")
+    Optional<DueDateSchedule> findFirstPartialOrPending(@Param("applicationId") Long applicationId);
+
+    @Query("SELECT d FROM DueDateSchedule d WHERE d.applicationId = :applicationId " +
+            "AND (d.status = 'PENDING' OR d.status = 'PARTIAL') " +
+            "ORDER BY " +
+            "CASE WHEN d.status = 'PARTIAL' THEN 1 ELSE 2 END, " + // PENDING first, PARTIAL last
             "d.dueDate ASC LIMIT 1")
     Optional<DueDateSchedule> findFirstPendingOrPartial(@Param("applicationId") Long applicationId);
 

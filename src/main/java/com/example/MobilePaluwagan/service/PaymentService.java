@@ -72,103 +72,68 @@ public class PaymentService {
     public ApiResponse<?> processLoanPayment(PaymentAdminRequest request) {
 
         Loan user = userLoanRepo.findByApplicationID(Long.valueOf(request.getApplicationId()));
+        UserInfo userInfo = userInfoRepo.findByUserId(user.getUserId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        UserInfo userInfo = userInfoRepo.findByUserId(user.getUserId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         checkForMaturityDateLoan(request.getApplicationId());
+
         if (user.getLoanRepaymentTally().compareTo(user.getTotalRepayable()) >= 0) {
             return new ApiResponse<>(false, "The loan is already paid", null);
         }
 
-        DueDateSchedule current = dueDateScheduleRepository
-                .findFirstPendingOrPartial(user.getApplicationID())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "No pending payments found for loan"));
-
-        BigDecimal requireAmount = current.getPayment();
         BigDecimal amountPaid = BigDecimal.valueOf(request.getAmount());
+        BigDecimal remaining = amountPaid;
 
-        if (amountPaid.compareTo(requireAmount) < 0) {
+        while (remaining.compareTo(BigDecimal.ZERO) > 0) {
 
-            BigDecimal shortage = requireAmount.subtract(amountPaid)
-                    .setScale(2, RoundingMode.HALF_UP);
+            Optional<DueDateSchedule> currentOpt = dueDateScheduleRepository
+                    .findFirstPendingOrPartial(user.getApplicationID());
 
-            current.setStatus(Status.PARTIAL);
-            current.setPayment(shortage);
-            dueDateScheduleRepository.save(current);
+            if (currentOpt.isEmpty()) break;
 
-            Optional<DueDateSchedule> nextWeekOpt = dueDateScheduleRepository
-                    .findFirstByApplicationIdAndStatusOrderByDueDateAsc(
-                            current.getApplicationId(), Status.PENDING);
+            DueDateSchedule current = currentOpt.get();
+            BigDecimal requireAmount = current.getPayment();
 
-            if (nextWeekOpt.isPresent()) {
+            // ✅ Safety check
+            if (requireAmount.compareTo(BigDecimal.ZERO) <= 0) break;
 
-                DueDateSchedule nextWeek = nextWeekOpt.get();
-                nextWeek.setPayment(nextWeek.getPayment()
-                        .add(shortage)
-                        .setScale(2, RoundingMode.HALF_UP));
-                dueDateScheduleRepository.save(nextWeek);
-            }
+            if (remaining.compareTo(requireAmount) < 0) {
+                // Not enough → PARTIAL
+                BigDecimal shortage = requireAmount.subtract(remaining)
+                        .setScale(2, RoundingMode.HALF_UP);
 
-        } else if (amountPaid.compareTo(requireAmount) == 0) {
+                current.setStatus(Status.PARTIAL);
+                current.setPayment(shortage);
+                current.setRemainingBalance(shortage); // ✅ track remaining balance
+                dueDateScheduleRepository.save(current);
+                remaining = BigDecimal.ZERO;
 
-            long remainingCount = dueDateScheduleRepository
-                    .countPendingOrPartial(current.getApplicationId());
-
-            if (remainingCount == 1) {
-                current.setRemainingBalance(BigDecimal.ZERO);
-            }
-
-            current.setStatus(Status.PAID);
-            dueDateScheduleRepository.save(current);
-
-        } else {
-
-            long remainingCount = dueDateScheduleRepository
-                    .countPendingOrPartial(current.getApplicationId());
-
-            if (remainingCount == 1) {
-                current.setRemainingBalance(BigDecimal.ZERO);
-            }
-
-            current.setStatus(Status.PAID);
-            dueDateScheduleRepository.save(current);
-
-            BigDecimal excess = amountPaid.subtract(requireAmount)
-                    .setScale(2, RoundingMode.HALF_UP);
-
-            int weeksCovered = 0;
-
-            List<DueDateSchedule> futureWeeks = dueDateScheduleRepository
-                    .findByApplicationIdAndStatus(current.getApplicationId(), Status.PENDING);
-
-            for (DueDateSchedule futureWeek : futureWeeks) {
-
-                if (excess.compareTo(BigDecimal.ZERO) <= 0) break;
-
-                BigDecimal futurePayment = futureWeek.getPayment();
-
-                if (excess.compareTo(futurePayment) >= 0) {
-                    excess = excess.subtract(futurePayment)
-                            .setScale(2, RoundingMode.HALF_UP);
-                    futureWeek.setStatus(Status.PAID);
-                    dueDateScheduleRepository.save(futureWeek);
-                    weeksCovered++;
-                } else {
-                    BigDecimal reducePayment = futureWeek.getPayment()
-                            .subtract(excess)
-                            .setScale(2, RoundingMode.HALF_UP);
-                    BigDecimal reduceBalance = futureWeek.getRemainingBalance()
-                            .subtract(excess)
-                            .setScale(2, RoundingMode.HALF_UP);
-                    futureWeek.setPayment(reducePayment);
-                    futureWeek.setRemainingBalance(reduceBalance);
-                    dueDateScheduleRepository.save(futureWeek);
-                    excess = BigDecimal.ZERO;
-                    break;
+            } else if (remaining.compareTo(requireAmount) == 0) {
+                // Exactly enough → PAID
+                long remainingCount = dueDateScheduleRepository
+                        .countPendingOrPartial(current.getApplicationId());
+                if (remainingCount == 1) {
+                    current.setRemainingBalance(BigDecimal.ZERO);
                 }
+                current.setStatus(Status.PAID);
+                dueDateScheduleRepository.save(current);
+                remaining = BigDecimal.ZERO;
+
+            } else {
+                // More than enough → PAID + continue loop
+                long remainingCount = dueDateScheduleRepository
+                        .countPendingOrPartial(current.getApplicationId());
+                if (remainingCount == 1) {
+                    current.setRemainingBalance(BigDecimal.ZERO);
+                }
+                current.setStatus(Status.PAID);
+                dueDateScheduleRepository.save(current);
+                remaining = remaining.subtract(requireAmount)
+                        .setScale(2, RoundingMode.HALF_UP);
             }
         }
 
+        // Save LoanPayment transaction
         LoanPayment transaction = new LoanPayment();
         transaction.setLoanId(user.getId());
         transaction.setUserId(user.getUserId());
@@ -185,9 +150,15 @@ public class PaymentService {
 
         user.setLoanRepaymentTally(user.getLoanRepaymentTally().add(amountPaid));
         userLoanRepo.save(user);
-        notificationService.notifyUserPaymentMade(user.getUserId(), String.valueOf(request.getApplicationId()), userInfo.getFirstName(), BigDecimal.valueOf(request.getAmount()));
-        sseController.notifyUpdate();
 
+        notificationService.notifyUserPaymentMade(
+                user.getUserId(),
+                String.valueOf(request.getApplicationId()),
+                userInfo.getFirstName(),
+                BigDecimal.valueOf(request.getAmount())
+        );
+        sseController.notifyUpdate();
+        checkForMaturityDateLoan(request.getApplicationId());
         return new ApiResponse<>(true, "Payment processed successfully.", null);
     }
 
@@ -206,82 +177,54 @@ public class PaymentService {
             throw new RuntimeException("The loan is already paid");
         }
 
-        DueDateSchedule current = dueDateScheduleRepository
-                .findFirstPendingOrPartial(user.getApplicationID())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "No pending payments found for loan"));
+        BigDecimal remaining = amountPaid;
 
-        BigDecimal requireAmount = current.getPayment();
+        while (remaining.compareTo(BigDecimal.ZERO) > 0) {
 
-        if (amountPaid.compareTo(requireAmount) < 0) {
-            // Partial payment
-            BigDecimal shortage = requireAmount.subtract(amountPaid)
-                    .setScale(2, RoundingMode.HALF_UP);
-            current.setStatus(Status.PARTIAL);
-            current.setPayment(shortage);
-            dueDateScheduleRepository.save(current);
+            Optional<DueDateSchedule> currentOpt = dueDateScheduleRepository
+                    .findFirstPendingOrPartial(user.getApplicationID());
 
-            Optional<DueDateSchedule> nextWeekOpt = dueDateScheduleRepository
-                    .findFirstByApplicationIdAndStatusOrderByDueDateAsc(
-                            current.getApplicationId(), Status.PENDING);
+            if (currentOpt.isEmpty()) break;
 
-            if (nextWeekOpt.isPresent()) {
-                DueDateSchedule nextWeek = nextWeekOpt.get();
-                nextWeek.setPayment(nextWeek.getPayment()
-                        .add(shortage)
-                        .setScale(2, RoundingMode.HALF_UP));
-                dueDateScheduleRepository.save(nextWeek);
-            }
+            DueDateSchedule current = currentOpt.get();
+            BigDecimal requireAmount = current.getPayment();
 
-        } else if (amountPaid.compareTo(requireAmount) == 0) {
-            // Exact payment
-            long remainingCount = dueDateScheduleRepository
-                    .countPendingOrPartial(current.getApplicationId());
-            if (remainingCount == 1) {
-                current.setRemainingBalance(BigDecimal.ZERO);
-            }
-            current.setStatus(Status.PAID);
-            dueDateScheduleRepository.save(current);
+            // ✅ Safety check
+            if (requireAmount.compareTo(BigDecimal.ZERO) <= 0) break;
 
-        } else {
-            // Overpayment
-            long remainingCount = dueDateScheduleRepository
-                    .countPendingOrPartial(current.getApplicationId());
-            if (remainingCount == 1) {
-                current.setRemainingBalance(BigDecimal.ZERO);
-            }
-            current.setStatus(Status.PAID);
-            dueDateScheduleRepository.save(current);
+            if (remaining.compareTo(requireAmount) < 0) {
+                // Not enough → PARTIAL
+                BigDecimal shortage = requireAmount.subtract(remaining)
+                        .setScale(2, RoundingMode.HALF_UP);
 
-            BigDecimal excess = amountPaid.subtract(requireAmount)
-                    .setScale(2, RoundingMode.HALF_UP);
+                current.setStatus(Status.PARTIAL);
+                current.setPayment(shortage);
+                current.setRemainingBalance(shortage);
+                dueDateScheduleRepository.save(current);
+                remaining = BigDecimal.ZERO;
 
-            List<DueDateSchedule> futureWeeks = dueDateScheduleRepository
-                    .findByApplicationIdAndStatus(current.getApplicationId(), Status.PENDING);
-
-            for (DueDateSchedule futureWeek : futureWeeks) {
-                if (excess.compareTo(BigDecimal.ZERO) <= 0) break;
-
-                BigDecimal futurePayment = futureWeek.getPayment();
-
-                if (excess.compareTo(futurePayment) >= 0) {
-                    excess = excess.subtract(futurePayment)
-                            .setScale(2, RoundingMode.HALF_UP);
-                    futureWeek.setStatus(Status.PAID);
-                    dueDateScheduleRepository.save(futureWeek);
-                } else {
-                    BigDecimal reducePayment = futureWeek.getPayment()
-                            .subtract(excess)
-                            .setScale(2, RoundingMode.HALF_UP);
-                    BigDecimal reduceBalance = futureWeek.getRemainingBalance()
-                            .subtract(excess)
-                            .setScale(2, RoundingMode.HALF_UP);
-                    futureWeek.setPayment(reducePayment);
-                    futureWeek.setRemainingBalance(reduceBalance);
-                    dueDateScheduleRepository.save(futureWeek);
-                    excess = BigDecimal.ZERO;
-                    break;
+            } else if (remaining.compareTo(requireAmount) == 0) {
+                // Exactly enough → PAID
+                long remainingCount = dueDateScheduleRepository
+                        .countPendingOrPartial(current.getApplicationId());
+                if (remainingCount == 1) {
+                    current.setRemainingBalance(BigDecimal.ZERO);
                 }
+                current.setStatus(Status.PAID);
+                dueDateScheduleRepository.save(current);
+                remaining = BigDecimal.ZERO;
+
+            } else {
+                // More than enough → PAID + continue loop
+                long remainingCount = dueDateScheduleRepository
+                        .countPendingOrPartial(current.getApplicationId());
+                if (remainingCount == 1) {
+                    current.setRemainingBalance(BigDecimal.ZERO);
+                }
+                current.setStatus(Status.PAID);
+                dueDateScheduleRepository.save(current);
+                remaining = remaining.subtract(requireAmount)
+                        .setScale(2, RoundingMode.HALF_UP);
             }
         }
 
@@ -308,6 +251,7 @@ public class PaymentService {
                 userInfo.getFirstName(),
                 amountPaid
         );
+        checkForMaturityDateLoan(String.valueOf(user.getApplicationID()));
         sseController.notifyUpdate();
     }
 

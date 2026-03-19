@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
@@ -24,6 +25,8 @@ public class UserProfileResponse {
     private String profileImage;
 
     private String email;
-
+    private BigDecimal savingsBalance;
+    private BigDecimal loanBalance;
+    private LocalDate loanDueDate;
 
 }

@@ -1,10 +1,13 @@
 package com.example.MobilePaluwagan.service;
 
 import com.example.MobilePaluwagan.dto.Request.RegisterRequest;
+import com.example.MobilePaluwagan.dto.Response.AdminMemberListResponse;
 import com.example.MobilePaluwagan.dto.Response.MembersFilterProjection;
 import com.example.MobilePaluwagan.dto.Response.MembersFilterResponse;
+import com.example.MobilePaluwagan.dto.Response.UserProfileResponse;
 import com.example.MobilePaluwagan.entity.*;
 import com.example.MobilePaluwagan.repository.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -12,12 +15,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Optional;
 
 
 @Service
+@RequiredArgsConstructor
 public class MembersService {
 
 
@@ -25,22 +31,11 @@ public class MembersService {
     private final RoleRepo roleRepo;
     private final UserRepo userRepo;
     private final UserBankRepo userBankRepo;
-//    private final LedgerRepo ledgerRepo;
-//    private final NotificationRepository notificationRepo;
-//    private final DueDateScheduleRepository  dueDateScheduleRepo;
+    private final LoanPaymentRepo loanPaymentRepo;
+    private final UserSavingsRepo userSavingsRepo;
+    private final ProfileService profileService;
 
 
-    public MembersService(UserInfoRepo userInfoRepo,  RoleRepo roleRepo, UserRepo userRepo, UserBankRepo userBankRepo,  LedgerRepo ledgerRepo,  NotificationRepository notificationRepo, DueDateScheduleRepository dueDateScheduleRepo) {
-
-        this.userInfoRepo = userInfoRepo;
-        this.roleRepo = roleRepo;
-        this.userRepo = userRepo;
-        this.userBankRepo = userBankRepo;
-//        this.ledgerRepo = ledgerRepo;
-//        this.notificationRepo = notificationRepo;
-//        this.dueDateScheduleRepo = dueDateScheduleRepo;
-
-    }
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
@@ -107,4 +102,14 @@ public class MembersService {
 //        userRepo.deleteById(userId);
 //
 //    }
+
+    public AdminMemberListResponse getAdminUserProfile(Long userId, int page, int size) {
+        UserProfileResponse info = profileService.userAllInfo(userId);
+        Page<Ledger> ledgerPayments = profileService.getAllPayments(userId, page, size);
+
+        return AdminMemberListResponse.builder()
+                .info(info)
+                .allPayments(ledgerPayments)
+                .build();
+    }
 }

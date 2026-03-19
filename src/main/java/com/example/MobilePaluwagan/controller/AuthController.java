@@ -75,8 +75,6 @@ public class AuthController {
             String verificationToken = jwtService.generateToken(request.getEmail(), existingUser.getId(), existingUser.getRole().getRoleName());
             emailService.sendVerificationEmail(request.getEmail(), verificationToken);
             return  ResponseEntity.ok( new LoginResponse(existingUser.getEmail(), existingUser.getId() , null, "User exists but not yet verified"));
-        }else {
-
         }
         return loginService.login(request);
     }
