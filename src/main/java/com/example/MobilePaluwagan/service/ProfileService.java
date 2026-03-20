@@ -45,10 +45,12 @@ public class ProfileService {
         Optional<Loan> payment = userLoanRepo.findByUserId(userId);
 
         boolean isMatured = false;
+        BigDecimal accountBalance = BigDecimal.ZERO;
 
         if (userBank.isPresent()){
             UserBank bank = userBank.get();
 
+            accountBalance = bank.getAccountBalance();
             isMatured = !bank.getFirstDepositDate()
                     .plusYears(1)
                     .toLocalDate()
@@ -89,8 +91,8 @@ public class ProfileService {
                 userInfo.getProfileImage(),
                 user.isOnline(),
                 user.getEmail(),
-                userBank.getAccountBalance(),
-                matured,
+                accountBalance,
+                isMatured,
                 loanBalance,
                 loanDueDate
         );
