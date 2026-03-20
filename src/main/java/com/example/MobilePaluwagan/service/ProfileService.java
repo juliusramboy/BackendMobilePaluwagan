@@ -18,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,6 +44,10 @@ public class ProfileService {
         UserBank userBank = userBankRepo.findByUserId(userId).orElseThrow(() -> new RuntimeException("User bank not found"));
         Optional<Loan> payment = userLoanRepo.findByUserId(userId);
 
+        boolean matured = !userBank.getFirstDepositDate()
+                .plusYears(1)
+                .toLocalDate()
+                .isAfter(LocalDate.now());
         BigDecimal loanBalance = BigDecimal.ZERO;
         LocalDate loanDueDate = null;
 
@@ -62,8 +67,6 @@ public class ProfileService {
                    .orElse(null);
        }
 
-        // ✅ Fix 2 — extract LocalDate from Optional
-
 
         return new UserProfileResponse(
                 userInfo.getFirstName(),
@@ -76,8 +79,10 @@ public class ProfileService {
                 userInfo.getBirthDay(),
                 userInfo.getGender(),
                 userInfo.getProfileImage(),
+                user.isOnline(),
                 user.getEmail(),
                 userBank.getAccountBalance(),
+                matured,
                 loanBalance,
                 loanDueDate
         );
