@@ -41,13 +41,23 @@ public class ProfileService {
     public UserProfileResponse userAllInfo(Long userId) {
         UserInfo userInfo = userInfoRepo.findByUserId(userId).orElseThrow(() -> new RuntimeException("User info not found"));
         User user = userRepo.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
-        UserBank userBank = userBankRepo.findByUserId(userId).orElseThrow(() -> new RuntimeException("User bank not found"));
+        Optional<UserBank> userBank = userBankRepo.findByUserId(userId);
         Optional<Loan> payment = userLoanRepo.findByUserId(userId);
 
-        boolean matured = !userBank.getFirstDepositDate()
-                .plusYears(1)
-                .toLocalDate()
-                .isAfter(LocalDate.now());
+        boolean isMatured = false;
+        BigDecimal accountBalance = BigDecimal.ZERO;
+
+        if (userBank.isPresent()){
+            UserBank bank = userBank.get();
+
+            accountBalance = bank.getAccountBalance();
+            isMatured = !bank.getFirstDepositDate()
+                    .plusYears(1)
+                    .toLocalDate()
+                    .isAfter(LocalDate.now());
+        }
+
+
         BigDecimal loanBalance = BigDecimal.ZERO;
         LocalDate loanDueDate = null;
 
@@ -81,8 +91,8 @@ public class ProfileService {
                 userInfo.getProfileImage(),
                 user.isOnline(),
                 user.getEmail(),
-                userBank.getAccountBalance(),
-                matured,
+                accountBalance,
+                isMatured,
                 loanBalance,
                 loanDueDate
         );
