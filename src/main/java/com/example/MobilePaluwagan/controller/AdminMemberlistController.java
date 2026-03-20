@@ -1,7 +1,9 @@
 package com.example.MobilePaluwagan.controller;
 
+import com.example.MobilePaluwagan.dto.Request.ProfileUpdateRequest;
 import com.example.MobilePaluwagan.dto.Request.RegisterRequest;
 import com.example.MobilePaluwagan.dto.Response.AdminMemberListResponse;
+import com.example.MobilePaluwagan.dto.Response.ApiResponse;
 import com.example.MobilePaluwagan.dto.Response.MembersFilterResponse;
 import com.example.MobilePaluwagan.entity.User;
 import com.example.MobilePaluwagan.entity.UserInfo;
@@ -66,4 +68,7 @@ public class AdminMemberlistController {
     public ResponseEntity<?> deleteMember(@RequestParam Long userId){
         return membersService.deleteMember(userId);
     }
+
+    @PutMapping("/member/{userId}/edit")
+    public ApiResponse<String> editInfoMember(@PathVariable Long userId, @RequestBody ProfileUpdateRequest request){return membersService.updateProfile(userId, request);}
 }
