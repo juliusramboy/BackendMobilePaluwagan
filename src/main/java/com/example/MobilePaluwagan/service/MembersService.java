@@ -34,6 +34,11 @@ public class MembersService {
     private final LoanPaymentRepo loanPaymentRepo;
     private final UserSavingsRepo userSavingsRepo;
     private final ProfileService profileService;
+    private final DueDateScheduleRepository dueDateScheduleRepo;
+    private final LedgerRepo ledgerRepo;
+    private final NotificationRepository notificationRepo;
+    private final LoanApplicationRepo loanApplicationRepo;
+    private final UserLoanRepo userLoanRepo;
 
 
 
@@ -92,16 +97,31 @@ public class MembersService {
         return new ResponseEntity<>(userdataWithId.getId(), HttpStatus.OK);
     }
 
-//    public void deleteMember(Long userId){
-//
-//        dueDateScheduleRepo.findByUserId(userId);
-//        ledgerRepo.deleteById(userId);
-//        notificationRepo.deleteById(userId);
-//        userBankRepo.deleteById(userId);
-//        userInfoRepo.deleteById(userId);
-//        userRepo.deleteById(userId);
-//
-//    }
+    public ResponseEntity<?> deleteMember(Long userId){
+
+        Optional<Loan> userLoan = userLoanRepo.findByUserId(userId);
+
+        if (userLoan.isPresent()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "The user has a loan; you can't delete a user that has an active loan."
+            );
+        }
+
+        Loan user = userLoan.get();
+        dueDateScheduleRepo.findByApplicationId(user.getApplicationID());
+        ledgerRepo.deleteById(userId);
+        notificationRepo.deleteById(userId);
+        userBankRepo.deleteById(userId);
+        userInfoRepo.deleteById(userId);
+        userRepo.deleteById(userId);
+        loanPaymentRepo.deleteById(userId);
+        userSavingsRepo.deleteById(userId);
+        loanApplicationRepo.deleteById(userId);
+        userLoanRepo.deleteById(userId);
+
+        return ResponseEntity.ok("Successfully Deleted Member");
+    }
 
     public AdminMemberListResponse getAdminUserProfile(Long userId, int page, int size) {
         UserProfileResponse info = profileService.userAllInfo(userId);
