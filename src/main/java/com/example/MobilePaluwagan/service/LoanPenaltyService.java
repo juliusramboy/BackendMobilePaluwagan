@@ -73,6 +73,6 @@ public class LoanPenaltyService {
         // ✅ Add penalty to totalRepayable
         loan.setTotalRepayable(loan.getTotalRepayable().add(penalty));
         userLoanRepo.save(loan);
-        
+
     }
 }
