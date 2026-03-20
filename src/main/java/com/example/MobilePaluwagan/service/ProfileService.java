@@ -51,10 +51,9 @@ public class ProfileService {
             UserBank bank = userBank.get();
 
             accountBalance = bank.getAccountBalance();
-            isMatured = !bank.getFirstDepositDate()
-                    .plusYears(1)
-                    .toLocalDate()
-                    .isAfter(LocalDate.now());
+            isMatured = Optional.ofNullable(bank.getFirstDepositDate())
+                    .map(date -> !date.plusYears(1).toLocalDate().isAfter(LocalDate.now()))
+                    .orElse(false);;
         }
 
 
