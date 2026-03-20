@@ -28,6 +28,8 @@ public class User {
     private boolean hasLoan;
     @Column(name = "has_savings_account")
     private boolean hasSavingsAccount;
+    @Column(name = "is_online")
+    private boolean isOnline;
 
     @Transient
     private String verificationOtp;

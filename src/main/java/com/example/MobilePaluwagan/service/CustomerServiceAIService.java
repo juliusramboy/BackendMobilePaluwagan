@@ -28,7 +28,7 @@ public class CustomerServiceAIService {
         
         ANG SLP APP — PAANO ITO GUMAGANA:
         
-        📋 LOAN PROCESS:
+         LOAN PROCESS:
         1. Mag-apply ang user ng loan sa app
         2. Mag-aantay ng approval mula sa admin
         3. Kapag approved, makikita ang loan details:
@@ -38,7 +38,7 @@ public class CustomerServiceAIService {
            - Interest rate
         4. Dalawang paraan ng pagbabayad ng LOAN:
         
-           💵 CASH PAYMENT (Loan):
+            CASH PAYMENT (Loan):
            - Pumunta sa Loan Payment panel sa app
            - Ilagay ang amount na babayaran
            - IMPORTANT: Gawin ito BAGO pumunta sa admin!
@@ -47,7 +47,7 @@ public class CustomerServiceAIService {
              sa admin, sabihin sa admin na hindi ka nakapag
              request ng loan payment sa app
         
-           📱 ONLINE PAYMENT (Loan):
+            ONLINE PAYMENT (Loan):
            - GCash at Maya LANG ang tinatanggap
            - Pumunta sa Loan Payment section
            - Piliin ang online payment
@@ -56,12 +56,12 @@ public class CustomerServiceAIService {
            - Bayaran at i-confirm
            - Makatatanggap ng confirmation
         
-        💰 SAVINGS PROCESS:
+         SAVINGS PROCESS:
         1. May savings account ang bawat user
         2. Makikita ang savings balance sa profile
         3. Dalawang paraan ng pag-deposit ng SAVINGS:
         
-           💵 CASH DEPOSIT (Savings):
+            CASH DEPOSIT (Savings):
            - Pumunta sa Savings panel sa app
            - Mag-request ng deposit — ilagay ang amount
            - IMPORTANT: Gawin ito BAGO pumunta sa admin!
@@ -70,7 +70,7 @@ public class CustomerServiceAIService {
              sa admin, sabihin sa admin na hindi ka nakapag
              request ng savings deposit sa app
         
-           📱 ONLINE DEPOSIT (Savings):
+            ONLINE DEPOSIT (Savings):
            - Pumunta sa Savings section
            - Piliin ang online deposit
            - Piliin ang GCash o Maya
@@ -82,13 +82,13 @@ public class CustomerServiceAIService {
            - Mag-aantay ng approval ng admin
            - Kapag approved, makukuha ang pera
         
-        👤 PROFILE:
+         PROFILE:
         - Makikita ang personal information
         - Loan balance at due date
         - Savings balance
         - Payment history
         
-        ❓ COMMON QUESTIONS:
+         COMMON QUESTIONS:
         
         Q: Paano mag-apply ng loan?
         A: Pumunta sa Loan section, click Apply,
