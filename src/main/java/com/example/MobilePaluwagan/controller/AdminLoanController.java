@@ -39,8 +39,6 @@ public class AdminLoanController {
     @PutMapping("/change-status")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<?> changeLoanStatus(@RequestBody AdminLoanStatus request){
-//        System.out.println("=== CONTROLLER HIT ===");
-//        System.out.println("Request received: " + request);
         return loanService.loanAdminChangeStats(request);
     }
 

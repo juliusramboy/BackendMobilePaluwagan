@@ -1,23 +1,30 @@
 package com.example.MobilePaluwagan.service;
 
+import com.example.MobilePaluwagan.controller.SseController;
+import com.example.MobilePaluwagan.dto.Request.ProfileUpdateRequest;
 import com.example.MobilePaluwagan.dto.Request.RegisterRequest;
-import com.example.MobilePaluwagan.dto.Response.MembersFilterProjection;
-import com.example.MobilePaluwagan.dto.Response.MembersFilterResponse;
+import com.example.MobilePaluwagan.dto.Response.*;
 import com.example.MobilePaluwagan.entity.*;
 import com.example.MobilePaluwagan.repository.*;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Optional;
 
 
 @Service
+@RequiredArgsConstructor
 public class MembersService {
 
 
@@ -25,22 +32,18 @@ public class MembersService {
     private final RoleRepo roleRepo;
     private final UserRepo userRepo;
     private final UserBankRepo userBankRepo;
-//    private final LedgerRepo ledgerRepo;
-//    private final NotificationRepository notificationRepo;
-//    private final DueDateScheduleRepository  dueDateScheduleRepo;
+    private final LoanPaymentRepo loanPaymentRepo;
+    private final UserSavingsRepo userSavingsRepo;
+    private final ProfileService profileService;
+    private final DueDateScheduleRepository dueDateScheduleRepo;
+    private final LedgerRepo ledgerRepo;
+    private final NotificationRepository notificationRepo;
+    private final LoanApplicationRepo loanApplicationRepo;
+    private final UserLoanRepo userLoanRepo;
+    private final SseController sseController;
+    private final PasswordEncoder passwordEncoder;
 
 
-    public MembersService(UserInfoRepo userInfoRepo,  RoleRepo roleRepo, UserRepo userRepo, UserBankRepo userBankRepo,  LedgerRepo ledgerRepo,  NotificationRepository notificationRepo, DueDateScheduleRepository dueDateScheduleRepo) {
-
-        this.userInfoRepo = userInfoRepo;
-        this.roleRepo = roleRepo;
-        this.userRepo = userRepo;
-        this.userBankRepo = userBankRepo;
-//        this.ledgerRepo = ledgerRepo;
-//        this.notificationRepo = notificationRepo;
-//        this.dueDateScheduleRepo = dueDateScheduleRepo;
-
-    }
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
@@ -97,14 +100,129 @@ public class MembersService {
         return new ResponseEntity<>(userdataWithId.getId(), HttpStatus.OK);
     }
 
-//    public void deleteMember(Long userId){
-//
-//        dueDateScheduleRepo.findByUserId(userId);
-//        ledgerRepo.deleteById(userId);
-//        notificationRepo.deleteById(userId);
-//        userBankRepo.deleteById(userId);
-//        userInfoRepo.deleteById(userId);
-//        userRepo.deleteById(userId);
-//
-//    }
+    public ResponseEntity<?> deleteMember(Long userId){
+
+        Optional<Loan> userLoan = userLoanRepo.findByUserId(userId);
+
+        if (userLoan.isPresent()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "The user has a loan; you can't delete a user that has an active loan."
+            );
+        }
+
+        Loan user = userLoan.get();
+        dueDateScheduleRepo.findByApplicationId(user.getApplicationID());
+        ledgerRepo.deleteById(userId);
+        notificationRepo.deleteById(userId);
+        userBankRepo.deleteById(userId);
+        userInfoRepo.deleteById(userId);
+        userRepo.deleteById(userId);
+        loanPaymentRepo.deleteById(userId);
+        userSavingsRepo.deleteById(userId);
+        loanApplicationRepo.deleteById(userId);
+        userLoanRepo.deleteById(userId);
+
+        return ResponseEntity.ok("Successfully Deleted Member");
+    }
+
+    public AdminMemberListResponse getAdminUserProfile(Long userId, int page, int size) {
+        UserProfileResponse info = profileService.userAllInfo(userId);
+        Page<Ledger> ledgerPayments = profileService.getAllPayments(userId, page, size);
+
+        return AdminMemberListResponse.builder()
+                .info(info)
+                .allPayments(ledgerPayments)
+                .build();
+    }
+
+    @Transactional
+    public ApiResponse<String> updateProfile(Long userId, ProfileUpdateRequest request) {
+
+
+        UserInfo info = userInfoRepo.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "User not found with id: " + userId
+                ));
+
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "User not found with id: " + userId
+                ));
+
+
+
+        if (request.getFirstName() != null) {
+            info.setFirstName(request.getFirstName());
+        }
+
+        if (request.getMiddleName() != null) {
+            info.setMiddleName(request.getMiddleName());
+        }
+
+        if (request.getLastName() != null) {
+            info.setLastName(request.getLastName());
+        }
+
+        if (request.getSuffix() != null) {
+            info.setSuffix(request.getSuffix());
+        }
+
+        if (request.getGender() != null) {
+            info.setGender(request.getGender());
+        }
+
+        if (request.getAddress() != null) {
+            info.setAddress(request.getAddress());
+        }
+
+        if (request.getBirthDay() != null) {
+            info.setBirthDay(request.getBirthDay());
+        }
+
+        if (request.getPhoneNumber() != null) {
+            info.setPhoneNumber(request.getPhoneNumber());
+        }
+
+        if (request.getEmail() != null){
+            user.setEmail(request.getEmail());
+        }
+
+        if (request.getNewPassword() != null && request.getOldPassword() != null){
+
+            if (passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+                if (request.getNewPassword() != null && !request.getNewPassword().isBlank()) {
+                    String encodedNewPassword = passwordEncoder.encode(request.getNewPassword());
+
+                    user.setPassword(encodedNewPassword);
+
+                    userRepo.save(user);
+                } else {
+                    return new ApiResponse<>(
+                            false,
+                            "New password cannot be null or blank",
+                            null
+                    );
+                }
+            } else {
+                return new ApiResponse<>(
+                        false,
+                        "Old password does not match",
+                        null
+                );
+            }
+
+        }
+
+        UserInfo savedUser = userInfoRepo.save(info);
+
+        sseController.notifyUpdate();
+        return new ApiResponse<>(
+                true,
+                "Successfully updated profile",
+                "Profile updated"
+        );
+    }
 }

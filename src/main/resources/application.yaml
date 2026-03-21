@@ -11,7 +11,7 @@ spring:
     driver-class-name: org.postgresql.Driver
     hikari:
       minimum-idle: 2
-      maximum-pool-size: 8
+      maximum-pool-size: 3
       keepalive-time: 60000
       connection-timeout: 30000
       idle-timeout: 600000
@@ -31,7 +31,7 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
         jdbc:
           batch_size: 30
         order_inserts: true
@@ -42,6 +42,7 @@ spring:
       write-dates-as-timestamps: false
     deserialization:
       fail-on-unknown-properties: false
+    time-zone: Asia/Manila
 
   mail:
     host: smtp.gmail.com
@@ -89,3 +90,12 @@ logging:
         catalina:
           connector:
             CoyoteAdapter: ERROR
+
+    org.hibernate.SQL: OFF
+    org.hibernate.type: OFF
+    org.springframework.web: ERROR
+
+
+gemini:
+  api-key: ${GEMINI_API_KEY}
+

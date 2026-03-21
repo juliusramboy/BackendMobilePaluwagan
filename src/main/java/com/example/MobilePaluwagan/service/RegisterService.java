@@ -44,6 +44,7 @@ public class RegisterService {
         User user = new User();
         user.setEmail(register.getEmail());
         user.setPassword(encoder.encode(register.getPassword()));
+        user.setOnline(false);
         user.setRole(defaultRole);
 
         User userdataWithId = userRepo.save(user);

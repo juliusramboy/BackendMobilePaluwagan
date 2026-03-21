@@ -9,6 +9,7 @@ import com.example.MobilePaluwagan.dto.Response.*;
 import com.example.MobilePaluwagan.entity.LoanApplication;
 import com.example.MobilePaluwagan.entity.LoanPayment;
 import com.example.MobilePaluwagan.entity.UserPrinciple;
+import com.example.MobilePaluwagan.service.LoanPenaltyService;
 import com.example.MobilePaluwagan.service.LoanService;
 import com.example.MobilePaluwagan.service.PayMongoService;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ public class  LoanController {
 
     private final LoanService loanService;
     private final PayMongoService  payMongoService;
+    private final LoanPenaltyService  loanPenaltyService;
 
 
     @GetMapping("/loan/user-details")
@@ -154,6 +156,7 @@ public class  LoanController {
                     .body(new ApiResponse<>(false, e.getMessage(), null));
         }
     }
+
 
 
 }

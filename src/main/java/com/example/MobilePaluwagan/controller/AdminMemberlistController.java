@@ -1,6 +1,9 @@
 package com.example.MobilePaluwagan.controller;
 
+import com.example.MobilePaluwagan.dto.Request.ProfileUpdateRequest;
 import com.example.MobilePaluwagan.dto.Request.RegisterRequest;
+import com.example.MobilePaluwagan.dto.Response.AdminMemberListResponse;
+import com.example.MobilePaluwagan.dto.Response.ApiResponse;
 import com.example.MobilePaluwagan.dto.Response.MembersFilterResponse;
 import com.example.MobilePaluwagan.entity.User;
 import com.example.MobilePaluwagan.entity.UserInfo;
@@ -13,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/memberlist")
@@ -46,4 +51,24 @@ public class AdminMemberlistController {
     public ResponseEntity<?> addAdmin(@Valid @RequestBody RegisterRequest request){
         return membersService.adminRegister(request);
     }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<?> getMember(@PathVariable Long userId,
+                                       @RequestParam(defaultValue = "0") int page,
+                                       @RequestParam(defaultValue = "10") int size){
+        try{
+            AdminMemberListResponse response = membersService.getAdminUserProfile(userId, page, size);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/member")
+    public ResponseEntity<?> deleteMember(@RequestParam Long userId){
+        return membersService.deleteMember(userId);
+    }
+
+    @PutMapping("/member/{userId}/edit")
+    public ApiResponse<String> editInfoMember(@PathVariable Long userId, @RequestBody ProfileUpdateRequest request){return membersService.updateProfile(userId, request);}
 }

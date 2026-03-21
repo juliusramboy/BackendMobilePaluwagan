@@ -20,6 +20,7 @@ import java.util.Optional;
 public interface UserSavingsRepo extends JpaRepository<UserSavings, Long> {
 
     List<UserSavings> findByUserId(long userId);
+    Page<UserSavings> findAllByUserId(long userId, Pageable pageable);
     Long countByUserId(long userId);
     boolean existsByUserIdAndStatus(long userId, Status status);
     boolean existsByReference(String reference);

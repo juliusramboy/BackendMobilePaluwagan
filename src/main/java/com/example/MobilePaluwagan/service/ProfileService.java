@@ -4,12 +4,8 @@ import com.example.MobilePaluwagan.controller.SseController;
 import com.example.MobilePaluwagan.dto.Request.ProfileUpdateRequest;
 import com.example.MobilePaluwagan.dto.Response.ApiResponse;
 import com.example.MobilePaluwagan.dto.Response.UserProfileResponse;
-import com.example.MobilePaluwagan.entity.LoanPayment;
-import com.example.MobilePaluwagan.entity.User;
-import com.example.MobilePaluwagan.entity.UserInfo;
-import com.example.MobilePaluwagan.repository.LoanPaymentRepo;
-import com.example.MobilePaluwagan.repository.UserInfoRepo;
-import com.example.MobilePaluwagan.repository.UserRepo;
+import com.example.MobilePaluwagan.entity.*;
+import com.example.MobilePaluwagan.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +16,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,12 +30,52 @@ public class ProfileService {
     private final UserRepo userRepo;
     private final PasswordEncoder passwordEncoder;
     private final SseController sseController;
-    private final LoanPaymentRepo loanPaymentRepo;
+    private final UserLoanRepo userLoanRepo;
+    private final UserSavingsRepo userSavingsRepo;
+    private final UserBankRepo userBankRepo;
+    private final DueDateScheduleRepository dueDateScheduleRepo;
+    private final LoanPaymentRepo  loanPaymentRepo;
+    private final LedgerRepo  ledgerRepo;
 
 
-    public UserProfileResponse userAllInfo(Long userId){
-        UserInfo userInfo = userInfoRepo.findByUserId(userId).orElseThrow(() -> new RuntimeException("User info not found in user info"));
-        User user = userRepo.findById(userId).orElseThrow(()-> new RuntimeException("user not found in users"));
+    public UserProfileResponse userAllInfo(Long userId) {
+        UserInfo userInfo = userInfoRepo.findByUserId(userId).orElseThrow(() -> new RuntimeException("User info not found"));
+        User user = userRepo.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        Optional<UserBank> userBank = userBankRepo.findByUserId(userId);
+        Optional<Loan> payment = userLoanRepo.findByUserId(userId);
+
+        boolean isMatured = false;
+        BigDecimal accountBalance = BigDecimal.ZERO;
+
+        if (userBank.isPresent()){
+            UserBank bank = userBank.get();
+
+            accountBalance = bank.getAccountBalance();
+            isMatured = Optional.ofNullable(bank.getFirstDepositDate())
+                    .map(date -> !date.plusYears(1).toLocalDate().isAfter(LocalDate.now()))
+                    .orElse(false);;
+        }
+
+
+        BigDecimal loanBalance = BigDecimal.ZERO;
+        LocalDate loanDueDate = null;
+
+       if(payment.isPresent()) {
+           Loan UserPayment = payment.get();
+           Optional<DueDateSchedule> loanDue = dueDateScheduleRepo
+                   .findFirstPartialOrPending(
+                           UserPayment.getApplicationID()
+                   );
+
+           // ✅ Fix 1 — correct loan balance
+           loanBalance = UserPayment.getTotalRepayable()
+                   .subtract(UserPayment.getLoanRepaymentTally());
+
+           loanDueDate = loanDue
+                   .map(DueDateSchedule::getDueDate)
+                   .orElse(null);
+       }
+
 
         return new UserProfileResponse(
                 userInfo.getFirstName(),
@@ -48,8 +88,12 @@ public class ProfileService {
                 userInfo.getBirthDay(),
                 userInfo.getGender(),
                 userInfo.getProfileImage(),
-                user.getEmail()
-
+                user.isOnline(),
+                user.getEmail(),
+                accountBalance,
+                isMatured,
+                loanBalance,
+                loanDueDate
         );
     }
 
@@ -143,9 +187,11 @@ public class ProfileService {
         );
     }
 
-    public Page<LoanPayment> getAllLoanPayments(Long userId, int page, int size) {
-        return loanPaymentRepo.findAllByUserId(userId, PageRequest.of(page, size));
+    public Page<Ledger> getAllPayments(Long userId, int page, int size) {
+        return ledgerRepo.findAllByUserId(userId, PageRequest.of(page, size));
     }
+
+
 
 
 
