@@ -78,7 +78,7 @@ public class EmailService {
                                                 <table role="presentation">
                                                     <tr>
                                                         <td style="background-color: #f0f9ff; padding: 8px; border-radius: 8px; vertical-align: middle;">
-                                                            <img src="cid:logoImage" alt="Logo" style="width: 40px; height: 40px; display: block;" />
+                                                            <img src="%s" alt="Logo" style="width: 40px; height: 40px; display: block;" />
                                                         </td>
                                                         <td style="padding-left: 12px; vertical-align: middle;">
                                                             <div style="font-size: 14px; font-weight: 600; color: #0f172a; line-height: 1.2;">Savings and Loan at Pitogo</div>
@@ -156,16 +156,13 @@ public class EmailService {
             </table>
         </body>
         </html>
-        """.formatted(subject, msg, formatToken(token));
+        """.formatted(logoUrl, subject, msg, formatToken(token));
 
             helper.setTo(email);
             helper.setSubject(subject);
             helper.setFrom(from);
             helper.setText(content, true);
 
-            // Add inline image
-            ClassPathResource logoResource = new ClassPathResource("static/images/Logo.png");
-            helper.addInline("logoImage", logoResource);
 
             mailSender.send(mimeMessage);
 
