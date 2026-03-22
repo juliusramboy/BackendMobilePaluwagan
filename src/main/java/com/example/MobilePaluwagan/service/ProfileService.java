@@ -101,11 +101,23 @@ public class ProfileService {
     public ApiResponse<String> updateProfile(Long userId, ProfileUpdateRequest request) {
 
 
+
+
         UserInfo info = userInfoRepo.findByUserId(userId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "User not found with id: " + userId
                 ));
+
+        Optional<Loan> loan = userLoanRepo.findByUserId(info.getUserId());
+
+        if (loan.isPresent()) {
+            return new ApiResponse<>(
+                    false,
+                    "Profile changes are not allowed while you have an existing loan",
+                    null
+            );
+        }
 
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(
