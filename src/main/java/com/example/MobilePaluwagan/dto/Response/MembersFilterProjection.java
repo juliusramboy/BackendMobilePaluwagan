@@ -5,6 +5,7 @@ import java.time.LocalDate;
 public interface MembersFilterProjection {
     Long getUser_id();
     String getFirst_name();
+    String getProfile_image();
     String getLast_name();
     String getRole_name();
 

@@ -1,5 +1,7 @@
 package com.example.MobilePaluwagan.filter;
 
+import com.example.MobilePaluwagan.entity.User;
+import com.example.MobilePaluwagan.repository.UserRepo;
 import com.example.MobilePaluwagan.service.JWTService;
 import com.example.MobilePaluwagan.service.MyUserDetailsService;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -27,6 +29,9 @@ public class JwtFilter extends OncePerRequestFilter {
     @Autowired
     ApplicationContext context;
 
+    @Autowired
+    UserRepo userRepo;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 //        System.out.println("=== JWT Filter ===");
@@ -42,6 +47,12 @@ public class JwtFilter extends OncePerRequestFilter {
             try {
                 username = jwtService.extractUserName(token);
             } catch (ExpiredJwtException e) {
+                String expiredUsername = e.getClaims().getSubject();
+                User user = userRepo.findByEmail(expiredUsername);
+               if (user != null && user.isOnline()) {
+                   user.setOnline(false);
+                   userRepo.save(user);
+               }
                 // Set attribute for AuthenticationEntryPoint to handle
                 request.setAttribute("expired", "Token has expired");
             } catch (Exception e) {
