@@ -3,10 +3,13 @@ package com.example.MobilePaluwagan.service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +24,7 @@ public class CustomerServiceAIService {
             "https://api.groq.com/openai/v1/chat/completions";
 
     private static final String SYSTEM_PROMPT = """
-        Ikaw si Pits, ang friendly customer service assistant
+        Ikaw si Peep, ang friendly customer service assistant
         ng Loan Savings at Pitogo (SLP) — isang small community
         Loan and Savings web application na ginawa nina
         Julius Ramboy at Kent Belarmino.
@@ -181,30 +184,43 @@ public class CustomerServiceAIService {
         requestBody.put("max_tokens", 1024);
         requestBody.put("temperature", 0.7);
 
-        // Call Groq API
-        Map<String, Object> response = WebClient.create()
-                .post()
-                .uri(GROQ_URL)
-                .header("Authorization", "Bearer " + apiKey)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(requestBody)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, clientResponse ->
-                        clientResponse.bodyToMono(String.class)
-                                .flatMap(errorBody -> {
-                                    System.out.println("Groq Error: " + errorBody);
-                                    return Mono.error(new RuntimeException(errorBody));
-                                })
-                )
-                .bodyToMono(Map.class)
-                .block();
+        try{
 
-        // Extract response text
-        List<Map<String, Object>> choices =
-                (List<Map<String, Object>>) response.get("choices");
-        Map<String, Object> message =
-                (Map<String, Object>) choices.get(0).get("message");
+            Map response = WebClient.builder()
 
-        return (String) message.get("content");
+                    .clientConnector(new ReactorClientHttpConnector(
+                            HttpClient.create()
+                                    .responseTimeout(Duration.ofSeconds(30)) // 30 sec timeout
+                    ))
+                    .build()
+                    .post()
+                    .uri(GROQ_URL)
+                    .header("Authorization", "Bearer " + apiKey)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, clientResponse ->
+                            clientResponse.bodyToMono(String.class)
+                                    .flatMap(errorBody -> {
+                                        System.out.println("Groq Error: " + errorBody);
+                                        return Mono.error(new RuntimeException(errorBody));
+                                    })
+                    )
+                    .bodyToMono(Map.class)
+                    .retry(3)
+                    .block();
+
+            List<Map<String, Object>> choices =
+                    (List<Map<String, Object>>) response.get("choices");
+            Map<String, Object> message =
+                    (Map<String, Object>) choices.get(0).get("message");
+
+            return (String) message.get("content");
+
+        }catch(Exception e){
+            return "Si Peps ay abala ngayon dahil maraming nagtatanong! 😅 " +
+                    "Pakisubukan muli after ng ilang minuto.";
+        }
+
     }
 }
