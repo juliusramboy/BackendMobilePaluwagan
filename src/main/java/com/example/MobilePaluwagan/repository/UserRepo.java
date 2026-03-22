@@ -10,6 +10,7 @@ public interface UserRepo extends JpaRepository<User, Long> {
 
     User findByEmail(String email);
     User findByIsActive(Boolean isActive);
+    boolean existsByIsOnlineTrueAndRoleRoleName(String roleName);
 
     @Query("SELECT COUNT(u) FROM User u WHERE u.hasSavingsAccount = true")
     int countAllSavingsMembers();
