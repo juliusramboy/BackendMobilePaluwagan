@@ -109,6 +109,7 @@ public class SavingsService {
             withdrawHistory.setReference(withdraw.getReference());
             withdrawHistory.setSavingsId(withdraw.getSavingsId());
             withdrawHistory.setDescription(Description.Withdrawal);
+            withdrawHistory.setCreatedAt(LocalDateTime.now());
             withdrawHistory.setModeOfPayment(PaymentMethod.CASH);
 
             ledgerRepo.save(withdrawHistory);
@@ -123,6 +124,7 @@ public class SavingsService {
                             .reference(saving.getReference())
                             .description(Description.Savings)
                             .modeOfPayment(saving.getPaymentMethod())
+                            .createdAt(LocalDateTime.now())
                             .build())
                     .toList();
 

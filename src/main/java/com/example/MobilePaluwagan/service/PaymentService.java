@@ -254,6 +254,7 @@ public class PaymentService {
             loan.setReference(generateRef());
             loan.setSavingsId(String.valueOf(userLoan.getApplicationID()));
             loan.setUserId(userLoan.getUserId());
+            loan.setCreatedAt(LocalDateTime.now());
             loan.setDescription(Description.Completed);
 
 
@@ -268,6 +269,7 @@ public class PaymentService {
                             .reference(payments.getReferenceNumber())
                             .description(Description.Loan)
                             .modeOfPayment(payments.getPaymentMethod())
+                            .createdAt(LocalDateTime.now())
                             .build())
                     .toList();
 
