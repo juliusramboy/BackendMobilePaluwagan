@@ -41,6 +41,9 @@ public class UserSavings {
 
     private String reference;
 
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
+
     @ManyToOne
     @JsonIgnore
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
@@ -51,9 +54,6 @@ public class UserSavings {
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
 
-//    @ManyToOne
-//    @JsonIgnore
-//    @JoinColumn(name = "user_id", insertable = false, updatable = false)
-//    private SavingsWithdrawApplication savingsWithdrawApplication;
+
 
 }

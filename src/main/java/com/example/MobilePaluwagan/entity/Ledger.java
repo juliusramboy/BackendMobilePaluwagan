@@ -39,7 +39,7 @@ public class Ledger {
     @Column(nullable = false)
     private Description description;
 
-    @Column(name = "mode_of_payment")
+    @Enumerated(EnumType.STRING)
     private PaymentMethod modeOfPayment;
 
 }

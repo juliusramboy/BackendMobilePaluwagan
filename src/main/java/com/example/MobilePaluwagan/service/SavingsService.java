@@ -104,6 +104,7 @@ public class SavingsService {
 
             Ledger withdrawHistory = new Ledger();
             withdrawHistory.setAmount(balance);
+            withdrawHistory.setSavingsId(withdraw.getSavingsId());
             withdrawHistory.setDepositDate(withdraw.getWithdrawDate());
             withdrawHistory.setReference(withdraw.getReference());
             withdrawHistory.setSavingsId(withdraw.getSavingsId());
@@ -120,6 +121,8 @@ public class SavingsService {
                             .amount(BigDecimal.valueOf(saving.getAmountDeposit()))
                             .depositDate(saving.getDepositDate())
                             .reference(saving.getReference())
+                            .description(Description.Savings)
+                            .modeOfPayment(saving.getPaymentMethod())
                             .build())
                     .toList();
 
