@@ -35,6 +35,9 @@ public class Ledger {
 
     private String reference;
 
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Description description;
