@@ -102,6 +102,14 @@ public class SavingsService {
 
             ledgerRepo.save(withdrawApplication);
 
+            Ledger withdrawHistory = new Ledger();
+            withdrawHistory.setAmount(balance);
+            withdrawHistory.setDepositDate(withdraw.getWithdrawDate());
+            withdrawHistory.setReference(withdraw.getReference());
+            withdrawHistory.setSavingsId(withdraw.getSavingsId());
+            withdrawHistory.setDescription(Description.Withdrawal);
+
+            ledgerRepo.save(withdrawHistory);
 
             // savings ledger
             List<Ledger> savingsLedger = savings.stream()
