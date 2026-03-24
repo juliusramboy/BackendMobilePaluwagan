@@ -117,6 +117,7 @@ public class PaymentService {
         transaction.setPaymentDate(LocalDateTime.now());
         transaction.setPaymentMethod(request.getPaymentMethod());
         transaction.setReferenceNumber(generateRef());
+        transaction.setPaymentMethod(PaymentMethod.CASH);
         String bankRef = request.getBankReference();
         transaction.setBankReference(
                 (bankRef == null || bankRef.trim().isEmpty()) ? null : bankRef
@@ -312,6 +313,7 @@ public class PaymentService {
         savings.setAmountDeposit(amountPaid.doubleValue());
         savings.setUserId(userbank.getUserId());
         savings.setReference(generateRef());
+        savings.setPaymentMethod(paymentMethod);
         savings.setBankReference(
                 (bankReference == null || bankReference.trim().isEmpty()) ? null : bankReference
         );
@@ -337,6 +339,7 @@ public class PaymentService {
            savings.setAmountDeposit(request.getAmount());
            savings.setUserId(userbank.getUserId());
            savings.setReference(generateRef());
+           savings.setPaymentMethod(PaymentMethod.CASH);
            String bankRef = request.getBankReference();
            savings.setBankReference(
                    (bankRef == null || bankRef.trim().isEmpty()) ? null : bankRef
