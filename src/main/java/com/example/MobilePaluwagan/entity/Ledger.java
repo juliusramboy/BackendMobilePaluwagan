@@ -35,5 +35,8 @@ public class Ledger {
 
     private String reference;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Description description;
 
 }

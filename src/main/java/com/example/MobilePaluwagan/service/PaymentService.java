@@ -28,44 +28,20 @@ import java.util.Random;
 @RequiredArgsConstructor
 public class PaymentService {
 
-    @Autowired
-    private DueDateScheduleRepository dueDateScheduleRepository;
 
-    @Autowired
-    private UserLoanRepo userLoanRepo;
-
-    @Autowired
-    private LoanPaymentRepo loanPaymentRepo;
-
-    @Autowired
-    private SseController  sseController;
-
-    @Autowired
-    private UserInfoRepo userInfoRepo;
-
-    @Autowired
-    private NotificationService notificationService;
-
-    @Autowired
-    private UserBankRepo userBankRepo;
-
-    @Autowired
-    private UserSavingsRepo userSavingsRepo;
-
-    @Autowired
-    private LedgerRepo ledgerRepo;
-
-    @Autowired
-    private UserRepo userRepo;
-
-    @Autowired
-    private DueDateScheduleRepository dueDateSchedule;
-
-    @Autowired
-    private LoanApplicationRepo loanApplicationRepo;
-
-    @Autowired
-    private UserLoanRepo loanUserLoanRepo;
+    private final DueDateScheduleRepository dueDateScheduleRepository;
+    private final UserLoanRepo userLoanRepo;
+    private final LoanPaymentRepo loanPaymentRepo;
+    private final SseController  sseController;
+    private final UserInfoRepo userInfoRepo;
+    private final NotificationService notificationService;
+    private final UserBankRepo userBankRepo;
+    private final UserSavingsRepo userSavingsRepo;
+    private final LedgerRepo ledgerRepo;
+    private final UserRepo userRepo;
+    private final DueDateScheduleRepository dueDateSchedule;
+    private final LoanApplicationRepo loanApplicationRepo;
+    private final UserLoanRepo loanUserLoanRepo;
 
 
     @Transactional
@@ -271,6 +247,16 @@ public class PaymentService {
             List<DueDateSchedule> schedule = dueDateSchedule.findByApplicationId(Long.valueOf(applicationId));
             LoanApplication application = loanApplicationRepo.findByApplicationID(Long.valueOf(applicationId)).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Application Id Not Found"));
 
+            Ledger loan = new Ledger();
+            loan.setAmount(userLoan.getLoanRepaymentTally());
+            loan.setDepositDate(LocalDateTime.now());
+            loan.setReference(generateRef());
+            loan.setSavingsId(String.valueOf(userLoan.getApplicationID()));
+            loan.setUserId(userLoan.getUserId());
+            loan.setDescription(Description.Completed);
+
+            ledgerRepo.save(loan);
+
             List<Ledger> loanLedger = payment.stream()
                     .map(payments -> Ledger.builder()
                             .savingsId(String.valueOf(userLoan.getApplicationID()))
@@ -278,6 +264,7 @@ public class PaymentService {
                             .amount(payments.getAmountPaid())
                             .depositDate(payments.getPaymentDate())
                             .reference(payments.getReferenceNumber())
+                            .description(Description.Loan)
                             .build())
                     .toList();
 

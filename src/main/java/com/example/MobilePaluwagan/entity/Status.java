@@ -10,6 +10,7 @@ public enum Status {
     SUCCESS,
     FAILED,
     PARTIAL,
-    CANCELLED
+    CANCELLED,
+    COMPLETED,
 }
 
