@@ -255,6 +255,7 @@ public class PaymentService {
             loan.setUserId(userLoan.getUserId());
             loan.setDescription(Description.Completed);
 
+
             ledgerRepo.save(loan);
 
             List<Ledger> loanLedger = payment.stream()
@@ -265,6 +266,7 @@ public class PaymentService {
                             .depositDate(payments.getPaymentDate())
                             .reference(payments.getReferenceNumber())
                             .description(Description.Loan)
+                            .modeOfPayment(payments.getPaymentMethod())
                             .build())
                     .toList();
 

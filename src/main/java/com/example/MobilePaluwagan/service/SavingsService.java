@@ -108,6 +108,7 @@ public class SavingsService {
             withdrawHistory.setReference(withdraw.getReference());
             withdrawHistory.setSavingsId(withdraw.getSavingsId());
             withdrawHistory.setDescription(Description.Withdrawal);
+            withdrawHistory.setModeOfPayment(PaymentMethod.CASH);
 
             ledgerRepo.save(withdrawHistory);
 
