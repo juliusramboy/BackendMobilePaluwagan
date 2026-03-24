@@ -91,16 +91,6 @@ public class SavingsService {
 
 
             BigDecimal balance = withdraw.getAccountBalance().add(withdraw.getAnnual());
-            //from withdrawApplication
-            Ledger withdrawApplication = Ledger.builder()
-                    .savingsId(withdraw.getSavingsId())
-                    .userId(withdraw.getUserId())
-                    .amount(balance)
-                    .depositDate(withdraw.getWithdrawDate())
-                    .reference(withdraw.getReference())
-                    .build();
-
-            ledgerRepo.save(withdrawApplication);
 
             Ledger withdrawHistory = new Ledger();
             withdrawHistory.setAmount(balance);
@@ -111,6 +101,7 @@ public class SavingsService {
             withdrawHistory.setDescription(Description.Withdrawal);
             withdrawHistory.setCreatedAt(LocalDateTime.now());
             withdrawHistory.setModeOfPayment(PaymentMethod.CASH);
+            withdrawHistory.setUserId(withdraw.getUserId());
 
             ledgerRepo.save(withdrawHistory);
 
