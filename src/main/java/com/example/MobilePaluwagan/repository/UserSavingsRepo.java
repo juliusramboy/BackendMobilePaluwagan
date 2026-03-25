@@ -25,6 +25,7 @@ public interface UserSavingsRepo extends JpaRepository<UserSavings, Long> {
     boolean existsByUserIdAndStatus(long userId, Status status);
     boolean existsByReference(String reference);
     List<UserSavings> findBySavingsId(String savingsId);
+    void deleteByUserId(Long userId);
 
     @Modifying
     @Transactional

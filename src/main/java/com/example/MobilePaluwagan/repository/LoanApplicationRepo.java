@@ -18,6 +18,7 @@ import java.util.Optional;
 public interface LoanApplicationRepo extends JpaRepository<LoanApplication, Long> {
 
     Optional<LoanApplication> findByUserId(Long userId);
+    void deleteByUserId(Long userId);
 
     Long countByStatus(Status status);
 
