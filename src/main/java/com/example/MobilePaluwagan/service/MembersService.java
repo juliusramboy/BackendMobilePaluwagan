@@ -106,40 +106,44 @@ public class MembersService {
     public ResponseEntity<?> deleteMember(Long userId) {
 
         Optional<Loan> userLoan = userLoanRepo.findByUserId(userId);
+        UserBank userBank = userBankRepo.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        if (userLoan.isEmpty()) {
-            User user = userRepo.findById(userId).orElseThrow();
-            user.setUserBank(null);
-            user.setUserSavings(null);
-            user.setUserInfo(null);
-            user.setSavingsWithdrawApplications(null);
-            user.setTokens(null);
-            userRepo.save(user);
+        boolean hasActiveLoan = userLoan.isPresent();
+        boolean hasActiveSavings = userBank.getFirstDepositDate() != null;
 
-            // 2. Now safe to delete in order
-            ledgerRepo.deleteByUserId(userId);
-            notificationRepo.deleteByUserId(userId);
-            loanPaymentRepo.deleteByUserId(userId);
-            userLoanRepo.deleteByUserId(userId);
-            loanApplicationRepo.deleteByUserId(userId);
-            userSavingsRepo.deleteByUserId(userId);
-            userBankRepo.deleteByUserId(userId);
-            userInfoRepo.deleteByUserId(userId);
+        if (hasActiveLoan) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Cannot delete account: member still has an active loan.");
+        }
 
-            tokenRepository.deleteByUserId(userId);
-
-            // 4. Root last
-            userRepo.deleteById(userId);
-
-            sseController.notifyUpdate();
-            return ResponseEntity.ok("Successfully Deleted Member");
+        if (hasActiveSavings) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Cannot delete account: member still has an active savings.");
         }
 
 
-        throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "The user has a loan; you can't delete a user that has an active loan."
-        );
+        User user = userRepo.findById(userId).orElseThrow();
+        user.setUserBank(null);
+        user.setUserSavings(null);
+        user.setUserInfo(null);
+        user.setSavingsWithdrawApplications(null);
+        user.setTokens(null);
+        userRepo.save(user);
+
+        ledgerRepo.deleteByUserId(userId);
+        notificationRepo.deleteByUserId(userId);
+        loanPaymentRepo.deleteByUserId(userId);
+        userLoanRepo.deleteByUserId(userId);
+        loanApplicationRepo.deleteByUserId(userId);
+        userSavingsRepo.deleteByUserId(userId);
+        userBankRepo.deleteByUserId(userId);
+        userInfoRepo.deleteByUserId(userId);
+        tokenRepository.deleteByUserId(userId);
+        userRepo.deleteById(userId);
+
+        sseController.notifyUpdate();
+        return ResponseEntity.ok("Successfully Deleted Member");
     }
 
     public AdminMemberListResponse getAdminUserProfile(Long userId, int page, int size) {
