@@ -10,4 +10,6 @@ public interface LedgerRepo extends JpaRepository<Ledger, Long> {
 
     Ledger findByUserId(Long userId);
     Page<Ledger> findAllByUserId(Long userId, Pageable pageable);
+
+    void deleteByUserId(Long userId);
 }

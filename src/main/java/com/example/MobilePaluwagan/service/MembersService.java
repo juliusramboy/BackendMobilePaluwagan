@@ -20,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -100,30 +101,42 @@ public class MembersService {
         return new ResponseEntity<>(userdataWithId.getId(), HttpStatus.OK);
     }
 
-    public ResponseEntity<?> deleteMember(Long userId){
+    @Transactional
+    public ResponseEntity<?> deleteMember(Long userId) {
 
         Optional<Loan> userLoan = userLoanRepo.findByUserId(userId);
 
-        if (userLoan.isPresent()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "The user has a loan; you can't delete a user that has an active loan."
-            );
+        if (userLoan.isEmpty()) {
+            User user = userRepo.findById(userId).orElseThrow();
+            user.setUserBank(null);
+            user.setUserSavings(null);
+            user.setUserInfo(null);
+            user.setSavingsWithdrawApplications(null);
+            user.setTokens(null);
+            userRepo.save(user);
+
+            // 2. Now safe to delete in order
+            ledgerRepo.deleteByUserId(userId);
+            notificationRepo.deleteByUserId(userId);
+            loanPaymentRepo.deleteByUserId(userId);
+            userLoanRepo.deleteByUserId(userId);
+            loanApplicationRepo.deleteByUserId(userId);
+            userSavingsRepo.deleteByUserId(userId);
+            userBankRepo.deleteByUserId(userId);
+            userInfoRepo.deleteByUserId(userId);
+
+
+            // 4. Root last
+            userRepo.deleteById(userId);
+
+            return ResponseEntity.ok("Successfully Deleted Member");
         }
 
-        Loan user = userLoan.get();
-        dueDateScheduleRepo.findByApplicationId(user.getApplicationID());
-        ledgerRepo.deleteById(userId);
-        notificationRepo.deleteById(userId);
-        userBankRepo.deleteById(userId);
-        userInfoRepo.deleteById(userId);
-        userRepo.deleteById(userId);
-        loanPaymentRepo.deleteById(userId);
-        userSavingsRepo.deleteById(userId);
-        loanApplicationRepo.deleteById(userId);
-        userLoanRepo.deleteById(userId);
 
-        return ResponseEntity.ok("Successfully Deleted Member");
+        throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "The user has a loan; you can't delete a user that has an active loan."
+        );
     }
 
     public AdminMemberListResponse getAdminUserProfile(Long userId, int page, int size) {

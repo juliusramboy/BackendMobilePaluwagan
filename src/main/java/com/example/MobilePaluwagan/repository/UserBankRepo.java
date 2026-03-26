@@ -20,6 +20,7 @@ public interface UserBankRepo extends JpaRepository<UserBank, Long> {
 
 
     Optional<UserBank> findByUserId(Long userId);
+    void deleteByUserId(Long userId);
 
     @Query("SELECT new com.example.MobilePaluwagan.dto.Response.SavingsPendingPaymentMemberResponse(us.amountDeposit, us.depositDate, us.reference, us.status, ui.profileImage) " +
     "FROM UserBank ub " +

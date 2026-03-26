@@ -14,6 +14,7 @@ import java.util.Optional;
 @Repository
 public interface UserInfoRepo extends JpaRepository<UserInfo, Long> {
     Optional<UserInfo> findByUserId(Long userId);
+    void deleteByUserId(Long userId);
 
     @Query(value = "SELECT ul.id AS user_id, up.first_name, up.last_name, up.profile_image , r.role_name, up.verified_date, ul.has_savings_account, ul.has_loan " +
             "FROM user_login ul " +
