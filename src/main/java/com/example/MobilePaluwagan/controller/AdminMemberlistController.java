@@ -64,8 +64,8 @@ public class AdminMemberlistController {
         }
     }
 
-    @DeleteMapping("/member")
-    public ResponseEntity<?> deleteMember(@RequestParam Long userId){
+    @DeleteMapping("/member/{userId}")
+    public ResponseEntity<?> deleteMember(@PathVariable Long userId){
         return membersService.deleteMember(userId);
     }
 
