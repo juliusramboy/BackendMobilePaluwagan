@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 public interface MembersFilterProjection {
     Long getUser_id();
+    Boolean getIsOnline();
     String getFirst_name();
     String getProfile_image();
     String getLast_name();
@@ -14,4 +15,5 @@ public interface MembersFilterProjection {
     Boolean getHas_savings_account();
 
     Boolean getHas_loan();
+
 }
