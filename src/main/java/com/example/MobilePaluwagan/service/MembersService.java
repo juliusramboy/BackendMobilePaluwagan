@@ -20,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -112,14 +113,14 @@ public class MembersService {
         boolean hasActiveLoan = userLoan.isPresent();
         boolean hasActiveSavings = userBank.getFirstDepositDate() != null;
 
-        if (hasActiveLoan) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Cannot delete account: member still has an active loan.");
-        }
+        if (hasActiveLoan || hasActiveSavings) {
+            List<String> reasons = new ArrayList<>();
 
-        if (hasActiveSavings) {
+            if (hasActiveLoan) reasons.add("active loan");
+            if (hasActiveSavings) reasons.add("active savings");
+
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Cannot delete account: member still has an active savings.");
+                    "Cannot delete account: member still has " + String.join(" and ", reasons) + ".");
         }
 
 
