@@ -46,6 +46,7 @@ public class MembersService {
     private final TokenRepository  tokenRepository;
 
 
+
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
     public Page<MembersFilterProjection> filterMembers(MembersFilterResponse filter, int page, int size) {
@@ -130,6 +131,7 @@ public class MembersService {
             // 4. Root last
             userRepo.deleteById(userId);
 
+            sseController.notifyUpdate();
             return ResponseEntity.ok("Successfully Deleted Member");
         }
 
