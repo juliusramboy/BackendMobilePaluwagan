@@ -43,10 +43,10 @@ public class MembersService {
     private final UserLoanRepo userLoanRepo;
     private final SseController sseController;
     private final PasswordEncoder passwordEncoder;
+    private final TokenRepository  tokenRepository;
 
 
-
-    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
     public Page<MembersFilterProjection> filterMembers(MembersFilterResponse filter, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -125,6 +125,7 @@ public class MembersService {
             userBankRepo.deleteByUserId(userId);
             userInfoRepo.deleteByUserId(userId);
 
+            tokenRepository.deleteByUserId(userId);
 
             // 4. Root last
             userRepo.deleteById(userId);
