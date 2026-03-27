@@ -69,6 +69,6 @@ public class AdminMemberlistController {
         return membersService.deleteMember(userId);
     }
 
-    @PutMapping("/member/{userId}/edit")
+    @PatchMapping("/member/{userId}/edit")
     public ApiResponse<String> editInfoMember(@PathVariable Long userId, @RequestBody ProfileUpdateRequest request){return membersService.updateProfile(userId, request);}
 }
