@@ -55,6 +55,7 @@ jobs:
           scp -i ~/.ssh/id_rsa \
           MobilePaluwagan-0.0.1-SNAPSHOT.jar \
           ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app/MobilePaluwagan.jar
+      
 
       - name: Write env file on EC2
         run: |
