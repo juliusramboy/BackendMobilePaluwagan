@@ -121,8 +121,8 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<OtpResponse> forgotpassword(@RequestBody OtpLoginRequest request) {
-        OtpResponse response = authOtpService.sendOtpLogin(request.getEmail(), request.getPassword());
+    public ResponseEntity<OtpResponse> forgotPassword(@RequestBody forgotPaswordRequest request) {
+        OtpResponse response = authOtpService.sendOtpForgotPassword(request.getEmail());
 
         if (response.getUserId() != null) {
             return ResponseEntity.ok(response);

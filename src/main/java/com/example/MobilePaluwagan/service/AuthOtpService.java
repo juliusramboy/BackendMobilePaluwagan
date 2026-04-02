@@ -95,6 +95,23 @@ public class AuthOtpService {
         return false;
     }
 
+    public OtpResponse sendOtpForgotPassword(String email){
+
+        User isPresent = userRepo.findByEmail(email);
+
+        if(isPresent != null){
+            User user = isPresent;
+
+                if(user.isActive()){
+                    return new OtpResponse("proceed to change password", user.getId());
+                }
+            }else {
+            return new OtpResponse("Please verify your account or register your account.", null);
+            }
+
+        return new OtpResponse("Email not found as a member please register your email", null);
+    }
+
     public OtpResponse sendOtpLogin(String email, String password){
 
         User isPresent = userRepo.findByEmail(email);

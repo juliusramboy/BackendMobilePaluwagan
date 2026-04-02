@@ -4,5 +4,6 @@ public enum PaymentMethod {
         GCASH,
         MAYA,
         CASH,
-        CARD
+        CARD,
+        QRPH
 }

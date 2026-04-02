@@ -2,6 +2,7 @@ package com.example.MobilePaluwagan.security;
 
 
 import com.example.MobilePaluwagan.config.CustomLogoutHandler;
+import org.springframework.http.HttpMethod;
 import com.example.MobilePaluwagan.config.JwtAuthenticationEntryPoint;
 import com.example.MobilePaluwagan.filter.JwtFilter;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +52,7 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable);
         http.cors(cors -> cors.configurationSource(corsConfigurationSource));
         http.authorizeHttpRequests(request -> request.requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/loan/updates").permitAll()
                 .requestMatchers("/images/**").permitAll()
