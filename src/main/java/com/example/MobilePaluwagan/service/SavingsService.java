@@ -201,6 +201,7 @@ public class SavingsService {
                 userSavings.setSavingsId(user.getSavingsId());
                 userSavings.setAmountDeposit(depositAmount);
                 userSavings.setDepositDate(depositDateTime);
+                userSavings.setPaymentMethod(PaymentMethod.CASH);
                 userSavings.setReference(generateRef());
                 userSavings.setStatus(Status.PENDING);
 

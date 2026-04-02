@@ -18,8 +18,8 @@ public class RegisterRequest {
     private Long userId;
     @NotBlank(message = "First Name is required")
     @Pattern(
-            regexp = "^$|^[a-zA-Z]+$",
-            message = "First Name must only contain letters")
+            regexp = "^[a-zA-Z]+(\\s[a-zA-Z]+)*$",
+            message = "First Name must only contain letters and spaces")
     private String firstName;
     @Pattern(
             regexp = "^$|^[a-zA-Z]+$",

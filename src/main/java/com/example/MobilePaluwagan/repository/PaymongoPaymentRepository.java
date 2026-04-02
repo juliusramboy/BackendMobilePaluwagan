@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface PaymongoPaymentRepository extends JpaRepository<PaymongoPayment, Long> {
 
     Optional<PaymongoPayment> findByReferenceNumber(String referenceNumber);
+
 }

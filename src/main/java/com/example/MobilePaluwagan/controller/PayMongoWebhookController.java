@@ -47,7 +47,7 @@ public class PayMongoWebhookController {
                     .encodeToString((secretKey + ":").getBytes(StandardCharsets.UTF_8));
 
             Map<String, Object> attributes = new HashMap<>();
-            attributes.put("url", "https://practitioners-rise-herself-baseline.trycloudflare.com/api/webhook/paymongo");
+            attributes.put("url", "http://54.251.224.183:8080");
             attributes.put("events", List.of("link.payment.paid"));
 
             Map<String, Object> data = new HashMap<>();
