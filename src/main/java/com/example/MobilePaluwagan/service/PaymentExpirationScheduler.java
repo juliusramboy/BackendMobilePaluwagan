@@ -16,7 +16,7 @@ public class PaymentExpirationScheduler {
 
     private final PaymongoPaymentRepository paymongoPaymentRepository;
 
-    @Scheduled(fixedRate = 180000)
+    @Scheduled(fixedRate = 60000)
     public void expiredOldPayments() {
         LocalDateTime now = LocalDateTime.now();
 
