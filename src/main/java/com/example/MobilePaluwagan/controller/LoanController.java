@@ -5,7 +5,9 @@ import com.example.MobilePaluwagan.dto.Request.*;
 import com.example.MobilePaluwagan.dto.Response.*;
 import com.example.MobilePaluwagan.entity.LoanApplication;
 import com.example.MobilePaluwagan.entity.LoanPayment;
+import com.example.MobilePaluwagan.entity.PaymongoPayment;
 import com.example.MobilePaluwagan.entity.UserPrinciple;
+import com.example.MobilePaluwagan.repository.PaymongoPaymentRepository;
 import com.example.MobilePaluwagan.service.LoanPenaltyService;
 import com.example.MobilePaluwagan.service.LoanService;
 import com.example.MobilePaluwagan.service.PayMongoService;
@@ -35,6 +37,7 @@ public class  LoanController {
     private final PayMongoService  payMongoService;
     private final LoanPenaltyService  loanPenaltyService;
     private final PayMongoWebhookService payMongoWebhookService;
+    private final PaymongoPaymentRepository  paymongoPaymentRepository;
 
 
     @GetMapping("/loan/user-details")
@@ -178,6 +181,21 @@ public class  LoanController {
             return ResponseEntity.status(500)
                     .body(new ApiResponse<>(false, e.getMessage(), null));
         }
+    }
+
+    @GetMapping("/payment/status/{intentId}")
+    public ResponseEntity<ApiResponse<?>> checkPaymentStatus(@PathVariable String intentId) {
+        PaymongoPayment payment = paymongoPaymentRepository
+                .findByReferenceNumber(intentId)
+                .orElseThrow(() -> new RuntimeException("Payment not found"));
+
+        return ResponseEntity.ok(new ApiResponse<>(true, "Payment status retrieved",
+                Map.of(
+                        "status", payment.getStatus(),
+                        "expiresAt", payment.getExpiresAt(),
+                        "amount", payment.getAmount()
+                )
+        ));
     }
 
     @PostMapping("/create-intent")

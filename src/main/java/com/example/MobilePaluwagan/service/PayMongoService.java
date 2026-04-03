@@ -74,6 +74,8 @@ public class PayMongoService {
         String paymongoLinkId = (String) responseData.get("id");
         String referenceNumber = (String) responseAttributes.get("reference_number");
 
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(10);
+
         PaymongoPayment payment = new PaymongoPayment();
         payment.setUserId(userId);
         payment.setPaymentType(request.getPaymentType());
@@ -84,6 +86,7 @@ public class PayMongoService {
         payment.setAmount(request.getAmount());
         payment.setDescription(request.getDescription());
         payment.setCreatedAt(LocalDateTime.now());
+        payment.setExpiresAt(expiresAt);
         payment.setStatus(Status.PENDING);
 
         paymongoPaymentRepository.save(payment);

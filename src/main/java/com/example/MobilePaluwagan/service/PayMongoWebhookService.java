@@ -126,7 +126,50 @@ public class PayMongoWebhookService {
             case "link.payment.paid"         -> handleLinkPaymentPaid(attributes);
             case "payment_intent.succeeded"  -> handleIntentSucceeded(attributes);
             case "payment.paid" ->  handlePaymentPaid(attributes);
+            case "qrph.expired" -> handleQrphExpired(attributes);
+            case "payment.failed"        -> handlePaymentFailed(attributes);
             default -> System.out.println("Unhandled event type: " + eventType);
+        }
+    }
+
+    // ─── link.payment.expired ───────────────────────────────────────────────────
+
+    private void handleQrphExpired(Map<String, Object> attributes) {
+        try {
+            // Get the payment intent ID from attributes
+            String intentId = (String) attributes.get("payment_intent_id");
+
+            PaymongoPayment payment = paymongoPaymentRepository
+                    .findByReferenceNumber(intentId)
+                    .orElse(null);
+
+            if (payment != null && payment.getStatus() == Status.PENDING) {
+                payment.setStatus(Status.EXPIRED);
+                paymongoPaymentRepository.save(payment);
+                System.out.println("QR expired for payment: " + intentId);
+            }
+        } catch (Exception e) {
+            System.out.println("Error handling qrph.expired: " + e.getMessage());
+        }
+    }
+
+    // ─── link.payment.failed ───────────────────────────────────────────────────
+
+    private void handlePaymentFailed(Map<String, Object> attributes) {
+        try {
+            String intentId = (String) attributes.get("payment_intent_id");
+
+            PaymongoPayment payment = paymongoPaymentRepository
+                    .findByReferenceNumber(intentId)
+                    .orElse(null);
+
+            if (payment != null && payment.getStatus() == Status.PENDING) {
+                payment.setStatus(Status.FAILED);
+                paymongoPaymentRepository.save(payment);
+                System.out.println("Payment failed for: " + intentId);
+            }
+        } catch (Exception e) {
+            System.out.println("Error handling payment.failed: " + e.getMessage());
         }
     }
 

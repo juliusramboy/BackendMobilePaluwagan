@@ -12,5 +12,6 @@ public enum Status {
     PARTIAL,
     CANCELLED,
     COMPLETED,
+    EXPIRED
 }
 

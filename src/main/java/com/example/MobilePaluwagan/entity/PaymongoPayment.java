@@ -50,6 +50,9 @@ public class PaymongoPayment {
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
 
+    @Column(name = "expires_at")
+    private LocalDateTime expiresAt;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status;
