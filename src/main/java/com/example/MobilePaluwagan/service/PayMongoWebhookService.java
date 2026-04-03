@@ -239,6 +239,10 @@ public class PayMongoWebhookService {
                 .findByReferenceNumber(intentId)
                 .orElseThrow(() -> new RuntimeException("Payment not found for intent: " + intentId));
 
+        if (payment.getStatus() == Status.EXPIRED){
+            return;
+        }
+
         if (payment.getStatus() == Status.PAID) {
             System.out.println("Already processed, skipping.");
             return;
