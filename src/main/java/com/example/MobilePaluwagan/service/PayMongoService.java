@@ -135,7 +135,7 @@ public class PayMongoService {
         String intentId = (String) responseData.get("id");
         String clientKey = (String) responseAttributes.get("client_key");
 
-        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(5);
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(20);
 
         // Save to DB as PENDING
         PaymongoPayment payment = new PaymongoPayment();
@@ -167,6 +167,7 @@ public class PayMongoService {
             // Step 1 — Create payment method
             Map<String, Object> methodAttributes = new HashMap<>();
             methodAttributes.put("type", methodType);
+            methodAttributes.put("expiry_seconds", 1200);
 
             Map<String, Object> methodData = new HashMap<>();
             methodData.put("attributes", methodAttributes);

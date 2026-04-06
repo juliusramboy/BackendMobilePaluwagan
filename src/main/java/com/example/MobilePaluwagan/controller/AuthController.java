@@ -8,6 +8,8 @@ import com.example.MobilePaluwagan.entity.User;
 import com.example.MobilePaluwagan.repository.UserRepo;
 import com.example.MobilePaluwagan.repository.VerificationRepo;
 import com.example.MobilePaluwagan.service.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,6 +34,8 @@ public class AuthController {
     private AuthOtpService authOtpService;
     @Autowired
     private JWTService jwtService;
+    @Autowired
+    private RefreshTokenService refreshTokenService;
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
@@ -68,15 +72,22 @@ public class AuthController {
         }
     }
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request, HttpServletResponse response) {
         User existingUser = userRepo.findByEmail(request.getEmail());
 
         if(existingUser != null && !existingUser.isActive()){
             String verificationToken = jwtService.generateToken(request.getEmail(), existingUser.getId(), existingUser.getRole().getRoleName());
             emailService.sendVerificationEmail(request.getEmail(), verificationToken);
-            return  ResponseEntity.ok( new LoginResponse(existingUser.getEmail(), existingUser.getId() , null, "User exists but not yet verified"));
+            return ResponseEntity.ok(new LoginResponse("User exists but not yet verified"));
         }
-        return loginService.login(request);
+        return loginService.login(request, response);
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(
+            HttpServletRequest request,
+            HttpServletResponse response) {
+        return refreshTokenService.handleRefreshToken(request, response);
     }
 
     @PostMapping("/otp/{userId}")
