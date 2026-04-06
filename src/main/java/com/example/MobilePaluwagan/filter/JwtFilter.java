@@ -47,6 +47,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String token = null;
         String username = null;
 
+
         // ✅ Basahin ang access token sa cookie — hindi na sa Authorization header
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
@@ -56,6 +57,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 }
             }
         }
+
 
         // May token sa cookie — subukang i-extract ang username
         if (token != null) {

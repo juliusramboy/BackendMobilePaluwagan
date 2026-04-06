@@ -204,6 +204,10 @@ public class  LoanController {
             @RequestBody PaymongoIntentRequest request,
             Authentication authentication) {
         try {
+            if (authentication == null) {
+                return ResponseEntity.status(401)
+                        .body(new ApiResponse<>(false, "Not logged in", null));
+            }
             UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
             Long userId = userDetails.userId();
             Map<String, Object> result = payMongoService.createPaymentIntent(userId, request);

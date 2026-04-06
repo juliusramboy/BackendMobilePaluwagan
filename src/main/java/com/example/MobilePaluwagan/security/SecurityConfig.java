@@ -57,7 +57,6 @@ public class SecurityConfig {
                 .requestMatchers("/api/loan/updates").permitAll()
                 .requestMatchers("/images/**").permitAll()
                 .requestMatchers("/images/**").permitAll()
-                .requestMatchers("/api/create-intent/**").permitAll()
                 .requestMatchers("/api/notifications/**").permitAll()
                 .requestMatchers("/api/webhook/**").permitAll()
                 .anyRequest().authenticated());
