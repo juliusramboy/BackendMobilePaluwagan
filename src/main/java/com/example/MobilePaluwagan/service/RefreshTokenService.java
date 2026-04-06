@@ -85,7 +85,8 @@ public class RefreshTokenService {
                     // ✅ newAccessToken na — hindi na 'value'
                     ResponseCookie accessCookie = ResponseCookie.from("accessToken", newAccessToken)
                             .httpOnly(true)
-                            .secure(false)        // true pag prod
+                            .secure(true)        // true pag prod
+                            .sameSite("None")
                             .path("/")
                             .domain("54.251.224.183")
                             .maxAge(60 * 60 * 24) // 24 hours
