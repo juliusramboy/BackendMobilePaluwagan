@@ -85,20 +85,20 @@ public class LoginService {
                 // ✅ Access token cookie — ResponseCookie para may SameSite
                 ResponseCookie accessCookie = ResponseCookie.from("accessToken", jwt)
                         .httpOnly(true)
-                        .secure(false)          // false habang local, true pag prod
+                        .secure(true)          // false habang local, true pag prod
                         .path("/")
                         .maxAge(60 * 60 * 24)   // 24 hours
-                        .sameSite("Lax")        // ✅ kailangan para gumana sa browser
+                        .sameSite("None")        // ✅ kailangan para gumana sa browser
                         .build();
                 response.addHeader("Set-Cookie", accessCookie.toString());
 
                 // ✅ Refresh token cookie — ResponseCookie para may SameSite
                 ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken.getToken())
                         .httpOnly(true)
-                        .secure(false)               // false habang local, true pag prod
+                        .secure(true)               // false habang local, true pag prod
                         .path("/")
                         .maxAge(7 * 24 * 60 * 60)   // 7 days
-                        .sameSite("Lax")             // ✅ kailangan para gumana sa browser
+                        .sameSite("None")             // ✅ kailangan para gumana sa browser
                         .build();
                 response.addHeader("Set-Cookie", refreshCookie.toString());
 
