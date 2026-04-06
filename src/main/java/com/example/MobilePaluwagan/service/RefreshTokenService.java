@@ -90,7 +90,6 @@ public class RefreshTokenService {
                             .path("/")
                             .domain("54.251.224.183")
                             .maxAge(60 * 60 * 24) // 24 hours
-                            .sameSite("Lax")
                             .build();
                     response.addHeader("Set-Cookie", accessCookie.toString());
 
