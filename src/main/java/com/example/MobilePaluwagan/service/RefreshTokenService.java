@@ -87,6 +87,7 @@ public class RefreshTokenService {
                             .httpOnly(true)
                             .secure(false)        // true pag prod
                             .path("/")
+                            .domain("54.251.224.183")
                             .maxAge(60 * 60 * 24) // 24 hours
                             .sameSite("Lax")
                             .build();
