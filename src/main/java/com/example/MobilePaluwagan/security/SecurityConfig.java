@@ -52,10 +52,10 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable);
         http.cors(cors -> cors.configurationSource(corsConfigurationSource));
         http.authorizeHttpRequests(request -> request.requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/admin/loan/user-loan").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/loan/updates").permitAll()
-                .requestMatchers("/images/**").permitAll()
                 .requestMatchers("/images/**").permitAll()
                 .requestMatchers("/api/notifications/**").permitAll()
                 .requestMatchers("/api/webhook/**").permitAll()

@@ -1,9 +1,11 @@
 package com.example.MobilePaluwagan.controller;
 
 import com.example.MobilePaluwagan.dto.Request.AdminLoanStatus;
+import com.example.MobilePaluwagan.dto.Request.BorrowerNameRequest;
 import com.example.MobilePaluwagan.dto.Response.ApiResponse;
 import com.example.MobilePaluwagan.dto.Response.ApplicantsFullInfoAdmin;
 import com.example.MobilePaluwagan.dto.Response.LoanApplicationResponse;
+import com.example.MobilePaluwagan.dto.Response.UserFullLoanResponse;
 import com.example.MobilePaluwagan.entity.Status;
 import com.example.MobilePaluwagan.service.LoanService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,11 @@ public class AdminLoanController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<LoanApplicationResponse> getAllPendingApplications(@PathVariable Status status, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size) {
         return ResponseEntity.ok(loanService.getPendingApplicants(status, page, size));
+    }
+
+    @PostMapping("/user-loan")
+    public UserFullLoanResponse getSpecificUserLoan(@RequestBody BorrowerNameRequest request){
+        return loanService.loanAllCredentials(request);
     }
 
 

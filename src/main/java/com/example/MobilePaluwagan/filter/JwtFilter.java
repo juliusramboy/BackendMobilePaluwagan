@@ -39,6 +39,14 @@ public class JwtFilter extends OncePerRequestFilter {
     UserRepo userRepo;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getServletPath();
+        // Ignore JWT logic for this specific public path
+        return path.equals("/api/admin/loan/user-loan") || path.startsWith("/api/auth/");
+    }
+
+
+    @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
@@ -57,6 +65,8 @@ public class JwtFilter extends OncePerRequestFilter {
                 }
             }
         }
+
+
 
 
         // May token sa cookie — subukang i-extract ang username

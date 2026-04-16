@@ -3,6 +3,7 @@ package com.example.MobilePaluwagan.service;
 import com.example.MobilePaluwagan.controller.SseController;
 import com.example.MobilePaluwagan.dto.Request.AdminLoanStatus;
 import com.example.MobilePaluwagan.dto.Request.ApplyLoanRequest;
+import com.example.MobilePaluwagan.dto.Request.BorrowerNameRequest;
 import com.example.MobilePaluwagan.dto.Request.PaymentFilterRequest;
 import com.example.MobilePaluwagan.dto.Response.*;
 import com.example.MobilePaluwagan.entity.*;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -53,7 +55,9 @@ public class LoanService {
     @Autowired
     private NotificationService notificationService;
 
-
+    public UserFullLoanResponse loanAllCredentials(BorrowerNameRequest name){
+        return userLoanRepo.findBorrowerByName(name.getFirstName());
+    }
 
 
 

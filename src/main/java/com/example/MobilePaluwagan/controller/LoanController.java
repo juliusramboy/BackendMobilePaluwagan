@@ -51,6 +51,8 @@ public class  LoanController {
     }
 
 
+
+
     @PostMapping("/loan/calculate-loan")
     public ResponseEntity<ApplyLoanResponse> calculateLoan(Authentication authentication, @RequestBody CalculateLoanRequest request){
         UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();

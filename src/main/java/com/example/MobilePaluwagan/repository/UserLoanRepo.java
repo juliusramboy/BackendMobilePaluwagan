@@ -1,5 +1,6 @@
 package com.example.MobilePaluwagan.repository;
 
+import com.example.MobilePaluwagan.dto.Response.UserFullLoanResponse;
 import com.example.MobilePaluwagan.entity.Loan;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -26,6 +27,17 @@ public interface UserLoanRepo extends JpaRepository<Loan, Long> {
     @Query("SELECT l FROM Loan l WHERE l.endDate < :today " +
             "AND l.loanRepaymentTally < l.totalRepayable")
     List<Loan> findOverdueLoans(@Param("today") LocalDate today);
+
+    @Query("""
+    SELECT new com.example.MobilePaluwagan.dto.Response.UserFullLoanResponse(
+        ui.firstName,
+        (l.totalRepayable - l.loanRepaymentTally)
+        )
+            FROM UserInfo ui
+                JOIN Loan l ON ui.userId = l.userId
+                    WHERE ui.firstName = :firstName
+    """)
+    UserFullLoanResponse findBorrowerByName(@Param("firstName") String firstName);
 
 
 }
