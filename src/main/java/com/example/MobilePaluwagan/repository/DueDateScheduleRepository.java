@@ -1,5 +1,6 @@
 package com.example.MobilePaluwagan.repository;
 
+import com.example.MobilePaluwagan.dto.Response.UserListDueDates;
 import com.example.MobilePaluwagan.entity.DueDateSchedule;
 import com.example.MobilePaluwagan.entity.Status;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,6 +17,17 @@ public interface DueDateScheduleRepository extends JpaRepository<DueDateSchedule
     Optional<DueDateSchedule> findFirstByApplicationIdAndStatusOrderByDueDateAsc(Long applicationId, Status status);
     List<DueDateSchedule> findByApplicationIdAndStatus(Long applicationId, Status status);
     List<DueDateSchedule> findByApplicationId(Long applicationId);
+    @Query("""
+        SELECT new com.example.MobilePaluwagan.dto.Response.UserListDueDates(
+            d.dueDate,
+            d.payment,
+            d.status
+        )
+        FROM DueDateSchedule d
+        WHERE d.applicationId = :applicationId
+        """)
+    List<UserListDueDates> findUserListDueDatesByApplicationId(@Param("applicationId") Long applicationId);
+
 //    DueDateSchedule findByUserId(Long userId);
     long countByApplicationIdAndStatus(Long applicationId, Status status);
 

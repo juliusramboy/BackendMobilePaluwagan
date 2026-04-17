@@ -55,9 +55,40 @@ public class LoanService {
     @Autowired
     private NotificationService notificationService;
 
-    public UserFullLoanResponse loanAllCredentials(BorrowerNameRequest name){
-        return userLoanRepo.findBorrowerByName(name.getFirstName());
+    public UserFullLoanResponse loanAllCredentials(BorrowerNameRequest name) {
+
+        if (name == null || name.getFirstName() == null || name.getFirstName().isBlank()) {
+            throw new IllegalArgumentException("First name cannot be empty");
+        }
+        
+        UserFullLoanResponse response = userLoanRepo.findBorrowerByName(name.getFirstName());
+
+        if (response == null) {
+            throw new RuntimeException("No borrower found with name: " + name.getFirstName());
+        }
+
+        response.setDueDates(
+                dueDateScheduleRepo.findUserListDueDatesByApplicationId(response.getApplicationId())
+        );
+
+        response.setPayments(
+                loanPaymentRepo.findUserListPaymentsByLoanId(response.getId())
+        );
+
+        return response;
     }
+
+//    public List<DueDateSchedule> loanDueDates(Long applicationId){
+//
+//        List<DueDateSchedule> response = dueDateScheduleRepo.findByApplicationId(applicationId);
+//
+//
+//        return dueDateScheduleRepo.findByApplicationId(applicationId);
+//    }
+
+//    public List<LoanPayment> loanPayments(Long loanId){
+//        return loanPaymentRepo.findByLoanId(loanId);
+//    }
 
 
 

@@ -30,7 +30,9 @@ public interface UserLoanRepo extends JpaRepository<Loan, Long> {
 
     @Query("""
     SELECT new com.example.MobilePaluwagan.dto.Response.UserFullLoanResponse(
+        l.id,
         ui.firstName,
+        l.applicationID,
         (l.totalRepayable - l.loanRepaymentTally)
         )
             FROM UserInfo ui

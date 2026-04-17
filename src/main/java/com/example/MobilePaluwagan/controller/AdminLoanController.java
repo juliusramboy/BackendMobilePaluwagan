@@ -2,10 +2,10 @@ package com.example.MobilePaluwagan.controller;
 
 import com.example.MobilePaluwagan.dto.Request.AdminLoanStatus;
 import com.example.MobilePaluwagan.dto.Request.BorrowerNameRequest;
-import com.example.MobilePaluwagan.dto.Response.ApiResponse;
-import com.example.MobilePaluwagan.dto.Response.ApplicantsFullInfoAdmin;
-import com.example.MobilePaluwagan.dto.Response.LoanApplicationResponse;
-import com.example.MobilePaluwagan.dto.Response.UserFullLoanResponse;
+import com.example.MobilePaluwagan.dto.Response.*;
+import com.example.MobilePaluwagan.entity.DueDateSchedule;
+import com.example.MobilePaluwagan.entity.Loan;
+import com.example.MobilePaluwagan.entity.LoanPayment;
 import com.example.MobilePaluwagan.entity.Status;
 import com.example.MobilePaluwagan.service.LoanService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -31,6 +32,16 @@ public class AdminLoanController {
     public UserFullLoanResponse getSpecificUserLoan(@RequestBody BorrowerNameRequest request){
         return loanService.loanAllCredentials(request);
     }
+
+//    @PostMapping("/due-dates")
+//    public List<DueDateSchedule> getSpecificDueDate(@RequestBody Long applicationId){
+//        return loanService.loanDueDates(applicationId);
+//    }
+//
+//    @PostMapping("/loan-payments")
+//    public List<LoanPayment> getSpecificPayment(@RequestBody Long applicationId){
+//        return loanService.loanPayments(applicationId);
+//    }
 
 
     @GetMapping("/details/{applicationId}")

@@ -1,6 +1,7 @@
 package com.example.MobilePaluwagan.repository;
 
 import com.example.MobilePaluwagan.dto.Response.AdminPaymentLoanSearchResponse;
+import com.example.MobilePaluwagan.dto.Response.UserListPayments;
 import com.example.MobilePaluwagan.entity.LoanPayment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +19,16 @@ import java.util.Optional;
 public interface LoanPaymentRepo extends JpaRepository<LoanPayment, Long> {
     Optional<LoanPayment> findByUserId(Long userId);
     List<LoanPayment> findByLoanId(Long loanId);
+    @Query("""
+        SELECT new com.example.MobilePaluwagan.dto.Response.UserListPayments( 
+            p.amountPaid,
+            p.paymentDate
+            
+        )
+        FROM LoanPayment p
+        WHERE p.loanId = :loanId
+        """)
+    List<UserListPayments> findUserListPaymentsByLoanId(@Param("loanId") Long loanId);
 
     Page<LoanPayment> findAllByUserId(Long userId, Pageable pageable);
     List<LoanPayment> findAllById(Long loanId);
