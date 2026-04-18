@@ -10,6 +10,7 @@ import com.example.MobilePaluwagan.entity.*;
 import com.example.MobilePaluwagan.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -55,16 +56,32 @@ public class LoanService {
     @Autowired
     private NotificationService notificationService;
 
-    public UserFullLoanResponse loanAllCredentials(BorrowerNameRequest name) {
+    @Value("${internal.secret-key}")
+    private String secretKey;
 
-        if (name == null || name.getFirstName() == null || name.getFirstName().isBlank()) {
-            throw new IllegalArgumentException("First name cannot be empty");
+    public ApiResponse<UserFullLoanResponse> loanAllCredentials(BorrowerNameRequest request) {
+
+        if(!request.getInternalKey().equals(secretKey)){
+            return new ApiResponse<>(false, "Unauthorized", null);
         }
-        
-        UserFullLoanResponse response = userLoanRepo.findBorrowerByName(name.getFirstName());
+
+
+        if (request.getFirstName() == null || request.getFirstName().isBlank()) {
+            return new ApiResponse<>(
+                    false,
+                    "First name cannot be empty",
+                    null
+            );
+        }
+
+        UserFullLoanResponse response = userLoanRepo.findBorrowerByName(request.getFirstName());
 
         if (response == null) {
-            throw new RuntimeException("No borrower found with name: " + name.getFirstName());
+            return new ApiResponse<>(
+                    false,
+                    "No borrower found with name: " + request.getFirstName(),
+                    null
+            );
         }
 
         response.setDueDates(
@@ -75,20 +92,13 @@ public class LoanService {
                 loanPaymentRepo.findUserListPaymentsByLoanId(response.getId())
         );
 
-        return response;
+        return new ApiResponse<>(
+                true,
+                "successfully get data from loan and savings",
+                response
+        );
     }
 
-//    public List<DueDateSchedule> loanDueDates(Long applicationId){
-//
-//        List<DueDateSchedule> response = dueDateScheduleRepo.findByApplicationId(applicationId);
-//
-//
-//        return dueDateScheduleRepo.findByApplicationId(applicationId);
-//    }
-
-//    public List<LoanPayment> loanPayments(Long loanId){
-//        return loanPaymentRepo.findByLoanId(loanId);
-//    }
 
 
 

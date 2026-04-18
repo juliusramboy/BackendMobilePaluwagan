@@ -11,18 +11,20 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class UserFullLoanResponse {
     private Long id;
     private String firstName;
+    private String lastName;
     private Long applicationId;
     private BigDecimal balance;
+
     private List<UserListDueDates> dueDates;
     private List<UserListPayments> payments;
 
-    public UserFullLoanResponse(Long id, String firstName, Long applicationId, BigDecimal balance) {
+    public UserFullLoanResponse(Long id, String firstName, String lastName, Long applicationId, BigDecimal balance) {
         this.id = id;
         this.firstName = firstName;
+        this.lastName = lastName;
         this.applicationId = applicationId;
         this.balance = balance;
     }

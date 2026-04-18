@@ -29,7 +29,7 @@ public class AdminLoanController {
     }
 
     @PostMapping("/user-loan")
-    public UserFullLoanResponse getSpecificUserLoan(@RequestBody BorrowerNameRequest request){
+    public ApiResponse<UserFullLoanResponse> getSpecificUserLoan(@RequestBody BorrowerNameRequest request){
         return loanService.loanAllCredentials(request);
     }
 

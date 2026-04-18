@@ -99,3 +99,5 @@ logging:
 gemini:
   api-key: ${GEMINI_API_KEY}
 
+internal:
+  secret-key: ${INTERNAL_SECRET_KEY}

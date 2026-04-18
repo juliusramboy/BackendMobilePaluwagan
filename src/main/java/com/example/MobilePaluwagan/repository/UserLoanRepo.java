@@ -32,14 +32,16 @@ public interface UserLoanRepo extends JpaRepository<Loan, Long> {
     SELECT new com.example.MobilePaluwagan.dto.Response.UserFullLoanResponse(
         l.id,
         ui.firstName,
+        ui.lastName,
         l.applicationID,
         (l.totalRepayable - l.loanRepaymentTally)
         )
             FROM UserInfo ui
                 JOIN Loan l ON ui.userId = l.userId
-                    WHERE ui.firstName = :firstName
+                    WHERE LOWER(ui.firstName) = LOWER(:name)
+                        OR LOWER(ui.lastName) = LOWER(:name)
     """)
-    UserFullLoanResponse findBorrowerByName(@Param("firstName") String firstName);
+    UserFullLoanResponse findBorrowerByName(@Param("name") String name);
 
 
 }
