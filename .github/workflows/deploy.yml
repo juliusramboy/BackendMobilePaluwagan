@@ -80,6 +80,7 @@ jobs:
           PAYMONGO_PUBLIC_KEY=${{ secrets.PAYMONGO_PUBLIC_KEY }}
           PAYMONGO_WEBHOOK_SECRET=${{ secrets.PAYMONGO_WEBHOOK_SECRET }}
           GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+          INTERNAL_SECRET_KEY: ${{ secrets.INTERNAL_SECRET_KEY }}
           ENVEOF"
 
       - name: Deploy on EC2
