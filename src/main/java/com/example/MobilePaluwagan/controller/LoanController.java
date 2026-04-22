@@ -3,11 +3,9 @@ package com.example.MobilePaluwagan.controller;
 import com.example.MobilePaluwagan.annotation.Idempotent;
 import com.example.MobilePaluwagan.dto.Request.*;
 import com.example.MobilePaluwagan.dto.Response.*;
-import com.example.MobilePaluwagan.entity.LoanApplication;
-import com.example.MobilePaluwagan.entity.LoanPayment;
-import com.example.MobilePaluwagan.entity.PaymongoPayment;
-import com.example.MobilePaluwagan.entity.UserPrinciple;
+import com.example.MobilePaluwagan.entity.*;
 import com.example.MobilePaluwagan.repository.PaymongoPaymentRepository;
+import com.example.MobilePaluwagan.repository.UserRepo;
 import com.example.MobilePaluwagan.service.LoanPenaltyService;
 import com.example.MobilePaluwagan.service.LoanService;
 import com.example.MobilePaluwagan.service.PayMongoService;
@@ -16,11 +14,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,6 +38,7 @@ public class  LoanController {
     private final LoanPenaltyService  loanPenaltyService;
     private final PayMongoWebhookService payMongoWebhookService;
     private final PaymongoPaymentRepository  paymongoPaymentRepository;
+    private final UserRepo userRepo;
 
 
     @GetMapping("/loan/user-details")
@@ -50,6 +51,24 @@ public class  LoanController {
         return ResponseEntity.ok(userInfo);
     }
 
+    @GetMapping("/verify/session")
+    public ResponseEntity<?> session(Authentication request){
+
+
+        if(request == null || !request.isAuthenticated()){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("user not found");
+        }
+
+        String email = request.getName();
+        User user = userRepo.findByEmail(email);
+
+        Map<String, Object> info = new HashMap<>();
+        info.put("userId", user.getId());
+        info.put("email", user.getEmail());
+        info.put("role", user.getRole().getRoleName());
+
+        return ResponseEntity.ok(info);
+    }
 
 
 
