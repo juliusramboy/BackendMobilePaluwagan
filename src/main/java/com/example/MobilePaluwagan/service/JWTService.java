@@ -24,7 +24,7 @@ public class JWTService {
     private  String secretKey;
 
 
-    public static final long Expiration_time = 1000 * 60 * 60 * 24;
+    public static final long Expiration_time = 1000 * 60 * 15;
 
     private final TokenRepository tokenRepository;
 

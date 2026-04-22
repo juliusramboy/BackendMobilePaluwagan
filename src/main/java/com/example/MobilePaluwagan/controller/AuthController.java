@@ -78,8 +78,6 @@ public class AuthController {
     }
 
 
-
-
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request, HttpServletResponse response) {
         User existingUser = userRepo.findByEmail(request.getEmail());

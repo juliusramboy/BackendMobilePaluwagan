@@ -87,7 +87,7 @@ public class LoginService {
                         .httpOnly(true)
                         .secure(true)          // false habang local, true pag prod
                         .path("/")
-                        .maxAge(60 * 60 * 24)   // 24 hours
+                        .maxAge(60 * 15)   // 24 hours
                         .sameSite("None")        // ✅ kailangan para gumana sa browser
                         .build();
                 response.addHeader("Set-Cookie", accessCookie.toString());
