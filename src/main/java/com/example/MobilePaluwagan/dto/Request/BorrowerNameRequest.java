@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class BorrowerNameRequest {
-    private String firstName;
+    private String prompt;
     private String internalKey;
 }

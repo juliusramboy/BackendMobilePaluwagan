@@ -85,10 +85,10 @@ public class RefreshTokenService {
                     // ✅ newAccessToken na — hindi na 'value'
                     ResponseCookie accessCookie = ResponseCookie.from("accessToken", newAccessToken)
                             .httpOnly(true)
-                            .secure(true)        // true pag prod
-                            .sameSite("None")
+                            .secure(false)        // true pag prod
+                            .sameSite("Lax")
                             .path("/")
-                            .domain("54.251.224.183")
+//                            .domain("54.251.224.183")
                             .maxAge(60 * 15) // 24 hours
                             .build();
                     response.addHeader("Set-Cookie", accessCookie.toString());
