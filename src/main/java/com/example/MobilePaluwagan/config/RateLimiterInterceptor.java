@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 public class RateLimiterInterceptor implements HandlerInterceptor {
 
     private final Cache<String, RateLimiter> limiters = CacheBuilder.newBuilder()
-            .expireAfterAccess(30, TimeUnit.MINUTES)
+            .expireAfterAccess(2, TimeUnit.MINUTES)
             .maximumSize(500)
             .build();
 
