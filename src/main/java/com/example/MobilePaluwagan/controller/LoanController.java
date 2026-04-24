@@ -53,8 +53,6 @@ public class  LoanController {
 
     @GetMapping("/verify/session")
     public ResponseEntity<?> session(Authentication request){
-
-
         if(request == null || !request.isAuthenticated()){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("user not found");
         }
@@ -96,6 +94,8 @@ public class  LoanController {
 
         return response;
     }
+
+
 
 
     @GetMapping("/loan/status/details")

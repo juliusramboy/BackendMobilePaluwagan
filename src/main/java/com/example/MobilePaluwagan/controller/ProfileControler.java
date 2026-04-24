@@ -2,10 +2,12 @@ package com.example.MobilePaluwagan.controller;
 
 
 import com.example.MobilePaluwagan.dto.Request.ProfileUpdateRequest;
+import com.example.MobilePaluwagan.dto.Response.AdminMemberListResponse;
 import com.example.MobilePaluwagan.dto.Response.ApiResponse;
 import com.example.MobilePaluwagan.dto.Response.UserProfileResponse;
 import com.example.MobilePaluwagan.entity.*;
 import com.example.MobilePaluwagan.repository.UserInfoRepo;
+import com.example.MobilePaluwagan.service.MembersService;
 import com.example.MobilePaluwagan.service.ProfileService;
 import com.example.MobilePaluwagan.service.SupabaseStorageService;
 import lombok.RequiredArgsConstructor;
@@ -31,15 +33,31 @@ public class ProfileControler {
     private final SupabaseStorageService supabaseStorageService;
     private final UserInfoRepo userInfoRepo;
     private final SseController sseController;
+    private final MembersService membersService;
+
+//    @GetMapping("/info")
+//    public UserProfileResponse userAllInfo(Authentication authentication){
+//        UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
+//        Long userid = userDetails.userId();
+//
+//        UserProfileResponse response = profileService.userAllInfo(userid);
+//
+//        return response;
+//    }
 
     @GetMapping("/info")
-    public UserProfileResponse userAllInfo(Authentication authentication){
-        UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
-        Long userid = userDetails.userId();
+    public ResponseEntity<?> getMember(Authentication authentication,
+                                       @RequestParam(defaultValue = "0") int page,
+                                       @RequestParam(defaultValue = "10") int size){
+        UserPrinciple details = (UserPrinciple) authentication.getPrincipal();
+        Long userId = details.userId();
 
-        UserProfileResponse response = profileService.userAllInfo(userid);
-
-        return response;
+        try{
+            AdminMemberListResponse response = membersService.getAdminUserProfile(userId, page, size);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
+        }
     }
 
     @PatchMapping("/update")
