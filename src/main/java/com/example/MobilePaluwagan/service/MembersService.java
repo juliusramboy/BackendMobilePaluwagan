@@ -148,11 +148,19 @@ public class MembersService {
     }
 
     public AdminMemberListResponse getAdminUserProfile(Long userId, int page, int size) {
-        UserProfileResponse info = profileService.userAllInfo(userId);
+        AdminProfileResponse info = profileService.userAllInfo(userId);
         Page<Ledger> ledgerPayments = profileService.getAllPayments(userId, page, size);
 
         return AdminMemberListResponse.builder()
                 .info(info)
+                .allPayments(ledgerPayments)
+                .build();
+    }
+
+    public AdminMemberListResponse userGetLedger(Long userId, int page, int size) {
+        Page<Ledger> ledgerPayments = profileService.getAllPayments(userId, page, size);
+
+        return AdminMemberListResponse.builder()
                 .allPayments(ledgerPayments)
                 .build();
     }

@@ -2,14 +2,15 @@ package com.example.MobilePaluwagan.service;
 
 import com.example.MobilePaluwagan.controller.SseController;
 import com.example.MobilePaluwagan.dto.Request.ProfileUpdateRequest;
-import com.example.MobilePaluwagan.dto.Response.AdminMemberListResponse;
 import com.example.MobilePaluwagan.dto.Response.ApiResponse;
+import com.example.MobilePaluwagan.dto.Response.AdminProfileResponse;
 import com.example.MobilePaluwagan.dto.Response.UserProfileResponse;
 import com.example.MobilePaluwagan.entity.*;
 import com.example.MobilePaluwagan.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,8 +22,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -40,8 +39,7 @@ public class ProfileService {
     private final LoanPaymentRepo  loanPaymentRepo;
     private final LedgerRepo  ledgerRepo;
 
-
-    public UserProfileResponse userAllInfo(Long userId) {
+    public AdminProfileResponse userAllInfo(Long userId) {
         UserInfo userInfo = userInfoRepo.findByUserId(userId).orElseThrow(() -> new RuntimeException("User info not found"));
         User user = userRepo.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
         Optional<UserBank> userBank = userBankRepo.findByUserId(userId);
@@ -80,7 +78,7 @@ public class ProfileService {
        }
 
 
-        return new UserProfileResponse(
+        return new AdminProfileResponse(
                 userInfo.getFirstName(),
                 userInfo.getLastName(),
                 userInfo.getMiddleName(),
@@ -100,10 +98,31 @@ public class ProfileService {
         );
     }
 
+
+    @Cacheable(value = "userProfile", key = "#userId")
+    public UserProfileResponse userProfileInfo(Long userId) {
+        UserInfo userInfo = userInfoRepo.findByUserId(userId).orElseThrow(() -> new RuntimeException("User info not found"));
+        User user = userRepo.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+
+        return new UserProfileResponse(
+                userInfo.getFirstName(),
+                userInfo.getLastName(),
+                userInfo.getMiddleName(),
+                userInfo.getSuffix(),
+                userInfo.getPhoneNumber(),
+                userInfo.getVerifiedDate(),
+                userInfo.getAddress(),
+                userInfo.getBirthDay(),
+                userInfo.getGender(),
+                userInfo.getProfileImage(),
+                user.getEmail()
+        );
+    }
+
+
+    @CacheEvict(value = "userProfile", key = "#userId")
     @Transactional
     public ApiResponse<String> updateProfile(Long userId, ProfileUpdateRequest request) {
-
-
 
 
         UserInfo info = userInfoRepo.findByUserId(userId)

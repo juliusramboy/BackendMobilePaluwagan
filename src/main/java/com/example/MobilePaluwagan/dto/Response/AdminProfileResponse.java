@@ -5,16 +5,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserProfileResponse {
+public class AdminProfileResponse {
     private String firstName;
     private String lastName;
-    private String middleName;
+    private String middlleName;
     private String suffix;
     private String phoneNumber;
     private LocalDate verifiedDate;
@@ -22,5 +23,12 @@ public class UserProfileResponse {
     private LocalDate birthday;
     private String gender;
     private String profileImage;
+    private boolean isOnline;
+
     private String email;
+    private BigDecimal savingsBalance;
+    private boolean isMature;
+    private BigDecimal loanBalance;
+    private LocalDate loanDueDate;
+
 }

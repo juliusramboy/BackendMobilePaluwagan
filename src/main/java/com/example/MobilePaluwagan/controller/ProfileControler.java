@@ -11,7 +11,6 @@ import com.example.MobilePaluwagan.service.MembersService;
 import com.example.MobilePaluwagan.service.ProfileService;
 import com.example.MobilePaluwagan.service.SupabaseStorageService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,17 +34,17 @@ public class ProfileControler {
     private final SseController sseController;
     private final MembersService membersService;
 
-//    @GetMapping("/info")
-//    public UserProfileResponse userAllInfo(Authentication authentication){
-//        UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
-//        Long userid = userDetails.userId();
-//
-//        UserProfileResponse response = profileService.userAllInfo(userid);
-//
-//        return response;
-//    }
-
     @GetMapping("/info")
+    public UserProfileResponse userAllInfo(Authentication authentication){
+        UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
+        Long userid = userDetails.userId();
+
+        UserProfileResponse response = profileService.userProfileInfo(userid);
+
+        return response;
+    }
+
+    @GetMapping("/ledger")
     public ResponseEntity<?> getMember(Authentication authentication,
                                        @RequestParam(defaultValue = "0") int page,
                                        @RequestParam(defaultValue = "10") int size){
@@ -53,7 +52,7 @@ public class ProfileControler {
         Long userId = details.userId();
 
         try{
-            AdminMemberListResponse response = membersService.getAdminUserProfile(userId, page, size);
+            AdminMemberListResponse response = membersService.userGetLedger(userId, page, size);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
