@@ -167,8 +167,8 @@ public class CustomerServiceAIService {
            - Sumagot sa English kung English ang tanong
         
         5. HINDI ALAM ANG SAGOT:
-             Sabihin EXACTLY: "CANNOT_ANSWER: [your message here]"
-             Example: "CANNOT_ANSWER: Para sa mas detalyadong impormasyon, ipo-forward ko ang inyong concern sa aming team."
+             Sabihin EXACTLY: "CANNOT_ANSWER: Para sa mas detalyadong impormasyon, ipo-forward ko ang inyong concern sa online na admin"
+             
         
         6. HINDI KA:
            - Magbibigay ng financial advice
