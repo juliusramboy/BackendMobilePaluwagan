@@ -1,5 +1,6 @@
 package com.example.MobilePaluwagan.controller;
 
+import com.example.MobilePaluwagan.config.AdminStatusTracker;
 import com.example.MobilePaluwagan.dto.Request.ChatRequest;
 import com.example.MobilePaluwagan.entity.ChatMessage;
 import com.example.MobilePaluwagan.entity.ChatTicket;
@@ -25,18 +26,50 @@ public class CustomerServiceController {
     private final CustomerServiceAIService customerServiceAIService;
     private final ChatTicketService chatTicketService;
     private final ChatTicketRepository  chatTicketRepository;
+    private final AdminStatusTracker adminStatusTracker;
 
     @PostMapping
     public ResponseEntity<?> chat(
             @RequestBody ChatRequest request,
             Authentication authentication) {
         try {
-            String response = customerServiceAIService
-                    .chat(request.getMessage());
-            return ResponseEntity.ok(Map.of("response", response));
+            String response = customerServiceAIService.chat(request.getMessage());
+
+            // Check if AI cannot answer
+            if (response.startsWith("CANNOT_ANSWER:")) {
+                String cleanResponse = response.replace("CANNOT_ANSWER:", "").trim();
+
+                if (!adminStatusTracker.isAnyAdminOnline()) {
+                    return ResponseEntity.ok(Map.of(
+                            "response", cleanResponse,
+                            "adminOnline", false,
+                            "message", "Walang online na admin ngayon."
+                    ));
+                }
+
+                // Admin is online — auto create ticket
+                UserPrinciple userPrinciple = (UserPrinciple) authentication.getPrincipal();
+                Long userId = userPrinciple.userId();
+                Map<String, Object> ticketResponse = chatTicketService
+                        .requestChat(request.getMessage(), userId);
+
+                return ResponseEntity.ok(Map.of(
+                        "response", cleanResponse,
+                        "adminOnline", true,
+                        "redirectToAdmin", true,
+                        "ticket", ticketResponse
+                ));
+            }
+
+            // AI answered normally
+            return ResponseEntity.ok(Map.of(
+                    "response", response,
+                    "adminOnline", false,
+                    "redirectToAdmin", false
+            ));
+
         } catch (Exception e) {
-            return ResponseEntity.status(500)
-                    .body(Map.of("message", e.getMessage()));
+            return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
         }
     }
 
