@@ -40,7 +40,7 @@ public class CustomerServiceController {
         }
     }
 
-    @PostMapping("/request")
+    @PostMapping("/user/request")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> requestChat(@RequestBody ChatRequest request, Authentication authentication) {
         try{
@@ -54,7 +54,7 @@ public class CustomerServiceController {
         }
     }
 
-    @PostMapping("/ticket/{ticketId}/message")
+    @PostMapping("/user/ticket/{ticketId}/message")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> sendMessage(
             @PathVariable String ticketId,
@@ -86,7 +86,7 @@ public class CustomerServiceController {
         }
     }
 
-    @PostMapping("/admin/ticket/{ticketId}/close")
+    @PostMapping("/admin/admin/ticket/{ticketId}/close")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> closeTicket(
             @PathVariable String ticketId) {
