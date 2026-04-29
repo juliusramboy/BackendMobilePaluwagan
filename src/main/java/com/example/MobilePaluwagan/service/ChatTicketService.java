@@ -40,7 +40,7 @@ public class ChatTicketService {
         if (!adminStatusTracker.isAnyAdminOnline()){
             String aiResponse = customerServiceAIService.chat(message);
             return Map.of(
-                    "response:", aiResponse,
+                    "response", aiResponse,
                     "answeredBy", "Peps",
                     "redirectToAdmin", false
             );
