@@ -73,6 +73,7 @@ public class CustomerServiceController {
         }
     }
 
+    //sa una pag mag rrequest yung user
     @PostMapping("/user/request")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> requestChat(@RequestBody ChatRequest request, Authentication authentication) {
@@ -87,6 +88,7 @@ public class CustomerServiceController {
         }
     }
 
+    // pag mag uusap na sila ng admin (para ma send yung chat nya sa admin)
     @PostMapping("/user/ticket/{ticketId}/message")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> sendMessage(
@@ -107,6 +109,7 @@ public class CustomerServiceController {
         }
     }
 
+    //get all the msgs within the ticket id yan
     @GetMapping("/ticket/{ticketId}/messages")
     public ResponseEntity<?> getMessages(
             @PathVariable String ticketId) {
@@ -119,7 +122,8 @@ public class CustomerServiceController {
         }
     }
 
-    @PostMapping("/admin/admin/ticket/{ticketId}/close")
+    // i cclose na ni admin yung convo nila by ticket
+    @PostMapping("/admin/ticket/{ticketId}/close")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> closeTicket(
             @PathVariable String ticketId) {
@@ -133,7 +137,7 @@ public class CustomerServiceController {
         }
     }
 
-
+    // mag rreply yung admin sa user
     @PostMapping("/admin/ticket/{ticketId}/message")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> adminSendMessage(
@@ -154,6 +158,7 @@ public class CustomerServiceController {
         }
     }
 
+    // para sa pending ticket kung meron pang get
     @GetMapping("/admin/tickets")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getPendingTickets() {

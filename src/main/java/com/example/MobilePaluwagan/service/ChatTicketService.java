@@ -40,12 +40,9 @@ public class ChatTicketService {
 
         if (!adminStatusTracker.isAnyAdminOnline()){
             String aiResponse = customerServiceAIService.chat(message);
-
-            // ✅ trim ang CANNOT_ANSWER dito sa service na
             if (aiResponse.startsWith("CANNOT_ANSWER:")) {
                 aiResponse = aiResponse.replace("CANNOT_ANSWER:", "").trim();
             }
-
             return Map.of(
                     "response", aiResponse,
                     "answeredBy", "Peps",
@@ -53,9 +50,32 @@ public class ChatTicketService {
             );
         }
 
+        ChatTicket ticket = new ChatTicket();
+        String aiResponse = customerServiceAIService.chat(message);
+
+        // AI can't answer — redirect to admin regardless of queue
+        if (aiResponse.startsWith("CANNOT_ANSWER:")) {
+            String cleanResponse = aiResponse.replace("CANNOT_ANSWER:", "").trim();
+
+            ticket.setUserId(userId);
+            ticket.setInitialMessage(message);
+            ticket.setCreatedAt(LocalDateTime.now());
+            ticket.setStatus(TicketStatus.OPEN);
+            ticket.setOpenedAt(LocalDateTime.now());
+            chatTicketRepository.save(ticket);
+            saveMessage(ticket.getId(), userId, message, "USER");
+            sseController.notifyAdminNewChatMessage(userId, message, ticket.getId());
+
+            return Map.of(
+                    "response", cleanResponse,
+                    "ticketId", ticket.getId(),
+                    "status", "OPEN",
+                    "redirectToAdmin", true
+            );
+        }
+
         Optional<ChatTicket> openTicket = chatTicketRepository.findFirstByStatusOrderByCreatedAtAsc(TicketStatus.OPEN);
 
-        ChatTicket ticket = new ChatTicket();
         ticket.setUserId(userId);
         ticket.setInitialMessage(message);
         ticket.setCreatedAt(LocalDateTime.now());
@@ -75,7 +95,7 @@ public class ChatTicketService {
                     "status", "OPEN",
                     "redirectToAdmin", true
             );
-        }else {
+        } else {
             ticket.setStatus(TicketStatus.PENDING);
             chatTicketRepository.save(ticket);
 
