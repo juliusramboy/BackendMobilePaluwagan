@@ -9,6 +9,7 @@ import com.example.MobilePaluwagan.repository.ChatMessageRepository;
 import com.example.MobilePaluwagan.repository.ChatTicketRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -39,6 +40,12 @@ public class ChatTicketService {
 
         if (!adminStatusTracker.isAnyAdminOnline()){
             String aiResponse = customerServiceAIService.chat(message);
+
+            // ✅ trim ang CANNOT_ANSWER dito sa service na
+            if (aiResponse.startsWith("CANNOT_ANSWER:")) {
+                aiResponse = aiResponse.replace("CANNOT_ANSWER:", "").trim();
+            }
+
             return Map.of(
                     "response", aiResponse,
                     "answeredBy", "Peps",
@@ -74,6 +81,7 @@ public class ChatTicketService {
 
             List<ChatTicket> pendingTicket = chatTicketRepository.findByStatusOrderByCreatedAtAsc(TicketStatus.PENDING);
             int position = pendingTicket.size();
+
 
             return Map.of(
                     "message", "May Kausap pa ang admin na Myembro nawa'y maghintay ng ilang minuto. " +
