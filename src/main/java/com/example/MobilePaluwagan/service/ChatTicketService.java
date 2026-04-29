@@ -26,6 +26,7 @@ public class ChatTicketService {
     private final SseController sseController;
     private final CustomerServiceAIService customerServiceAIService;
 
+    @Transactional
     public Map<String, Object> requestChat(String message, Long userId) {
 
         Optional<ChatTicket> existingTicket = chatTicketRepository.findByUserIdAndStatusIn(userId, List.of(TicketStatus.PENDING, TicketStatus.OPEN));
