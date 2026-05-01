@@ -34,6 +34,8 @@ public class ChatTicket {
     @Column(name = "closed_at")
     private LocalDateTime closedAt;
 
+    private boolean awaitingTicketConfirmation;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TicketStatus status;

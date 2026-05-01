@@ -53,7 +53,7 @@ public class SecurityConfig {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource));
         http.authorizeHttpRequests(request -> request.requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/admin/loan/user-loan").permitAll()
-                .requestMatchers("api/mobile/chat/**").permitAll()
+                .requestMatchers("/api/mobile/chat/**").permitAll()
                 .requestMatchers("/api/admin/loan/due-dates").permitAll()
                 .requestMatchers("/api/admin/loan/loan-payments").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

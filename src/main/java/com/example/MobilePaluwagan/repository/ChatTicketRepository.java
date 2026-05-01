@@ -14,4 +14,5 @@ public interface ChatTicketRepository extends JpaRepository<ChatTicket, String> 
     Optional<ChatTicket> findByUserIdAndStatusIn(Long userId, List<TicketStatus> status);
     Optional<ChatTicket> findFirstByStatusOrderByCreatedAtAsc(TicketStatus status);
     List<ChatTicket> findByStatusOrderByCreatedAtAsc(TicketStatus status);
+    Optional<ChatTicket> findByUserIdAndStatus(Long userId, TicketStatus status);
 }

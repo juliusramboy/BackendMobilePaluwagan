@@ -25,7 +25,7 @@ public class MobileAiController {
     private final MobileChatAiService mobileChatAiService;
     private final UserRepo userRepo;
 
-    @PostMapping("/user-loan")
+    @PostMapping("/v1/user-loan")
     public ApiResponse<UserFullLoanResponse> getSpecificUserLoan(@RequestBody BorrowerNameRequest request){
         return mobileChatAiService.loanAllCredentials(request);
     }

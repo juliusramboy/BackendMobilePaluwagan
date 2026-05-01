@@ -31,6 +31,12 @@ public class User {
     @Column(name = "is_online")
     private boolean isOnline;
 
+    @Column(name = "awaiting_ticket_confirmation")
+    private boolean awaitingTicketConfirmation;
+
+    @Column(name = "awaiting_admin_question")
+    private boolean awaitingAdminQuestion;
+
     @Transient
     private String verificationOtp;
 

@@ -42,7 +42,7 @@ public class MobileChatAiService {
         if (request.getFirstName() == null || request.getFirstName().isBlank()) {
             return new ApiResponse<>(
                     false,
-                    "First name cannot be empty",
+                    "Borrower name cannot be empty",
                     null
             );
         }
