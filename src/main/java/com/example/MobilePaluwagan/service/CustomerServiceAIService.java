@@ -121,9 +121,22 @@ public class CustomerServiceAIService {
            return checkIfAdminIsOnline(message, userId);
         }
 
-        saveMessage(existingTicket.get().getId(), userId, message, "USER");
+       saveMessage(existingTicket.get().getId(), userId, message, "USER");
 
-       return null;
+          String aiResponse = chatClient
+                .prompt()
+                .system(peepSystemPrompt)
+                .user(message)
+                .call()
+                .content();
+
+          saveMessage(existingTicket.get().getId(), userId, aiResponse, "Peep");
+
+        return Map.of(
+                "response", aiResponse,
+                "answeredBy", "Peep",
+                "redirectToAdmin", false
+        );
     }
 
     private ChatMessage saveMessage(String ticketId, Long userId, String message, String sentBy) {

@@ -33,7 +33,7 @@ public class ChatTicketService {
 
 
 public List<ChatMessageResponse> getMessages(Long userId) {
-    Optional<ChatTicket> ticket = chatTicketRepository.findByUserId(10L);
+    Optional<ChatTicket> ticket = chatTicketRepository.findByUserId(userId);
 
     if (ticket.isPresent()){
         List<ChatMessage> messages = chatMessageRepository
