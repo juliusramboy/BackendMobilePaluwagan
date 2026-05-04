@@ -84,7 +84,8 @@ public class CustomerServiceAIService {
             return Map.of(
                     "response", aiResponse,
                     "answeredBy", "Peep",
-                    "redirectToAdmin", false
+                    "redirectToAdmin", false,
+                    "ticketId", ticket.getId()
             );
         }
 
@@ -98,7 +99,8 @@ public class CustomerServiceAIService {
         return Map.of(
                 "response", "Maghintay lang sandali, may kausap pa ang admin na miyembro. Ikaw ay nakapila na!",
                 "answeredBy", "Peep",
-                "redirectToAdmin", true
+                "redirectToAdmin", true,
+                "ticketId", ticket.getId()
         );
 
     }
