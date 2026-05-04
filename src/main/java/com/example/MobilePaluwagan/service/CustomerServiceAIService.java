@@ -64,24 +64,14 @@ public class CustomerServiceAIService {
         }
 
         // Try Fallback Groq
-        try {
             return groqFallbackChatClient
                     .prompt()
                     .system(systemPrompt)
                     .user(userMessage)
                     .call()
                     .content();
-        } catch (Exception e) {
-            System.out.println("Fallback Groq failed, switching to Gemini: " + e.getMessage());
-        }
 
-        // Last resort: Gemini
-        return geminiChatClient
-                .prompt()
-                .system(systemPrompt)
-                .user(userMessage)
-                .call()
-                .content();
+
     }
 
     private String chatDesc(String userPrompt){
