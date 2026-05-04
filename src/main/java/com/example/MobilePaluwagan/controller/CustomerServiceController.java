@@ -28,64 +28,14 @@ public class CustomerServiceController {
     private final ChatTicketRepository  chatTicketRepository;
     private final AdminStatusTracker adminStatusTracker;
 
-    @PostMapping
-    public ResponseEntity<?> chat(
-            @RequestBody ChatRequest request,
-            Authentication authentication) {
-        try {
-            String response = customerServiceAIService.chat(request.getMessage());
-
-            // Check if AI cannot answer
-            if (response.startsWith("CANNOT_ANSWER:")) {
-                String cleanResponse = response.replace("CANNOT_ANSWER:", "").trim();
-
-                if (!adminStatusTracker.isAnyAdminOnline()) {
-                    return ResponseEntity.ok(Map.of(
-                            "response", cleanResponse,
-                            "adminOnline", false,
-                            "message", "Walang online na admin ngayon."
-                    ));
-                }
-
-                // Admin is online — auto create ticket
-                UserPrinciple userPrinciple = (UserPrinciple) authentication.getPrincipal();
-                Long userId = userPrinciple.userId();
-                Map<String, Object> ticketResponse = chatTicketService
-                        .requestChat(request.getMessage(), userId);
-
-                return ResponseEntity.ok(Map.of(
-                        "response", cleanResponse,
-                        "adminOnline", true,
-                        "redirectToAdmin", true,
-                        "ticket", ticketResponse
-                ));
-            }
-
-            // AI answered normally
-            return ResponseEntity.ok(Map.of(
-                    "response", response,
-                    "adminOnline", false,
-                    "redirectToAdmin", false
-            ));
-
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
-        }
-    }
 
     //sa una pag mag rrequest yung user
     @PostMapping("/user/request")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<?> requestChat(@RequestBody ChatRequest request, Authentication authentication) {
-        try{
-            UserPrinciple userPrinciple = (UserPrinciple) authentication.getPrincipal();
-            Long userId = userPrinciple.userId();
-            Map<String, Object> response = chatTicketService.requestChat(request.getMessage(), userId);
-            return ResponseEntity.ok(response);
-        }catch (Exception e){
-            return ResponseEntity.status(500)
-                    .body(Map.of("message", e.getMessage()));
-        }
+    public Map<String, Object> requestChat(@RequestBody ChatRequest request, Authentication authentication) {
+        UserPrinciple userPrinciple = (UserPrinciple) authentication.getPrincipal();
+        Long userId = userPrinciple.userId();
+        return customerServiceAIService.filterRawData(request.getMessage(),userId);
     }
 
     // pag mag uusap na sila ng admin (para ma send yung chat nya sa admin)
@@ -95,9 +45,7 @@ public class CustomerServiceController {
             @PathVariable String ticketId,
             @RequestBody ChatRequest request,
             Authentication authentication) {
-        try {
-            UserPrinciple userDetails =
-                    (UserPrinciple) authentication.getPrincipal();
+        try {UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
             Long userId = userDetails.userId();
             ChatMessage message = chatTicketService
                     .sendMessage(ticketId, userId,

@@ -4,5 +4,6 @@ public enum TicketStatus {
     PENDING,
     OPEN,
     CLOSED,
-    DRAFT
+    DRAFT,
+    AI_RESPONSE
 }

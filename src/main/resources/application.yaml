@@ -1,6 +1,15 @@
 spring:
   application:
     name: MobilePaluwagan
+  ai:
+    openai:
+      api-key: ${GROQ_API_KEY}
+      base-url: ${GROQ_BASE_URL}
+      chat:
+        options:
+          model: ${GROQ_MODEL}
+          store: false
+          stream-usage: false
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:backup}
 
