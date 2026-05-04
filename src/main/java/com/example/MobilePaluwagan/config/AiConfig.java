@@ -99,4 +99,9 @@ public class AiConfig {
         return ChatClient.builder(fallbackModel).build();
     }
 
+    @Bean("geminiChatClient")
+    public ChatClient geminiChatClient(GoogleGenAiChatModel geminiModel) {
+        return ChatClient.builder(geminiModel).build();
+    }
+
 }
