@@ -94,7 +94,7 @@ public class CustomerServiceAIService {
         ticket.setCreatedAt(LocalDateTime.now());
         ticket.setStatus(TicketStatus.PENDING);
         ticket.setOpenedAt(LocalDateTime.now());
-        chatTicketRepository.save(ticket);
+        ticket = chatTicketRepository.save(ticket);
 
         return Map.of(
                 "response", "Maghintay lang sandali, may kausap pa ang admin na miyembro. Ikaw ay nakapila na!",

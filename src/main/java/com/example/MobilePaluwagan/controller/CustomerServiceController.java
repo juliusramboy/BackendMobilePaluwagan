@@ -58,12 +58,12 @@ public class CustomerServiceController {
     }
 
     //get all the msgs within the ticket id yan
-    @GetMapping("/ticket/{ticketId}/messages")
-    public ResponseEntity<?> getMessages(
-            @PathVariable String ticketId) {
+    @GetMapping("/ticket/messages")
+    public ResponseEntity<?> getMessages(Authentication authentication) {
+        UserPrinciple userPrinciple = (UserPrinciple) authentication.getPrincipal();
+        Long userId = userPrinciple.userId();
         try {
-            return ResponseEntity.ok(
-                    chatTicketService.getMessages(ticketId));
+            return ResponseEntity.ok(chatTicketService.getMessages(userId));
         } catch (Exception e) {
             return ResponseEntity.status(500)
                     .body(Map.of("message", e.getMessage()));

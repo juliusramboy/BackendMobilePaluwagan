@@ -19,4 +19,5 @@ public interface ChatTicketRepository extends JpaRepository<ChatTicket, String> 
     List<ChatTicket> findByStatusAndOpenedAtBefore(TicketStatus status, LocalDateTime cutoff);
     List<ChatTicket> findByStatusIn(List<TicketStatus> statuses);
     List<ChatTicket> findByStatusAndClosedAtBefore(TicketStatus status, LocalDateTime cutoff);
+    Optional<ChatTicket> findByUserId(Long userId);
 }

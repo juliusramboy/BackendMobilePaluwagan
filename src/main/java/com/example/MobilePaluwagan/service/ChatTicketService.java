@@ -32,33 +32,38 @@ public class ChatTicketService {
 
 
 
-public List<ChatMessageResponse> getMessages(String ticketId) {
-    List<ChatMessage> messages = chatMessageRepository
-            .findByTicketIdOrderByCreatedAtAsc(ticketId);
+public List<ChatMessageResponse> getMessages(Long userId) {
+    Optional<ChatTicket> ticket = chatTicketRepository.findByUserId(10L);
 
-    return messages.stream()
-            .map(msg -> {
-                UserInfo info = userInfoRepo.findByUserId(msg.getUserId())
-                        .orElseThrow();
+    if (ticket.isPresent()){
+        List<ChatMessage> messages = chatMessageRepository
+                .findByTicketIdOrderByCreatedAtAsc(ticket.get().getId());
 
-                String name;
-                if (msg.getSentBy().equals("ADMIN")) {
-                    name = "Admin " + info.getFirstName();
-                } else {
-                    name = info.getFirstName() + " " + info.getLastName();
-                }
+        return messages.stream()
+                .map(msg -> {
+                    UserInfo info = userInfoRepo.findByUserId(msg.getUserId())
+                            .orElseThrow();
 
-                return ChatMessageResponse.builder()
-                        .ticketId(msg.getTicketId())
-                        .userId(msg.getUserId())
-                        .message(msg.getMessage())
-                        .sentBy(msg.getSentBy())
-                        .createdAt(msg.getCreatedAt())
-                        .senderName(name)
-                        .senderProfileImage(info.getProfileImage())
-                        .build();
-            })
-            .toList();
+                    String name;
+                    if (msg.getSentBy().equals("ADMIN")) {
+                        name = "Admin " + info.getFirstName();
+                    } else {
+                        name = info.getFirstName() + " " + info.getLastName();
+                    }
+
+                    return ChatMessageResponse.builder()
+                            .ticketId(msg.getTicketId())
+                            .userId(msg.getUserId())
+                            .message(msg.getMessage())
+                            .sentBy(msg.getSentBy())
+                            .createdAt(msg.getCreatedAt())
+                            .senderName(name)
+                            .senderProfileImage(info.getProfileImage())
+                            .build();
+                })
+                .toList();
+    }
+    return null;
 }
 
     public ChatMessage sendMessage(String ticketId, Long userId, String message, String sentBy) {
