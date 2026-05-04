@@ -3,7 +3,7 @@ spring:
     name: MobilePaluwagan
   ai:
     openai:
-      api-key: ${GROQ_API_KEY}
+      api-key: ${GROQ_API_KEY_1}
       base-url: ${GROQ_BASE_URL}
       chat:
         options:
@@ -78,6 +78,13 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
+
+groq:
+  fallback:
+    api-key: ${GROQ_API_KEY_2}
+    base-url: ${GROQ_BASE_URL}
+    model: ${GROQ_MODEL}
+
 supabase:
   url: ${SUPABASE_URL}
   key: ${SUPABASE_KEY}
@@ -105,11 +112,9 @@ logging:
         catalina:
           connector:
             CoyoteAdapter: ERROR
-
     org.hibernate.SQL: OFF
     org.hibernate.type: OFF
     org.springframework.web: ERROR
-
 
 internal:
   secret-key: ${INTERNAL_SECRET_KEY}
