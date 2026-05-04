@@ -32,14 +32,14 @@ public class ChatTicketService {
 
 
 
-public List<ChatMessageResponse> getMessages(Long userId) {
+public Map<String, Object> getMessages(Long userId) {
     Optional<ChatTicket> ticket = chatTicketRepository.findByUserId(userId);
 
-    if (ticket.isPresent()){
+    if (ticket.isPresent()) {
         List<ChatMessage> messages = chatMessageRepository
                 .findByTicketIdOrderByCreatedAtAsc(ticket.get().getId());
 
-        return messages.stream()
+        List<ChatMessageResponse> mappedMessages = messages.stream()
                 .map(msg -> {
                     UserInfo info = userInfoRepo.findByUserId(msg.getUserId())
                             .orElseThrow();
@@ -62,8 +62,14 @@ public List<ChatMessageResponse> getMessages(Long userId) {
                             .build();
                 })
                 .toList();
+
+        return Map.of(
+                "messages", mappedMessages,
+                "ticketId", ticket.get().getId()  // ← dagdag din ticketId
+        );
     }
-    return null;
+    
+    return Map.of("messages", List.of());
 }
 
     public ChatMessage sendMessage(String ticketId, Long userId, String message, String sentBy) {

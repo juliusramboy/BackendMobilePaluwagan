@@ -74,12 +74,15 @@ public class CustomerServiceAIService {
               ticket = chatTicketRepository.save(ticket);
               saveMessage(ticket.getId(), userId, message, "USER");
 
+
             String aiResponse = chatClient
                     .prompt()
                     .system(peepSystemPrompt)
                     .user(message)
                     .call()
                     .content();
+
+            saveMessage(ticket.getId(), userId, aiResponse, "Peep");
 
             return Map.of(
                     "response", aiResponse,
