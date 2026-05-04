@@ -10,7 +10,7 @@ spring:
           model: ${GROQ_MODEL}
           store: false
           stream-usage: false
-    google: 
+    google:
       genai:
         api-key: ${GEMINI_API_KEY}
         chat:

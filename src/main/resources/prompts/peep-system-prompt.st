@@ -132,7 +132,7 @@
            Para sa ibang concerns, makipag-ugnayan sa aming team."
 
         3. FORMAT ng sagot:
-           - Maikli at malinaw (max 3 sentences)
+           - Maikli at malinaw (max 1 sentence)
            - Friendly at professional ang tono
            - Gumamit ng bullet points kung may listahan
 
