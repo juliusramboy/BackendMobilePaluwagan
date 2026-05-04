@@ -30,7 +30,7 @@ public class CustomerServiceAIService {
 
     @Value("classpath:prompts/peep-decision.st")
     private Resource peepSystemDecision;
-    
+
 
     public CustomerServiceAIService(ChatClient chatClient, AdminStatusTracker adminStatus, ChatTicketRepository chatTicketRepository, ChatMessageRepository chatMessageRepository){
         this.chatClient = chatClient;
