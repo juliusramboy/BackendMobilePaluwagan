@@ -81,7 +81,8 @@ jobs:
           PAYMONGO_WEBHOOK_SECRET=${{ secrets.PAYMONGO_WEBHOOK_SECRET }}
           GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
           INTERNAL_SECRET_KEY=${{ secrets.INTERNAL_SECRET_KEY }}
-          GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+          GROQ_API_KEY_1=${{ secrets.GROQ_API_KEY_1 }}
+          GROQ_API_KEY_2=${{ secrets.GROQ_API_KEY_2 }}
           GROQ_BASE_URL=${{ secrets.GROQ_BASE_URL }}
           GROQ_MODEL=${{ secrets.GROQ_MODEL }}
           ENVEOF"

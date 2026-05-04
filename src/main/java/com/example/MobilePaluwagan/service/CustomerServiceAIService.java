@@ -7,6 +7,7 @@ import com.example.MobilePaluwagan.entity.TicketStatus;
 import com.example.MobilePaluwagan.repository.ChatMessageRepository;
 import com.example.MobilePaluwagan.repository.ChatTicketRepository;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -20,10 +21,12 @@ import java.util.Optional;
 
 @Service
 public class CustomerServiceAIService {
-    private final ChatClient chatClient;
+    private final ChatClient groqChatClient;
+    private final ChatClient geminiChatClient;
     private final AdminStatusTracker adminStatus;
     private final ChatTicketRepository chatTicketRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final ChatClient groqFallbackChatClient;
 
     @Value("classpath:prompts/peep-system-prompt.st")
     private Resource peepSystemPrompt;
@@ -32,20 +35,57 @@ public class CustomerServiceAIService {
     private Resource peepSystemDecision;
 
 
-    public CustomerServiceAIService(ChatClient chatClient, AdminStatusTracker adminStatus, ChatTicketRepository chatTicketRepository, ChatMessageRepository chatMessageRepository){
-        this.chatClient = chatClient;
+    public CustomerServiceAIService(
+            @Qualifier("groqChatClient") ChatClient groqChatClient,
+            @Qualifier("groqFallbackChatClient") ChatClient groqFallbackChatClient,
+            @Qualifier("geminiChatClient") ChatClient geminiChatClient,
+            AdminStatusTracker adminStatus,
+            ChatTicketRepository chatTicketRepository,
+            ChatMessageRepository chatMessageRepository) {
+        this.groqChatClient = groqChatClient;
+        this.groqFallbackChatClient = groqFallbackChatClient;
+        this.geminiChatClient = geminiChatClient;
         this.adminStatus = adminStatus;
         this.chatTicketRepository = chatTicketRepository;
         this.chatMessageRepository = chatMessageRepository;
     }
 
-    private String chatDesc(String userPrompt){
-        return chatClient
+    private String callAI(Resource systemPrompt, String userMessage) {
+        // Try Primary Groq
+        try {
+            return groqChatClient
+                    .prompt()
+                    .system(systemPrompt)
+                    .user(userMessage)
+                    .call()
+                    .content();
+        } catch (Exception e) {
+            System.out.println("Primary Groq failed: " + e.getMessage());
+        }
+
+        // Try Fallback Groq
+        try {
+            return groqFallbackChatClient
+                    .prompt()
+                    .system(systemPrompt)
+                    .user(userMessage)
+                    .call()
+                    .content();
+        } catch (Exception e) {
+            System.out.println("Fallback Groq failed, switching to Gemini: " + e.getMessage());
+        }
+
+        // Last resort: Gemini
+        return geminiChatClient
                 .prompt()
-                .system(peepSystemDecision)
-                .user(userPrompt)
+                .system(systemPrompt)
+                .user(userMessage)
                 .call()
                 .content();
+    }
+
+    private String chatDesc(String userPrompt){
+        return callAI(peepSystemDecision, userPrompt);
     }
 
     public Map<String, Object> filterRawData(String userPrompt, Long userId){
@@ -75,12 +115,7 @@ public class CustomerServiceAIService {
               saveMessage(ticket.getId(), userId, message, "USER");
 
 
-            String aiResponse = chatClient
-                    .prompt()
-                    .system(peepSystemPrompt)
-                    .user(message)
-                    .call()
-                    .content();
+            String aiResponse = callAI(peepSystemPrompt, message);
 
             saveMessage(ticket.getId(), userId, aiResponse, "Peep");
 
@@ -126,12 +161,7 @@ public class CustomerServiceAIService {
 
        saveMessage(existingTicket.get().getId(), userId, message, "USER");
 
-          String aiResponse = chatClient
-                .prompt()
-                .system(peepSystemPrompt)
-                .user(message)
-                .call()
-                .content();
+        String aiResponse = callAI(peepSystemPrompt, message);
 
           saveMessage(existingTicket.get().getId(), userId, aiResponse, "Peep");
 

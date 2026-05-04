@@ -10,6 +10,7 @@ spring:
           model: ${GROQ_MODEL}
           store: false
           stream-usage: false
+
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:backup}
 
@@ -109,9 +110,6 @@ logging:
     org.hibernate.type: OFF
     org.springframework.web: ERROR
 
-
-gemini:
-  api-key: ${GEMINI_API_KEY}
 
 internal:
   secret-key: ${INTERNAL_SECRET_KEY}
