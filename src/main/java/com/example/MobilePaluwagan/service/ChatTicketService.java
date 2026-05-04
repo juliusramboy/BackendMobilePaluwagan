@@ -36,9 +36,12 @@ public Map<String, Object> getMessages(Long userId) {
     Optional<ChatTicket> ticket = chatTicketRepository.findByUserId(userId);
 
     if (ticket.isPresent()) {
+        System.out.println("Ticket ID: " + ticket.get().getId());
+        System.out.println("Status: " + ticket.get().getStatus());
         List<ChatMessage> messages = chatMessageRepository
                 .findByTicketIdOrderByCreatedAtAsc(ticket.get().getId());
 
+        System.out.println("Messages count: " + messages.size());
         List<ChatMessageResponse> mappedMessages = messages.stream()
                 .map(msg -> {
                     UserInfo info = userInfoRepo.findByUserId(msg.getUserId())
@@ -68,7 +71,7 @@ public Map<String, Object> getMessages(Long userId) {
                 "ticketId", ticket.get().getId()  // ← dagdag din ticketId
         );
     }
-    
+
     return Map.of("messages", List.of());
 }
 
