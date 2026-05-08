@@ -2,6 +2,8 @@ package com.example.MobilePaluwagan.controller;
 
 import com.example.MobilePaluwagan.config.AdminStatusTracker;
 import com.example.MobilePaluwagan.dto.Request.ChatRequest;
+import com.example.MobilePaluwagan.dto.Response.ApiResponse;
+import com.example.MobilePaluwagan.dto.Response.TicketListAdminResponse;
 import com.example.MobilePaluwagan.entity.ChatMessage;
 import com.example.MobilePaluwagan.entity.ChatTicket;
 import com.example.MobilePaluwagan.entity.TicketStatus;
@@ -119,5 +121,11 @@ public class CustomerServiceController {
             return ResponseEntity.status(500)
                     .body(Map.of("message", e.getMessage()));
         }
+    }
+
+    @GetMapping("/admin/list/tickets")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<List<TicketListAdminResponse>> getAllTickets(){
+        return customerServiceAIService.ticketList();
     }
 }

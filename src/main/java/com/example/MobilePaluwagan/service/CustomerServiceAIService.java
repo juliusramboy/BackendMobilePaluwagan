@@ -1,11 +1,15 @@
 package com.example.MobilePaluwagan.service;
 
 import com.example.MobilePaluwagan.config.AdminStatusTracker;
+import com.example.MobilePaluwagan.dto.Response.ApiResponse;
+import com.example.MobilePaluwagan.dto.Response.TicketListAdminResponse;
 import com.example.MobilePaluwagan.entity.ChatMessage;
 import com.example.MobilePaluwagan.entity.ChatTicket;
 import com.example.MobilePaluwagan.entity.TicketStatus;
+import com.example.MobilePaluwagan.entity.UserInfo;
 import com.example.MobilePaluwagan.repository.ChatMessageRepository;
 import com.example.MobilePaluwagan.repository.ChatTicketRepository;
+import com.example.MobilePaluwagan.repository.UserInfoRepo;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -27,6 +32,7 @@ public class CustomerServiceAIService {
     private final ChatTicketRepository chatTicketRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final ChatClient groqFallbackChatClient;
+    private final UserInfoRepo userInfoRepo;
 
     @Value("classpath:prompts/peep-system-prompt.st")
     private Resource peepSystemPrompt;
@@ -41,13 +47,15 @@ public class CustomerServiceAIService {
             @Qualifier("geminiChatClient") ChatClient geminiChatClient,
             AdminStatusTracker adminStatus,
             ChatTicketRepository chatTicketRepository,
-            ChatMessageRepository chatMessageRepository) {
+            ChatMessageRepository chatMessageRepository,
+            UserInfoRepo userInfoRepo) {
         this.groqChatClient = groqChatClient;
         this.groqFallbackChatClient = groqFallbackChatClient;
         this.geminiChatClient = geminiChatClient;
         this.adminStatus = adminStatus;
         this.chatTicketRepository = chatTicketRepository;
         this.chatMessageRepository = chatMessageRepository;
+        this.userInfoRepo = userInfoRepo;
     }
 
     private String callAI(Resource systemPrompt, String userMessage) {
@@ -170,5 +178,45 @@ public class CustomerServiceAIService {
         chatMessage.setSentBy(sentBy);
         chatMessage.setCreatedAt(LocalDateTime.now());
         return chatMessageRepository.save(chatMessage);
+    }
+
+    public ApiResponse<List<TicketListAdminResponse>> ticketList() {
+        List<ChatTicket> tickets = chatTicketRepository.findAll();
+
+        if (tickets.isEmpty()) {
+            return new ApiResponse<>(
+                    false,
+                    "No ticket found in the database",
+                    null
+            );
+        }
+
+        List<UserInfo> users = userInfoRepo.findAll();
+
+        List<TicketListAdminResponse> response = tickets.stream()
+                .map(ticket -> {
+                    UserInfo matchedUser = users.stream()
+                            .filter(u -> u.getId().equals(ticket.getUserId()))
+                            .findFirst()
+                            .orElse(null);
+
+                    String fullName = matchedUser != null
+                            ? matchedUser.getFirstName() + " " + matchedUser.getLastName()
+                            : "Unknown";
+
+                    return new TicketListAdminResponse(
+                            ticket.getId(),
+                            fullName,
+                            ticket.getInitialMessage(),
+                            ticket.getCreatedAt()
+                    );
+                })
+                .collect(Collectors.toList());
+
+        return new ApiResponse<>(
+                true,
+                "Tickets retrieved successfully",
+                response
+        );
     }
 }
