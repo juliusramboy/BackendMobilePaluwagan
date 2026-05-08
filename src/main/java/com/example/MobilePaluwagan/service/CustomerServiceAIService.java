@@ -198,7 +198,7 @@ public class CustomerServiceAIService {
 
         // Filter PENDING only and map to response
         List<TicketListAdminResponse> pendingTickets = tickets.stream()
-                .filter(ticket -> ticket.getStatus().equals("PENDING"))
+                .filter(ticket -> ticket.getStatus().equals(TicketStatus.PENDING))
                 .map(ticket -> {
                     UserInfo matchedUser = users.stream()
                             .filter(u -> u.getId().equals(ticket.getUserId()))
