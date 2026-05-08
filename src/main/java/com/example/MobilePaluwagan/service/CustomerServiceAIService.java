@@ -10,6 +10,7 @@ import com.example.MobilePaluwagan.entity.UserInfo;
 import com.example.MobilePaluwagan.repository.ChatMessageRepository;
 import com.example.MobilePaluwagan.repository.ChatTicketRepository;
 import com.example.MobilePaluwagan.repository.UserInfoRepo;
+import jakarta.transaction.Transactional;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.core.io.Resource;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -141,7 +143,8 @@ public class CustomerServiceAIService {
 
     }
 
-    private void deleteUserRequestIfExisted(Long userId){
+    @Transactional
+    public void deleteUserRequestIfExisted(Long userId){
         Optional<ChatTicket> existingTicket = chatTicketRepository.findByUserIdAndStatusIn(userId, List.of(TicketStatus.PENDING));
         if(existingTicket.isPresent()) {
             chatMessageRepository.deleteByTicketId(existingTicket.get().getId());
@@ -180,7 +183,7 @@ public class CustomerServiceAIService {
         return chatMessageRepository.save(chatMessage);
     }
 
-    public ApiResponse<List<TicketListAdminResponse>> ticketList() {
+    public ApiResponse<Map<String, Object>> ticketList() {
         List<ChatTicket> tickets = chatTicketRepository.findAll();
 
         if (tickets.isEmpty()) {
@@ -193,7 +196,9 @@ public class CustomerServiceAIService {
 
         List<UserInfo> users = userInfoRepo.findAll();
 
-        List<TicketListAdminResponse> response = tickets.stream()
+        // Filter PENDING only and map to response
+        List<TicketListAdminResponse> pendingTickets = tickets.stream()
+                .filter(ticket -> ticket.getStatus().equals("PENDING"))
                 .map(ticket -> {
                     UserInfo matchedUser = users.stream()
                             .filter(u -> u.getId().equals(ticket.getUserId()))
@@ -213,10 +218,18 @@ public class CustomerServiceAIService {
                 })
                 .collect(Collectors.toList());
 
+        // Separate next (first in queue) from the rest
+        TicketListAdminResponse next = pendingTickets.isEmpty() ? null : pendingTickets.get(0);
+        List<TicketListAdminResponse> list = pendingTickets.isEmpty() ? List.of() : pendingTickets.subList(1, pendingTickets.size());
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("next", next);
+        result.put("list", list);
+
         return new ApiResponse<>(
                 true,
-                "Tickets retrieved successfully",
-                response
+                "Pending tickets retrieved successfully",
+                result
         );
     }
 }

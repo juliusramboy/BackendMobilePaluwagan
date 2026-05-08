@@ -125,7 +125,7 @@ public class CustomerServiceController {
 
     @GetMapping("/admin/list/tickets")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<List<TicketListAdminResponse>> getAllTickets(){
+    public ApiResponse<Map<String, Object>> getAllTickets(){
         return customerServiceAIService.ticketList();
     }
 }
