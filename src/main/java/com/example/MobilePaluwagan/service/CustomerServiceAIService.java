@@ -19,10 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.core.io.Resource;
 
 import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -38,6 +35,9 @@ public class CustomerServiceAIService {
 
     @Value("classpath:prompts/peep-system-prompt.st")
     private Resource peepSystemPrompt;
+
+    @Value("classpath:prompts/peep-subject-making.st")
+    private Resource ticketSubjectPrompt;
 
     @Value("classpath:prompts/peep-decision.st")
     private Resource peepSystemDecision;
@@ -92,31 +92,32 @@ public class CustomerServiceAIService {
         String aiChoice = chatDesc(userPrompt);
 
         if (aiChoice.startsWith("Para kay Peep")){
-            return checkIfTicketExist(userPrompt, userId);
+            return checkIfTicketExist(userPrompt, userId, false);
         }
 
-        if (aiChoice.startsWith("Para sa Admin")){
-            deleteUserRequestIfExisted(userId);
-            return checkIfTicketExist(userPrompt, userId);
+        else if (aiChoice.startsWith("Para sa Admin")){
+            switchToAdminIfExisted(userId);
+            return checkIfTicketExist(userPrompt, userId, true);
         }
         return null;
     }
 
 
-    private Map<String, Object> checkIfAdminIsOnline(String message, Long userId){
+    private Map<String, Object> checkIfAdminIsOnline(String message, Long userId, boolean forAdmin){
         ChatTicket ticket = new ChatTicket();
-        if(!adminStatus.isAnyAdminOnline()){
-              ticket.setUserId(userId);
-              ticket.setInitialMessage(message);
-              ticket.setCreatedAt(LocalDateTime.now());
-              ticket.setStatus(TicketStatus.AI_RESPONSE);
-              ticket.setOpenedAt(LocalDateTime.now());
-              ticket = chatTicketRepository.save(ticket);
-              saveMessage(ticket.getId(), userId, message, "USER");
 
+        // If for Peep lang — always si Peep, hindi na need i-check kung online ang admin
+        if (!forAdmin) {
+            String subject = callAI(ticketSubjectPrompt, message);
+            ticket.setUserId(userId);
+            ticket.setInitialMessage(subject);
+            ticket.setCreatedAt(LocalDateTime.now());
+            ticket.setStatus(TicketStatus.AI_RESPONSE);
+            ticket.setOpenedAt(LocalDateTime.now());
+            ticket = chatTicketRepository.save(ticket);
+            saveMessage(ticket.getId(), userId, message, "USER");
 
             String aiResponse = callAI(peepSystemPrompt, message);
-
             saveMessage(ticket.getId(), userId, aiResponse, "Peep");
 
             return Map.of(
@@ -127,12 +128,37 @@ public class CustomerServiceAIService {
             );
         }
 
+        // For Admin — ngayon na lang nag-che-check kung online
+        if (!adminStatus.isAnyAdminOnline()) {
+            // Admin offline — si Peep muna
+            ticket.setUserId(userId);
+            ticket.setInitialMessage(message);
+            ticket.setCreatedAt(LocalDateTime.now());
+            ticket.setStatus(TicketStatus.AI_RESPONSE);
+            ticket.setOpenedAt(LocalDateTime.now());
+            ticket = chatTicketRepository.save(ticket);
+            saveMessage(ticket.getId(), userId, message, "USER");
+
+            String aiResponse = callAI(peepSystemPrompt, message);
+            saveMessage(ticket.getId(), userId, aiResponse, "Peep");
+
+            return Map.of(
+                    "response", aiResponse,
+                    "answeredBy", "Peep",
+                    "redirectToAdmin", false,
+                    "ticketId", ticket.getId()
+            );
+        }
+
+        // Admin online AND gusto ng user ang admin — PENDING
+        String subject = callAI(ticketSubjectPrompt, message);
         ticket.setUserId(userId);
-        ticket.setInitialMessage(message);
+        ticket.setInitialMessage(subject);
         ticket.setCreatedAt(LocalDateTime.now());
         ticket.setStatus(TicketStatus.PENDING);
         ticket.setOpenedAt(LocalDateTime.now());
         ticket = chatTicketRepository.save(ticket);
+        saveMessage(ticket.getId(), userId, message, "USER");
 
         return Map.of(
                 "response", "Maghintay lang sandali, may kausap pa ang admin na miyembro. Ikaw ay nakapila na!",
@@ -140,36 +166,52 @@ public class CustomerServiceAIService {
                 "redirectToAdmin", true,
                 "ticketId", ticket.getId()
         );
-
     }
 
     @Transactional
-    public void deleteUserRequestIfExisted(Long userId){
-        Optional<ChatTicket> existingTicket = chatTicketRepository.findByUserIdAndStatusIn(userId, List.of(TicketStatus.PENDING));
+    public void switchToAdminIfExisted(Long userId){
+        Optional<ChatTicket> existingTicket = chatTicketRepository.findByUserIdAndStatusIn(
+                userId, List.of(TicketStatus.AI_RESPONSE)
+        );
         if(existingTicket.isPresent()) {
-            chatMessageRepository.deleteByTicketId(existingTicket.get().getId());
-            chatTicketRepository.delete(existingTicket.get());
+            ChatTicket ticket = existingTicket.get();
+            ticket.setStatus(TicketStatus.PENDING);
+            ticket.setCreatedAt(LocalDateTime.now()); // reset time para mapunta sa dulo ng queue
+            chatTicketRepository.save(ticket);
         }
-
     }
 
-    private Map<String, Object> checkIfTicketExist(String message, Long userId){
-        Optional<ChatTicket> existingTicket = chatTicketRepository.findByUserIdAndStatusIn(userId, List.of(TicketStatus.PENDING, TicketStatus.OPEN, TicketStatus.AI_RESPONSE));
+    private Map<String, Object> checkIfTicketExist(String message, Long userId, boolean forAdmin){
+        Optional<ChatTicket> existingTicket = chatTicketRepository.findByUserIdAndStatusIn(
+                userId, List.of(TicketStatus.PENDING, TicketStatus.OPEN, TicketStatus.AI_RESPONSE)
+        );
 
         if (existingTicket.isEmpty()){
-           return checkIfAdminIsOnline(message, userId);
+            return checkIfAdminIsOnline(message, userId, forAdmin);
         }
 
-       saveMessage(existingTicket.get().getId(), userId, message, "USER");
+        ChatTicket ticket = existingTicket.get();
 
+        if (ticket.getStatus() == TicketStatus.PENDING || ticket.getStatus() == TicketStatus.OPEN) {
+            saveMessage(ticket.getId(), userId, message, "USER");
+            return Map.of(
+                    "response", "Ang iyong mensahe ay naipadala na sa admin. Maghintay lang sandali!",
+                    "answeredBy", "System",
+                    "redirectToAdmin", true,
+                    "ticketId", ticket.getId()
+            );
+        }
+
+        // AI_RESPONSE — si Peep mag-respond
+        saveMessage(ticket.getId(), userId, message, "USER");
         String aiResponse = callAI(peepSystemPrompt, message);
-
-          saveMessage(existingTicket.get().getId(), userId, aiResponse, "Peep");
+        saveMessage(ticket.getId(), userId, aiResponse, "Peep");
 
         return Map.of(
                 "response", aiResponse,
                 "answeredBy", "Peep",
-                "redirectToAdmin", false
+                "redirectToAdmin", false,
+                "ticketId", ticket.getId()
         );
     }
 
@@ -199,6 +241,7 @@ public class CustomerServiceAIService {
         // Filter PENDING only and map to response
         List<TicketListAdminResponse> pendingTickets = tickets.stream()
                 .filter(ticket -> ticket.getStatus().equals(TicketStatus.PENDING))
+                .sorted(Comparator.comparing(ChatTicket::getCreatedAt))
                 .map(ticket -> {
                     UserInfo matchedUser = users.stream()
                             .filter(u -> u.getId().equals(ticket.getUserId()))
