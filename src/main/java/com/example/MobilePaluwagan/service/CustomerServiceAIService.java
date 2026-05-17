@@ -160,13 +160,17 @@ public class CustomerServiceAIService {
         ticket = chatTicketRepository.save(ticket);
         saveMessage(ticket.getId(), userId, message, "USER");
 
-        return Map.of(
-                "response", "Maghintay lang sandali, may kausap pa ang admin na miyembro. Ikaw ay nakapila na!",
-                "answeredBy", "Peep",
-                "redirectToAdmin", true,
-                "ticketId", ticket.getId()
+        return buildResponse(
+                ticket.getId(), userId,
+                "Maghintay lang ng sandali, may kausap pa ang admin na miyembro. Ikaw ay nakapila na!",
+                "Peep",
+                true,
+                true
         );
     }
+
+
+
 
     @Transactional
     public void switchToAdminIfExisted(Long userId){
@@ -194,11 +198,12 @@ public class CustomerServiceAIService {
 
         if (ticket.getStatus() == TicketStatus.PENDING || ticket.getStatus() == TicketStatus.OPEN) {
             saveMessage(ticket.getId(), userId, message, "USER");
-            return Map.of(
-                    "response", "Ang iyong mensahe ay naipadala na sa admin. Maghintay lang sandali!",
-                    "answeredBy", "System",
-                    "redirectToAdmin", true,
-                    "ticketId", ticket.getId()
+            return buildResponse(
+                    ticket.getId(), userId,
+                    "Ang iyong mensahe ay naipadala na sa admin. Maghintay lang sandali!",
+                    "Peep",
+                    true,
+                    true
             );
         }
 
@@ -273,6 +278,19 @@ public class CustomerServiceAIService {
                 true,
                 "Pending tickets retrieved successfully",
                 result
+        );
+    }
+
+    private Map<String, Object> buildResponse(String ticketId, Long userId, String response, String answeredBy, boolean redirectToAdmin, boolean saveToDb) {
+        if (saveToDb) {
+            saveMessage(ticketId, userId, response, answeredBy); // or "SYSTEM" / "AI" sender
+        }
+
+        return Map.of(
+                "response", response,
+                "answeredBy", answeredBy,
+                "redirectToAdmin", redirectToAdmin,
+                "ticketId", ticketId
         );
     }
 }

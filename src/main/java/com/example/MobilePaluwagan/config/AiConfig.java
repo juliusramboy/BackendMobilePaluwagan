@@ -33,6 +33,7 @@ public class AiConfig {
     @Value("${groq.fallback.model}")
     private String fallbackModel;
 
+
     // =====================
     // PRIMARY GROQ BEANS
     // =====================
@@ -68,6 +69,14 @@ public class AiConfig {
                 .baseUrl(fallbackBaseUrl)
                 .build();
     }
+//    //3rd fallback
+//    @Bean("fallbackOpenAiApi")
+//    public OpenAiApi groqFallback2() {
+//        return OpenAiApi.builder()
+//                .apiKey(fallbackApiKey)
+//                .baseUrl(fallbackBaseUrl)
+//                .build();
+//    }
 
     @Bean("fallbackOpenAiChatModel")
     public OpenAiChatModel fallbackOpenAiChatModel(
