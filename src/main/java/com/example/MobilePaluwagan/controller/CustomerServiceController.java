@@ -43,9 +43,7 @@ public class CustomerServiceController {
     // pag mag uusap na sila ng admin (para ma send yung chat nya sa admin)
     @PostMapping("/user/ticket/{ticketId}/message")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<?> sendMessage(
-            @PathVariable String ticketId,
-            @RequestBody ChatRequest request,
+    public ResponseEntity<?> sendMessage(@PathVariable String ticketId, @RequestBody ChatRequest request,
             Authentication authentication) {
         try {UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
             Long userId = userDetails.userId();
@@ -60,12 +58,10 @@ public class CustomerServiceController {
     }
 
     //get all the msgs within the ticket id yan
-    @GetMapping("/ticket/messages")
-    public ResponseEntity<?> getMessages(Authentication authentication) {
-        UserPrinciple userPrinciple = (UserPrinciple) authentication.getPrincipal();
-        Long userId = userPrinciple.userId();
+    @GetMapping("/{ticketId}/messages")
+    public ResponseEntity<?> getMessages(@PathVariable String ticketId) {
         try {
-            return ResponseEntity.ok(chatTicketService.getMessages(userId));
+            return ResponseEntity.ok(chatTicketService.getMessages(ticketId));
         } catch (Exception e) {
             return ResponseEntity.status(500)
                     .body(Map.of("message", e.getMessage()));
@@ -108,19 +104,11 @@ public class CustomerServiceController {
         }
     }
 
-    // para sa pending ticket kung meron pang get
-    @GetMapping("/admin/tickets")
+
+    @PutMapping("/admin/ticket/{ticketId}/claim")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getPendingTickets() {
-        try {
-            List<ChatTicket> tickets = chatTicketRepository
-                    .findByStatusOrderByCreatedAtAsc(
-                            TicketStatus.PENDING);
-            return ResponseEntity.ok(tickets);
-        } catch (Exception e) {
-            return ResponseEntity.status(500)
-                    .body(Map.of("message", e.getMessage()));
-        }
+    public ResponseEntity<?> claimTicket(@PathVariable String ticketId) {
+        return ResponseEntity.ok(chatTicketService.claimTicket(ticketId));
     }
 
     @GetMapping("/admin/list/tickets")

@@ -2,6 +2,7 @@ package com.example.MobilePaluwagan.service;
 
 import com.example.MobilePaluwagan.config.AdminStatusTracker;
 import com.example.MobilePaluwagan.controller.SseController;
+import com.example.MobilePaluwagan.dto.Response.ApiResponse;
 import com.example.MobilePaluwagan.dto.Response.ChatMessageResponse;
 import com.example.MobilePaluwagan.entity.*;
 import com.example.MobilePaluwagan.repository.ChatMessageRepository;
@@ -32,8 +33,8 @@ public class ChatTicketService {
 
 
 
-public Map<String, Object> getMessages(Long userId) {
-    Optional<ChatTicket> ticket = chatTicketRepository.findByUserId(userId);
+public Map<String, Object> getMessages(String ticketId) {
+    Optional<ChatTicket> ticket = chatTicketRepository.findById(ticketId);
 
     if (ticket.isPresent()) {
         System.out.println("Ticket ID: " + ticket.get().getId());
@@ -68,7 +69,7 @@ public Map<String, Object> getMessages(Long userId) {
 
         return Map.of(
                 "messages", mappedMessages,
-                "ticketId", ticket.get().getId()  // ← dagdag din ticketId
+                "ticketId", ticket.get().getId()
         );
     }
 
@@ -123,6 +124,29 @@ public Map<String, Object> getMessages(Long userId) {
         return Map.of(
                 "message", "Ticket closed! Wala ng pending na membero."
         );
+    }
+
+    public ApiResponse<Map<String, Object>> claimTicket(String ticketId) {
+        Optional<ChatTicket> existingTicket = chatTicketRepository.findById(ticketId);
+
+        if (existingTicket.isEmpty()) {
+            return new ApiResponse<>(false, "Ticket not found", null);
+        }
+
+        ChatTicket ticket = existingTicket.get();
+
+        // Guard: baka na-claim na ng ibang admin
+        if (!ticket.getStatus().equals(TicketStatus.PENDING)) {
+            return new ApiResponse<>(false, "Ticket is no longer available", null);
+        }
+
+        ticket.setStatus(TicketStatus.OPEN);
+        chatTicketRepository.save(ticket);
+
+        return new ApiResponse<>(true, "Ticket claimed successfully", Map.of(
+                "ticketId", ticket.getId(),
+                "status", ticket.getStatus()
+        ));
     }
 
     private ChatMessage saveMessage(String ticketId, Long userId, String message, String sentBy) {
