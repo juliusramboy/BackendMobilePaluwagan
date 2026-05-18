@@ -30,7 +30,9 @@ public class CustomerServiceAIService {
     private final AdminStatusTracker adminStatus;
     private final ChatTicketRepository chatTicketRepository;
     private final ChatMessageRepository chatMessageRepository;
-    private final ChatClient groqFallbackChatClient;
+    private final ChatClient groqFallback2ChatClient;
+    private final ChatClient groqFallback3ChatClient;
+    private final ChatClient groqFallback4ChatClient;
     private final UserInfoRepo userInfoRepo;
 
     @Value("classpath:prompts/peep-system-prompt.st")
@@ -45,14 +47,18 @@ public class CustomerServiceAIService {
 
     public CustomerServiceAIService(
             @Qualifier("groqChatClient") ChatClient groqChatClient,
-            @Qualifier("groqFallbackChatClient") ChatClient groqFallbackChatClient,
+            @Qualifier("groqFallback2ChatClient") ChatClient groqFallback2ChatClient,
+            @Qualifier("groqFallback3ChatClient") ChatClient groqFallback3ChatClient,
+            @Qualifier("groqFallback4ChatClient") ChatClient groqFallback4ChatClient,
             @Qualifier("geminiChatClient") ChatClient geminiChatClient,
             AdminStatusTracker adminStatus,
             ChatTicketRepository chatTicketRepository,
             ChatMessageRepository chatMessageRepository,
             UserInfoRepo userInfoRepo) {
         this.groqChatClient = groqChatClient;
-        this.groqFallbackChatClient = groqFallbackChatClient;
+        this.groqFallback2ChatClient = groqFallback2ChatClient;
+        this.groqFallback3ChatClient = groqFallback3ChatClient;
+        this.groqFallback4ChatClient = groqFallback4ChatClient;
         this.geminiChatClient = geminiChatClient;
         this.adminStatus = adminStatus;
         this.chatTicketRepository = chatTicketRepository;
@@ -73,15 +79,55 @@ public class CustomerServiceAIService {
             System.out.println("Primary Groq failed: " + e.getMessage());
         }
 
-        // Try Fallback Groq
-            return groqFallbackChatClient
+        // Try Fallback 2
+        try {
+            return groqFallback2ChatClient
                     .prompt()
                     .system(systemPrompt)
                     .user(userMessage)
                     .call()
                     .content();
+        } catch (Exception e) {
+            System.out.println("Fallback 2 Groq failed: " + e.getMessage());
+        }
 
+        // Try Fallback 3
+        try {
+            return groqFallback3ChatClient
+                    .prompt()
+                    .system(systemPrompt)
+                    .user(userMessage)
+                    .call()
+                    .content();
+        } catch (Exception e) {
+            System.out.println("Fallback 3 Groq failed: " + e.getMessage());
+        }
 
+        // Try Fallback 4
+        try {
+            return groqFallback4ChatClient
+                    .prompt()
+                    .system(systemPrompt)
+                    .user(userMessage)
+                    .call()
+                    .content();
+        } catch (Exception e) {
+            System.out.println("Fallback 4 Groq failed: " + e.getMessage());
+        }
+
+        // Last resort — Gemini
+        try {
+            return geminiChatClient
+                    .prompt()
+                    .system(systemPrompt)
+                    .user(userMessage)
+                    .call()
+                    .content();
+        } catch (Exception e) {
+            System.out.println("Gemini failed: " + e.getMessage());
+        }
+
+        throw new RuntimeException("All AI providers failed. Please try again later.");
     }
 
     private String chatDesc(String userPrompt){

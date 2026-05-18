@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AiConfig {
 
-    // --- Primary Groq ---
+    // --- Primary ---
     @Value("${spring.ai.openai.api-key}")
     private String primaryApiKey;
 
@@ -22,8 +22,7 @@ public class AiConfig {
 
     @Value("${spring.ai.openai.chat.options.model}")
     private String model;
-
-    // --- Fallback Groq ---
+    // Fallback 2
     @Value("${groq.fallback.api-key}")
     private String fallbackApiKey;
 
@@ -33,6 +32,25 @@ public class AiConfig {
     @Value("${groq.fallback.model}")
     private String fallbackModel;
 
+    // Fallback 3
+    @Value("${groq.fallback2.api-key}")
+    private String fallback3ApiKey;
+
+    @Value("${groq.fallback2.base-url}")
+    private String fallback3BaseUrl;
+
+    @Value("${groq.fallback2.model}")
+    private String fallback3Model;
+
+    // Fallback 4
+    @Value("${groq.fallback3.api-key}")
+    private String fallback4ApiKey;
+
+    @Value("${groq.fallback3.base-url}")
+    private String fallback4BaseUrl;
+
+    @Value("${groq.fallback3.model}")
+    private String fallback4Model;
 
     // =====================
     // PRIMARY GROQ BEANS
@@ -60,29 +78,71 @@ public class AiConfig {
     }
 
     // =====================
-    // FALLBACK GROQ BEANS
+    // FALLBACK 2 BEANS
     // =====================
-    @Bean("fallbackOpenAiApi")
-    public OpenAiApi fallbackOpenAiApi() {
+    @Bean("fallback2OpenAiApi")
+    public OpenAiApi fallback2OpenAiApi() {
         return OpenAiApi.builder()
                 .apiKey(fallbackApiKey)
                 .baseUrl(fallbackBaseUrl)
                 .build();
     }
-//    //3rd fallback
-//    @Bean("fallbackOpenAiApi")
-//    public OpenAiApi groqFallback2() {
-//        return OpenAiApi.builder()
-//                .apiKey(fallbackApiKey)
-//                .baseUrl(fallbackBaseUrl)
-//                .build();
-//    }
 
-    @Bean("fallbackOpenAiChatModel")
-    public OpenAiChatModel fallbackOpenAiChatModel(
-            @Qualifier("fallbackOpenAiApi") OpenAiApi openAiApi) {
+    @Bean("fallback2OpenAiChatModel")
+    public OpenAiChatModel fallback2OpenAiChatModel(
+            @Qualifier("fallback2OpenAiApi") OpenAiApi openAiApi) {
         OpenAiChatOptions options = OpenAiChatOptions.builder()
                 .model(fallbackModel)
+                .store(false)
+                .streamUsage(false)
+                .build();
+        return OpenAiChatModel.builder()
+                .openAiApi(openAiApi)
+                .defaultOptions(options)
+                .build();
+    }
+
+    // =====================
+    // FALLBACK 3 BEANS
+    // =====================
+    @Bean("fallback3OpenAiApi")
+    public OpenAiApi fallback3OpenAiApi() {
+        return OpenAiApi.builder()
+                .apiKey(fallback3ApiKey)
+                .baseUrl(fallback3BaseUrl)
+                .build();
+    }
+
+    @Bean("fallback3OpenAiChatModel")
+    public OpenAiChatModel fallback3OpenAiChatModel(
+            @Qualifier("fallback3OpenAiApi") OpenAiApi openAiApi) {
+        OpenAiChatOptions options = OpenAiChatOptions.builder()
+                .model(fallback3Model)
+                .store(false)
+                .streamUsage(false)
+                .build();
+        return OpenAiChatModel.builder()
+                .openAiApi(openAiApi)
+                .defaultOptions(options)
+                .build();
+    }
+
+    // =====================
+    // FALLBACK 4 BEANS
+    // =====================
+    @Bean("fallback4OpenAiApi")
+    public OpenAiApi fallback4OpenAiApi() {
+        return OpenAiApi.builder()
+                .apiKey(fallback4ApiKey)
+                .baseUrl(fallback4BaseUrl)
+                .build();
+    }
+
+    @Bean("fallback4OpenAiChatModel")
+    public OpenAiChatModel fallback4OpenAiChatModel(
+            @Qualifier("fallback4OpenAiApi") OpenAiApi openAiApi) {
+        OpenAiChatOptions options = OpenAiChatOptions.builder()
+                .model(fallback4Model)
                 .store(false)
                 .streamUsage(false)
                 .build();
@@ -97,14 +157,25 @@ public class AiConfig {
     // =====================
     @Bean("groqChatClient")
     public ChatClient groqChatClient(
-            @Qualifier("primaryOpenAiChatModel") OpenAiChatModel primaryModel,
-            @Qualifier("fallbackOpenAiChatModel") OpenAiChatModel fallbackModel) {
+            @Qualifier("primaryOpenAiChatModel") OpenAiChatModel primaryModel) {
         return ChatClient.builder(primaryModel).build();
     }
 
-    @Bean("groqFallbackChatClient")
-    public ChatClient groqFallbackChatClient(
-            @Qualifier("fallbackOpenAiChatModel") OpenAiChatModel fallbackModel) {
+    @Bean("groqFallback2ChatClient")
+    public ChatClient groqFallback2ChatClient(
+            @Qualifier("fallback2OpenAiChatModel") OpenAiChatModel fallbackModel) {
+        return ChatClient.builder(fallbackModel).build();
+    }
+
+    @Bean("groqFallback3ChatClient")
+    public ChatClient groqFallback3ChatClient(
+            @Qualifier("fallback3OpenAiChatModel") OpenAiChatModel fallbackModel) {
+        return ChatClient.builder(fallbackModel).build();
+    }
+
+    @Bean("groqFallback4ChatClient")
+    public ChatClient groqFallback4ChatClient(
+            @Qualifier("fallback4OpenAiChatModel") OpenAiChatModel fallbackModel) {
         return ChatClient.builder(fallbackModel).build();
     }
 
@@ -112,5 +183,4 @@ public class AiConfig {
     public ChatClient geminiChatClient(GoogleGenAiChatModel geminiModel) {
         return ChatClient.builder(geminiModel).build();
     }
-
 }
