@@ -90,14 +90,7 @@ groq:
     api-key: ${GROQ_API_KEY_2}
     base-url: ${GROQ_BASE_URL}
     model: ${GROQ_MODEL}
-  fallback2:
-    api-key: ${GROQ_API_KEY_3}
-    base-url: ${GROQ_BASE_URL}
-    model: ${GROQ_MODEL}
-  fallback3:
-    api-key: ${GROQ_API_KEY_4}
-    base-url: ${GROQ_BASE_URL}
-    model: ${GROQ_MODEL}
+ 
 
 supabase:
   url: ${SUPABASE_URL}
