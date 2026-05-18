@@ -84,6 +84,8 @@ jobs:
           GROQ_API_KEY_2=${{ secrets.GROQ_API_KEY_2 }}
           GROQ_BASE_URL=${{ secrets.GROQ_BASE_URL }}
           GROQ_MODEL=${{ secrets.GROQ_MODEL }}
+          GROQ_API_KEY_3=${{ secrets.GROQ_API_KEY_3 }}
+          GROQ_API_KEY_4=${{ secrets.GROQ_API_KEY_4 }}
           ENVEOF"
 
       - name: Deploy on EC2
