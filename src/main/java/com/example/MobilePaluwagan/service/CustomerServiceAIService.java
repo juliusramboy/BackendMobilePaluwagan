@@ -230,54 +230,58 @@ public class CustomerServiceAIService {
         return chatMessageRepository.save(chatMessage);
     }
 
-    public ApiResponse<Map<String, Object>> ticketList() {
+    public ApiResponse<Map<String, Object>> ticketList(Long adminId) {
         List<ChatTicket> tickets = chatTicketRepository.findAll();
 
         if (tickets.isEmpty()) {
-            return new ApiResponse<>(
-                    false,
-                    "No ticket found in the database",
-                    null
-            );
+            return new ApiResponse<>(false, "No ticket found in the database", null);
         }
 
         List<UserInfo> users = userInfoRepo.findAll();
 
-        // Filter PENDING only and map to response
+        // Current — yung kinuha ng admin na ito
+        TicketListAdminResponse current = tickets.stream()
+                .filter(ticket -> ticket.getClaimedBy() != null
+                        && ticket.getClaimedBy().equals(adminId)
+                        && ticket.getStatus().equals(TicketStatus.OPEN))
+                .findFirst()
+                .map(ticket -> mapToResponse(ticket, users))
+                .orElse(null);
+
+        // Pending — hindi pa na-claim ng kahit sino
         List<TicketListAdminResponse> pendingTickets = tickets.stream()
                 .filter(ticket -> ticket.getStatus().equals(TicketStatus.PENDING))
                 .sorted(Comparator.comparing(ChatTicket::getCreatedAt))
-                .map(ticket -> {
-                    UserInfo matchedUser = users.stream()
-                            .filter(u -> u.getId().equals(ticket.getUserId()))
-                            .findFirst()
-                            .orElse(null);
-
-                    String fullName = matchedUser != null
-                            ? matchedUser.getFirstName() + " " + matchedUser.getLastName()
-                            : "Unknown";
-
-                    return new TicketListAdminResponse(
-                            ticket.getId(),
-                            fullName,
-                            ticket.getInitialMessage(),
-                            ticket.getCreatedAt()
-                    );
-                })
+                .map(ticket -> mapToResponse(ticket, users))
                 .collect(Collectors.toList());
 
-        // Separate next (first in queue) from the rest
         TicketListAdminResponse next = pendingTickets.isEmpty() ? null : pendingTickets.get(0);
         List<TicketListAdminResponse> list = pendingTickets.isEmpty() ? List.of() : pendingTickets.subList(1, pendingTickets.size());
 
         Map<String, Object> result = new LinkedHashMap<>();
+        result.put("current", current); // yung aktibong hawak ng admin
         result.put("next", next);
         result.put("list", list);
 
-        return new ApiResponse<>(
-                true,
-                "Pending tickets retrieved successfully",
-                result
+        return new ApiResponse<>(true, "Tickets retrieved successfully", result);
+    }
+
+    // Extract para hindi paulit-ulit
+    private TicketListAdminResponse mapToResponse(ChatTicket ticket, List<UserInfo> users) {
+        UserInfo matchedUser = users.stream()
+                .filter(u -> u.getId().equals(ticket.getUserId()))
+                .findFirst()
+                .orElse(null);
+
+        String fullName = matchedUser != null
+                ? matchedUser.getFirstName() + " " + matchedUser.getLastName()
+                : "Unknown";
+
+        return new TicketListAdminResponse(
+                ticket.getId(),
+                fullName,
+                ticket.getInitialMessage(),
+                ticket.getCreatedAt()
         );
     }
 

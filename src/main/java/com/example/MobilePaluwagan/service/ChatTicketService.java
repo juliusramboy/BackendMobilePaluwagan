@@ -126,10 +126,14 @@ public Map<String, Object> getMessages(String ticketId) {
         );
     }
 
-    public ApiResponse<Map<String, Object>> claimTicket(String ticketId) {
+    public ApiResponse<Map<String, Object>> claimTicket(String ticketId, long adminId) {
         Optional<ChatTicket> existingTicket = chatTicketRepository.findById(ticketId);
 
-        if (existingTicket.isEmpty()) {
+        boolean hasActiveClaim = chatTicketRepository.existsByClaimedByAndStatusIn(
+                adminId, List.of(TicketStatus.OPEN, TicketStatus.PENDING)
+        );
+
+        if (hasActiveClaim) {
             return new ApiResponse<>(false, "Ticket not found", null);
         }
 
@@ -140,6 +144,8 @@ public Map<String, Object> getMessages(String ticketId) {
             return new ApiResponse<>(false, "Ticket is no longer available", null);
         }
 
+        ticket.setClaimedBy(adminId);
+        ticket.setClaimedAt(LocalDateTime.now());
         ticket.setStatus(TicketStatus.OPEN);
         chatTicketRepository.save(ticket);
 

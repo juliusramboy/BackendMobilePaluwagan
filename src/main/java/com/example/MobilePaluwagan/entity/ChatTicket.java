@@ -34,6 +34,12 @@ public class ChatTicket {
     @Column(name = "closed_at")
     private LocalDateTime closedAt;
 
+    @Column(name = "claimed_by")
+    private Long claimedBy;
+
+    @Column(name = "claimed_at")
+    private LocalDateTime claimedAt;
+
     private boolean awaitingTicketConfirmation;
 
     @Enumerated(EnumType.STRING)

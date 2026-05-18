@@ -86,10 +86,7 @@ public class CustomerServiceController {
     // mag rreply yung admin sa user
     @PostMapping("/admin/ticket/{ticketId}/message")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> adminSendMessage(
-            @PathVariable String ticketId,
-            @RequestBody ChatRequest request,
-            Authentication authentication) {
+    public ResponseEntity<?> adminSendMessage(@PathVariable String ticketId, @RequestBody ChatRequest request, Authentication authentication) {
         try {
             UserPrinciple userDetails =
                     (UserPrinciple) authentication.getPrincipal();
@@ -107,13 +104,21 @@ public class CustomerServiceController {
 
     @PutMapping("/admin/ticket/{ticketId}/claim")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> claimTicket(@PathVariable String ticketId) {
-        return ResponseEntity.ok(chatTicketService.claimTicket(ticketId));
+    public ResponseEntity<?> claimTicket(
+            @PathVariable String ticketId,  // String -> Long
+            Authentication authentication) {
+
+        UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
+        Long adminId = userDetails.userId();
+
+        return ResponseEntity.ok(chatTicketService.claimTicket(ticketId, adminId));
     }
 
     @GetMapping("/admin/list/tickets")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Map<String, Object>> getAllTickets(){
-        return customerServiceAIService.ticketList();
+    public ApiResponse<Map<String, Object>> getAllTickets(Authentication authentication) {
+        UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
+        Long adminId = userDetails.userId();
+        return customerServiceAIService.ticketList(adminId);
     }
 }
