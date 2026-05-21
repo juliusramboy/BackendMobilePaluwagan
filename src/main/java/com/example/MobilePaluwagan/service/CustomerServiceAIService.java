@@ -255,16 +255,12 @@ public class CustomerServiceAIService {
         }
 
 //     OPEN — may admin na, huwag nang mag-respond si Peep
-//            if (ticket.getStatus() == TicketStatus.OPEN) {
-//                saveMessage(ticket.getId(), userId, message, "USER");
-//                // SSE na bahala mag-notify sa admin na may bagong message
-//                return Map.of(
-//                        "response", "Mensahe mo ay naipadala na sa admin!",
-//                        "answeredBy", "SYSTEM",
-//                        "redirectToAdmin", true,
-//                        "ticketId", ticket.getId()
-//                );
-//            }
+        if (ticket.getStatus() == TicketStatus.OPEN) {
+            saveMessage(ticket.getId(), userId, message, "USER");
+            return Map.of(
+                    "ticketId", ticket.getId()
+            );
+        }
 
         // AI_RESPONSE — si Peep mag-respond
         saveMessage(ticket.getId(), userId, message, "USER");
