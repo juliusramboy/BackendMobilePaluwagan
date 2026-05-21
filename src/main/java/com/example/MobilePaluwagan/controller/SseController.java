@@ -17,6 +17,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class SseController {
     private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
     private final Map<Long, SseEmitter> userEmitters = new ConcurrentHashMap<>();
+    private final Map<String, CopyOnWriteArrayList<SseEmitter>> ticketEmitters = new ConcurrentHashMap<>();
 
     @GetMapping("/loan/updates")
     public SseEmitter loanUpdates() {
@@ -60,9 +61,10 @@ public class SseController {
         emitters.removeAll(deadEmitters);
     }
 
-    // Notify admin of new chat message
     public void notifyAdminNewChatMessage(Long userId, String message, String ticketId) {
-        List<SseEmitter> deadEmitters = new ArrayList<>();
+        List<SseEmitter> emitters = ticketEmitters.getOrDefault(ticketId, new CopyOnWriteArrayList<>());
+        List<SseEmitter> dead = new ArrayList<>();
+
         for (SseEmitter emitter : emitters) {
             try {
                 emitter.send(SseEmitter.event()
@@ -74,28 +76,31 @@ public class SseController {
                                 "sentBy", "USER"
                         )));
             } catch (IOException e) {
-                deadEmitters.add(emitter);
+                dead.add(emitter);
             }
         }
-        emitters.removeAll(deadEmitters);
+        emitters.removeAll(dead);
     }
 
-    //  Notify specific user of admin reply
-    public void notifyUserNewChatMessage(Long userId, String message, String sentBy) {
-        List<SseEmitter> deadEmitters = new ArrayList<>();
+    public void notifyUserNewChatMessage(Long userId, String message, String sentBy, String ticketId) {
+        List<SseEmitter> emitters = ticketEmitters.getOrDefault(ticketId, new CopyOnWriteArrayList<>());
+        List<SseEmitter> dead = new ArrayList<>();
+
         for (SseEmitter emitter : emitters) {
             try {
                 emitter.send(SseEmitter.event()
                         .name("chat-message-" + userId)
                         .data(Map.of(
+                                "userId", userId,
+                                "ticketId", ticketId,
                                 "message", message,
                                 "sentBy", sentBy
                         )));
             } catch (IOException e) {
-                deadEmitters.add(emitter);
+                dead.add(emitter);
             }
         }
-        emitters.removeAll(deadEmitters);
+        emitters.removeAll(dead);
     }
 
     //  Notify specific user ticket is open

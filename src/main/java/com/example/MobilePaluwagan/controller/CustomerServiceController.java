@@ -43,13 +43,10 @@ public class CustomerServiceController {
     // pag mag uusap na sila ng admin (para ma send yung chat nya sa admin)
     @PostMapping("/user/ticket/{ticketId}/message")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<?> sendMessage(@PathVariable String ticketId, @RequestBody ChatRequest request,
-            Authentication authentication) {
+    public ResponseEntity<?> sendMessage(@PathVariable String ticketId, @RequestBody ChatRequest request, Authentication authentication) {
         try {UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
             Long userId = userDetails.userId();
-            ChatMessage message = chatTicketService
-                    .sendMessage(ticketId, userId,
-                            request.getMessage(), "USER");
+            ChatMessage message = chatTicketService.sendMessage(ticketId, userId, request.getMessage(), "USER");
             return ResponseEntity.ok(message);
         } catch (Exception e) {
             return ResponseEntity.status(500)
