@@ -242,7 +242,8 @@ public class CustomerServiceAIService {
 
         ChatTicket ticket = existingTicket.get();
 
-        if (ticket.getStatus() == TicketStatus.PENDING || ticket.getStatus() == TicketStatus.OPEN) {
+        // PENDING — nakapila pa lang
+        if (ticket.getStatus() == TicketStatus.PENDING) {
             saveMessage(ticket.getId(), userId, message, "USER");
             return buildResponse(
                     ticket.getId(), userId,
@@ -252,6 +253,18 @@ public class CustomerServiceAIService {
                     true
             );
         }
+
+//     OPEN — may admin na, huwag nang mag-respond si Peep
+//            if (ticket.getStatus() == TicketStatus.OPEN) {
+//                saveMessage(ticket.getId(), userId, message, "USER");
+//                // SSE na bahala mag-notify sa admin na may bagong message
+//                return Map.of(
+//                        "response", "Mensahe mo ay naipadala na sa admin!",
+//                        "answeredBy", "SYSTEM",
+//                        "redirectToAdmin", true,
+//                        "ticketId", ticket.getId()
+//                );
+//            }
 
         // AI_RESPONSE — si Peep mag-respond
         saveMessage(ticket.getId(), userId, message, "USER");
