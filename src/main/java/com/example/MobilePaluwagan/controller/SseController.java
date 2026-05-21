@@ -1,6 +1,7 @@
 package com.example.MobilePaluwagan.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -42,6 +43,39 @@ public class SseController {
         return emitter;
     }
 
+
+
+    @GetMapping("/cs/ticket/{ticketId}/subscribe")
+    public SseEmitter subscribeToTicket(@PathVariable String ticketId) {
+        SseEmitter emitter = new SseEmitter(30 * 60 * 1000L);
+        ticketEmitters.computeIfAbsent(ticketId, k -> new CopyOnWriteArrayList<>()).add(emitter);
+
+        System.out.println("=== New SSE Subscription ===");
+        System.out.println("TicketId: " + ticketId);
+        System.out.println("Total emitters for ticket: " + ticketEmitters.get(ticketId).size());
+
+        emitter.onCompletion(() -> removeEmitter(ticketId, emitter));
+        emitter.onTimeout(() -> { removeEmitter(ticketId, emitter); emitter.complete(); });
+        emitter.onError(e -> removeEmitter(ticketId, emitter));
+
+        try {
+            emitter.send(SseEmitter.event().name("connect").data("Connected to ticket: " + ticketId));
+        } catch (IOException e) {
+            removeEmitter(ticketId, emitter);
+        }
+        return emitter;
+    }
+
+    private void removeEmitter(String ticketId, SseEmitter emitter) {
+        CopyOnWriteArrayList<SseEmitter> list = ticketEmitters.get(ticketId);
+        if (list != null) {
+            list.remove(emitter);
+            if (list.isEmpty()) ticketEmitters.remove(ticketId);
+            System.out.println("Emitter removed for ticket: " + ticketId);
+        }
+    }
+
+
     public void notifyUpdate() {
 
         List<SseEmitter> deadEmitters = new ArrayList<>();
@@ -65,6 +99,12 @@ public class SseController {
         List<SseEmitter> emitters = ticketEmitters.getOrDefault(ticketId, new CopyOnWriteArrayList<>());
         List<SseEmitter> dead = new ArrayList<>();
 
+        System.out.println("=== notifyAdminNewChatMessage ===");
+        System.out.println("TicketId: " + ticketId);
+        System.out.println("UserId: " + userId);
+        System.out.println("Message: " + message);
+        System.out.println("Emitters count: " + emitters.size());
+
         for (SseEmitter emitter : emitters) {
             try {
                 emitter.send(SseEmitter.event()
@@ -75,16 +115,26 @@ public class SseController {
                                 "message", message,
                                 "sentBy", "USER"
                         )));
+                System.out.println("✓ Sent to emitter successfully");
             } catch (IOException e) {
                 dead.add(emitter);
+                System.out.println("✗ Failed to send, removing emitter: " + e.getMessage());
             }
         }
         emitters.removeAll(dead);
+        System.out.println("Dead emitters removed: " + dead.size());
     }
 
     public void notifyUserNewChatMessage(Long userId, String message, String sentBy, String ticketId) {
         List<SseEmitter> emitters = ticketEmitters.getOrDefault(ticketId, new CopyOnWriteArrayList<>());
         List<SseEmitter> dead = new ArrayList<>();
+
+        System.out.println("=== notifyUserNewChatMessage ===");
+        System.out.println("TicketId: " + ticketId);
+        System.out.println("UserId: " + userId);
+        System.out.println("Message: " + message);
+        System.out.println("SentBy: " + sentBy);
+        System.out.println("Emitters count: " + emitters.size());
 
         for (SseEmitter emitter : emitters) {
             try {
@@ -96,11 +146,14 @@ public class SseController {
                                 "message", message,
                                 "sentBy", sentBy
                         )));
+                System.out.println("✓ Sent to emitter successfully");
             } catch (IOException e) {
                 dead.add(emitter);
+                System.out.println("✗ Failed to send, removing emitter: " + e.getMessage());
             }
         }
         emitters.removeAll(dead);
+        System.out.println("Dead emitters removed: " + dead.size());
     }
 
     //  Notify specific user ticket is open

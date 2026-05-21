@@ -1,6 +1,7 @@
 package com.example.MobilePaluwagan.service;
 
 import com.example.MobilePaluwagan.config.AdminStatusTracker;
+import com.example.MobilePaluwagan.controller.SseController;
 import com.example.MobilePaluwagan.dto.Response.ApiResponse;
 import com.example.MobilePaluwagan.dto.Response.TicketListAdminResponse;
 import com.example.MobilePaluwagan.entity.ChatMessage;
@@ -34,6 +35,7 @@ public class CustomerServiceAIService {
     private final ChatClient groqFallback3ChatClient;
     private final ChatClient groqFallback4ChatClient;
     private final UserInfoRepo userInfoRepo;
+    private final SseController sseController;
 
     @Value("classpath:prompts/peep-system-prompt.st")
     private Resource peepSystemPrompt;
@@ -54,7 +56,8 @@ public class CustomerServiceAIService {
             AdminStatusTracker adminStatus,
             ChatTicketRepository chatTicketRepository,
             ChatMessageRepository chatMessageRepository,
-            UserInfoRepo userInfoRepo) {
+            SseController sseController,
+            UserInfoRepo userInfoRepo, SseController sseController1) {
         this.groqChatClient = groqChatClient;
         this.groqFallback2ChatClient = groqFallback2ChatClient;
         this.groqFallback3ChatClient = groqFallback3ChatClient;
@@ -64,6 +67,7 @@ public class CustomerServiceAIService {
         this.chatTicketRepository = chatTicketRepository;
         this.chatMessageRepository = chatMessageRepository;
         this.userInfoRepo = userInfoRepo;
+        this.sseController = sseController1;
     }
 
     private String callAI(Resource systemPrompt, String userMessage) {
@@ -245,6 +249,7 @@ public class CustomerServiceAIService {
         // PENDING — nakapila pa lang
         if (ticket.getStatus() == TicketStatus.PENDING) {
             saveMessage(ticket.getId(), userId, message, "USER");
+            sseController.notifyAdminNewChatMessage(userId, message, ticket.getId());
             return buildResponse(
                     ticket.getId(), userId,
                     "Ang iyong mensahe ay naipadala na sa admin. Maghintay lang sandali!",
@@ -257,6 +262,7 @@ public class CustomerServiceAIService {
 //     OPEN — may admin na, huwag nang mag-respond si Peep
         if (ticket.getStatus() == TicketStatus.OPEN) {
             saveMessage(ticket.getId(), userId, message, "USER");
+            sseController.notifyAdminNewChatMessage(userId, message, ticket.getId());
             return Map.of(
                     "ticketId", ticket.getId()
             );
