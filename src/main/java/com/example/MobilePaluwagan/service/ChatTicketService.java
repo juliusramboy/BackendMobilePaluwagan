@@ -76,6 +76,50 @@ public Map<String, Object> getMessages(String ticketId) {
     return Map.of("messages", List.of());
 }
 
+
+    public Map<String, Object> getMessagesUser(Long userId) {
+        Optional<ChatTicket> ticket = chatTicketRepository.findByUserId(userId);
+
+        if (ticket.isPresent()) {
+            System.out.println("Ticket ID: " + ticket.get().getId());
+            System.out.println("Status: " + ticket.get().getStatus());
+            List<ChatMessage> messages = chatMessageRepository
+                    .findByTicketIdOrderByCreatedAtAsc(ticket.get().getId());
+
+            System.out.println("Messages count: " + messages.size());
+            List<ChatMessageResponse> mappedMessages = messages.stream()
+                    .map(msg -> {
+                        UserInfo info = userInfoRepo.findByUserId(msg.getUserId())
+                                .orElseThrow();
+
+                        String name;
+                        if (msg.getSentBy().equals("ADMIN")) {
+                            name = "Admin " + info.getFirstName();
+                        } else {
+                            name = info.getFirstName() + " " + info.getLastName();
+                        }
+
+                        return ChatMessageResponse.builder()
+                                .ticketId(msg.getTicketId())
+                                .userId(msg.getUserId())
+                                .message(msg.getMessage())
+                                .sentBy(msg.getSentBy())
+                                .createdAt(msg.getCreatedAt())
+                                .senderName(name)
+                                .senderProfileImage(info.getProfileImage())
+                                .build();
+                    })
+                    .toList();
+
+            return Map.of(
+                    "messages", mappedMessages,
+                    "ticketId", ticket.get().getId()
+            );
+        }
+
+        return Map.of("messages", List.of());
+    }
+
     public ChatMessage sendMessage(String ticketId, Long userId, String message, String sentBy) {
         ChatMessage chatMessage = saveMessage(ticketId, userId, message, sentBy);
 

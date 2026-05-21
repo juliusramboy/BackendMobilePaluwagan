@@ -59,9 +59,23 @@ public class CustomerServiceController {
 
     //get all the msgs within the ticket id yan
     @GetMapping("/{ticketId}/messages")
-    public ResponseEntity<?> getMessages(@PathVariable String ticketId) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getMessagesAdmin(@PathVariable String ticketId) {
         try {
             return ResponseEntity.ok(chatTicketService.getMessages(ticketId));
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/messages")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> getMessagesUser(Authentication authentication) {
+        try {
+            UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
+            Long userId = userDetails.userId();
+            return ResponseEntity.ok(chatTicketService.getMessagesUser(userId));
         } catch (Exception e) {
             return ResponseEntity.status(500)
                     .body(Map.of("message", e.getMessage()));
@@ -88,8 +102,7 @@ public class CustomerServiceController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> adminSendMessage(@PathVariable String ticketId, @RequestBody ChatRequest request, Authentication authentication) {
         try {
-            UserPrinciple userDetails =
-                    (UserPrinciple) authentication.getPrincipal();
+            UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
             Long userId = userDetails.userId();
             ChatMessage message = chatTicketService
                     .sendMessage(ticketId, userId,
@@ -104,9 +117,7 @@ public class CustomerServiceController {
 
     @PutMapping("/admin/ticket/{ticketId}/claim")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> claimTicket(
-            @PathVariable String ticketId,  // String -> Long
-            Authentication authentication) {
+    public ResponseEntity<?> claimTicket(@PathVariable String ticketId,Authentication authentication) {
 
         UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
         Long adminId = userDetails.userId();
