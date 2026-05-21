@@ -125,7 +125,9 @@ public Map<String, Object> getMessages(String ticketId) {
         ChatMessage chatMessage = saveMessage(ticketId, userId, message, sentBy);
 
         if(sentBy.equals("ADMIN")) {
-            sseController.notifyUserNewChatMessage(userId, message,sentBy,ticketId);
+            ChatTicket ticket = chatTicketRepository.findById(ticketId).orElseThrow();
+            Long userIdOfTicket = ticket.getUserId();
+            sseController.notifyUserNewChatMessage(userIdOfTicket, message, sentBy, ticketId);
         }else{
             sseController.notifyAdminNewChatMessage(userId, message, ticketId);
         }
