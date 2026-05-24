@@ -209,6 +209,7 @@ public class CustomerServiceAIService {
         ticket.setOpenedAt(LocalDateTime.now());
         ticket = chatTicketRepository.save(ticket);
         sseController.notifyAdminNewChatMessage(userId, message, ticket.getId());
+        sseController.notifyAdminNewTicketInQueue(userId, message, ticket.getId());
         saveMessage(ticket.getId(), userId, message, "USER");
 
         return buildResponse(

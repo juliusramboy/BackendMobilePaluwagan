@@ -120,6 +120,26 @@ public class SseController {
         emitters.removeAll(deadEmitters);
     }
 
+    // this is for queue ticket
+    public void notifyAdminNewTicketInQueue(Long userId, String message, String ticketId) {
+        List<SseEmitter> dead = new ArrayList<>();
+
+        for (SseEmitter emitter : emitters) {
+            try {
+                emitter.send(SseEmitter.event()
+                        .name("new-ticket-queue")
+                        .data(Map.of(
+                                "userId", userId,
+                                "ticketId", ticketId,
+                                "message", message
+                        )));
+            } catch (IOException e) {
+                dead.add(emitter);
+            }
+        }
+        emitters.removeAll(dead);
+    }
+
 
     public void notifyAdminNewChatMessage(Long userId, String message, String ticketId) {
         List<SseEmitter> emitters = ticketEmitters.getOrDefault(ticketId, new CopyOnWriteArrayList<>());
