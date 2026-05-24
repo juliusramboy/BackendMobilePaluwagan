@@ -145,7 +145,7 @@ public Map<String, Object> getMessages(String ticketId) {
 
         chatMessageRepository.deleteByTicketId(ticketId);
 
-        sseController.notifyUserTicketClosed(ticket.getUserId());
+        sseController.notifyUserTicketClosed(ticket.getUserId(), ticketId);
 
         Optional<ChatTicket> nextTicket = chatTicketRepository.findFirstByStatusOrderByCreatedAtAsc(TicketStatus.PENDING);
 
@@ -157,7 +157,7 @@ public Map<String, Object> getMessages(String ticketId) {
 
             saveMessage(next.getId(), next.getUserId(), next.getInitialMessage(), "USER");
 
-            sseController.notifyUserTicketOpen(next.getUserId());
+            sseController.notifyUserTicketOpen(ticket.getUserId(), ticketId);
 
             sseController.notifyAdminNewChatMessage(next.getUserId(), next.getInitialMessage(), next.getId());
 
