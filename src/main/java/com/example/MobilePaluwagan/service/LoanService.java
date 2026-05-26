@@ -22,6 +22,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -199,6 +201,107 @@ public class LoanService {
     public long generateApplicationId(Long userId) {
         long timestamp = System.currentTimeMillis();
         return (timestamp * 1_000_000) + userId;
+    }
+
+
+    public ApiResponse<UserDepositSavingsResponse> userDeposit(Long userId, double depositAmount, LocalDate depositDate){
+        UserBank user = userBankRepo.findByUserId(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userId not found"));
+        Loan loan = userLoanRepo.findByUserId(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userId not id not found"));
+        UserInfo info = userInfoRepo.findByUserId(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userId not found"));
+
+        ApiResponse<UserDepositSavingsResponse> x = checkUserDepositInput(userId, depositAmount, depositDate);
+        if (x != null) return x;
+
+        LocalDateTime depositDateTime = depositDate.atTime(LocalTime.now());
+
+        LoanPayment deposit;
+        LoanPayment loanPayment = new LoanPayment();
+        loanPayment.setLoanId(loan.getId());
+        loanPayment.setUserId(userId);
+        loanPayment.setAmountPaid(BigDecimal.valueOf(depositAmount));
+        loanPayment.setPaymentDate(depositDateTime);
+        loanPayment.setPaymentMethod(PaymentMethod.CASH);
+        loanPayment.setReferenceNumber(generateRef());
+        loanPayment.setStatus(Status.PENDING);
+
+        deposit = loanPaymentRepo.save(loanPayment);
+
+        sseController.notifyUpdate();
+        notificationService.notifyAdminPaymentMade( user.getSavingsId(), info.getFirstName(), depositAmount, loanPayment.getReferenceNumber());
+        UserDepositSavingsResponse responseData = mapToUserSavingsResponse(deposit);
+
+        return new ApiResponse<>(
+                true,
+                "Deposit created successfully",
+                responseData
+        );
+    }
+
+    private UserDepositSavingsResponse mapToUserSavingsResponse(LoanPayment loanPayment){
+        return UserDepositSavingsResponse.builder()
+                .amountRemit(loanPayment.getLoanId())
+                .remitDate(loanPayment.getPaymentDate().toLocalDate())
+                .reference(loanPayment.getReferenceNumber())
+                .status(loanPayment.getStatus().name())
+                .build();
+
+    }
+
+    public String generateRef() {
+        String prefix = "slp";
+        String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String randomLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        Random random = new Random();
+
+        String letter1 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
+        String letter2 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
+        String letter3 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
+
+        Optional<LoanPayment> lastRef = loanPaymentRepo.findLastRef();
+
+        int sequence = 1;
+
+        if(lastRef.isPresent()){
+            String lastRefNumber = lastRef.get().getReferenceNumber();
+
+            if (lastRefNumber.length() >= 17) {
+                try {
+                    String lastSequence = lastRefNumber.substring(13, 17);
+                    sequence = Integer.parseInt(lastSequence) + 1;
+                } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
+                    System.err.println("Error parsing reference: " + lastRefNumber);
+                    sequence = 1;
+                }
+            }
+        }
+
+        String sequencePart = String.format("%04d", sequence);
+
+        return prefix + datePart + letter1 + letter2 + sequencePart + letter3;
+    }
+
+    private ApiResponse<UserDepositSavingsResponse> checkUserDepositInput(Long userId, double depositAmount, LocalDate depositDate) {
+        if (depositAmount <= 0){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Deposit amount must be greater than zero"
+            );
+        }
+
+        if(depositDate == null){
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Deposit date cannot be null"
+            );
+        }
+
+        if(loanPaymentRepo.existsByUserIdAndStatus(userId, Status.PENDING)){
+            return new ApiResponse<>(
+                    false,
+                    "We see that you have a pending deposit. Please wait for the admin to process it.",
+                    null
+            );
+        }
+        return null;
     }
 
 

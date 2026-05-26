@@ -85,6 +85,20 @@ public class  LoanController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("loan/remit")
+    public ResponseEntity<ApiResponse<UserDepositSavingsResponse>> userDepositSavings(Authentication authentication, @RequestBody UserDepositSavingsRequest request) {
+        UserPrinciple user = (UserPrinciple) authentication.getPrincipal();
+        Long userId = user.userId();
+
+        ApiResponse<UserDepositSavingsResponse> savings = loanService.userDeposit(
+                userId,
+                request.getAmountDeposit(),
+                request.getDepositDate()
+        );
+
+        return ResponseEntity.ok(savings);
+    }
+
     @PostMapping("/loan/apply-loan")
     public Long applyLoan(Authentication authentication, @RequestBody ApplyLoanRequest request){
         UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
@@ -221,9 +235,7 @@ public class  LoanController {
 
     @PostMapping("/create-intent")
     @Idempotent
-    public ResponseEntity<ApiResponse<?>> createIntent(
-            @RequestBody PaymongoIntentRequest request,
-            Authentication authentication) {
+    public ResponseEntity<ApiResponse<?>> createIntent(@RequestBody PaymongoIntentRequest request, Authentication authentication) {
         try {
             if (authentication == null) {
                 return ResponseEntity.status(401)

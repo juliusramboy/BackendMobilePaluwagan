@@ -3,6 +3,7 @@ package com.example.MobilePaluwagan.repository;
 import com.example.MobilePaluwagan.dto.Response.AdminPaymentLoanSearchResponse;
 import com.example.MobilePaluwagan.dto.Response.UserListPayments;
 import com.example.MobilePaluwagan.entity.LoanPayment;
+import com.example.MobilePaluwagan.entity.Status;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,6 +20,7 @@ import java.util.Optional;
 public interface LoanPaymentRepo extends JpaRepository<LoanPayment, Long> {
     Optional<LoanPayment> findByUserId(Long userId);
     List<LoanPayment> findByLoanId(Long loanId);
+    boolean existsByUserIdAndStatus(long userId, Status status);
     @Query("""
         SELECT new com.example.MobilePaluwagan.dto.Response.UserListPayments( 
             p.amountPaid,
