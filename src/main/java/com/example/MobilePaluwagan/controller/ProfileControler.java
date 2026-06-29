@@ -87,10 +87,7 @@ public class ProfileControler {
 
 
     @GetMapping("/loan")
-    public ResponseEntity<?> userAllLoans(
-            Authentication authentication,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<?> userAllLoans(Authentication authentication, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         try {
             UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
             Long userId = userDetails.userId();
@@ -104,10 +101,7 @@ public class ProfileControler {
     }
 
     @GetMapping("/savings")
-    public ResponseEntity<?> userAllSavings(
-            Authentication authentication,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<?> userAllSavings(Authentication authentication, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         try {
             UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
             Long userId = userDetails.userId();
