@@ -488,18 +488,18 @@ public class PaymentService {
 
            userSavingsRepo.save(savings);
 
-           //for testing
-//           // save to db every transaction (savings)
-//           Ledger ledger = new Ledger();
-//           ledger.setUserId(userbank.getUserId());
-//           ledger.setSavingsId(request.getApplicationId());
-//           ledger.setAmount(BigDecimal.valueOf(request.getAmount()));
-//           ledger.setDepositDate(LocalDateTime.now());
-//           ledger.setReference(savings.getReference());
-//           ledger.setCreatedAt(LocalDateTime.now());
-//           ledger.setDescription(Description.Savings);
-//           ledger.setModeOfPayment(request.getPaymentMethod()); // this will get the payment from front
-//           ledgerRepo.save(ledger);
+
+           // save to db every transaction (savings)
+           Ledger ledger = new Ledger();
+           ledger.setUserId(userbank.getUserId());
+           ledger.setSavingsId(request.getApplicationId());
+           ledger.setAmount(BigDecimal.valueOf(request.getAmount()));
+           ledger.setDepositDate(LocalDateTime.now());
+           ledger.setReference(savings.getReference());
+           ledger.setCreatedAt(LocalDateTime.now());
+           ledger.setDescription(Description.Savings);
+           ledger.setModeOfPayment(request.getPaymentMethod()); // this will get the payment from front
+           ledgerRepo.save(ledger);
 
 
 
