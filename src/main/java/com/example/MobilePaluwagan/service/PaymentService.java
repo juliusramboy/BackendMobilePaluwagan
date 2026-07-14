@@ -43,6 +43,102 @@ public class PaymentService {
     private final LoanApplicationRepo loanApplicationRepo;
     private final UserLoanRepo loanUserLoanRepo;
 
+    // original logic for payment
+//    @Transactional
+//    public ApiResponse<?> processLoanPayment(PaymentAdminRequest request) {
+//
+//        Loan user = userLoanRepo.findByApplicationID(Long.valueOf(request.getApplicationId()));
+//        UserInfo userInfo = userInfoRepo.findByUserId(user.getUserId())
+//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+//
+//        checkForMaturityDateLoan(request.getApplicationId());
+//
+//        if (user.getLoanRepaymentTally().compareTo(user.getTotalRepayable()) >= 0) {
+//            return new ApiResponse<>(false, "The loan is already paid", null);
+//        }
+//
+//        BigDecimal amountPaid = BigDecimal.valueOf(request.getAmount());
+//        BigDecimal remaining = amountPaid;
+//
+//        while (remaining.compareTo(BigDecimal.ZERO) > 0) {
+//
+//            Optional<DueDateSchedule> currentOpt = dueDateScheduleRepository
+//                    .findFirstPendingOrPartial(user.getApplicationID());
+//
+//            if (currentOpt.isEmpty()) break;
+//
+//            DueDateSchedule current = currentOpt.get();
+//            BigDecimal requireAmount = current.getPayment();
+//
+//            //  Safety check
+//            if (requireAmount.compareTo(BigDecimal.ZERO) <= 0) break;
+//
+//            if (remaining.compareTo(requireAmount) < 0) {
+//                // Not enough → PARTIAL
+//                BigDecimal shortage = requireAmount.subtract(remaining)
+//                        .setScale(2, RoundingMode.HALF_UP);
+//
+//                current.setStatus(Status.PARTIAL);
+//                current.setPayment(shortage);
+//                current.setRemainingBalance(shortage); //  track remaining balance
+//                dueDateScheduleRepository.save(current);
+//                remaining = BigDecimal.ZERO;
+//
+//            } else if (remaining.compareTo(requireAmount) == 0) {
+//                // Exactly enough → PAID
+//                long remainingCount = dueDateScheduleRepository
+//                        .countPendingOrPartial(current.getApplicationId());
+//                if (remainingCount == 1) {
+//                    current.setRemainingBalance(BigDecimal.ZERO);
+//                }
+//                current.setStatus(Status.PAID);
+//                dueDateScheduleRepository.save(current);
+//                remaining = BigDecimal.ZERO;
+//
+//            } else {
+//                // More than enough → PAID + continue loop
+//                long remainingCount = dueDateScheduleRepository
+//                        .countPendingOrPartial(current.getApplicationId());
+//                if (remainingCount == 1) {
+//                    current.setRemainingBalance(BigDecimal.ZERO);
+//                }
+//                current.setStatus(Status.PAID);
+//                dueDateScheduleRepository.save(current);
+//                remaining = remaining.subtract(requireAmount)
+//                        .setScale(2, RoundingMode.HALF_UP);
+//            }
+//        }
+//
+//        // Save LoanPayment transaction
+//        LoanPayment transaction = new LoanPayment();
+//        transaction.setLoanId(user.getId());
+//        transaction.setUserId(user.getUserId());
+//        transaction.setAmountPaid(amountPaid);
+//        transaction.setPaymentDate(LocalDateTime.now());
+//        transaction.setPaymentMethod(request.getPaymentMethod());
+//        transaction.setReferenceNumber(generateRef());
+//        transaction.setPaymentMethod(PaymentMethod.CASH);
+//        String bankRef = request.getBankReference();
+//        transaction.setBankReference(
+//                (bankRef == null || bankRef.trim().isEmpty()) ? null : bankRef
+//        );
+//        transaction.setStatus(Status.PAID);
+//        loanPaymentRepo.save(transaction);
+//
+//        user.setLoanRepaymentTally(user.getLoanRepaymentTally().add(amountPaid));
+//        userLoanRepo.save(user);
+//
+//        notificationService.notifyUserPaymentMade(
+//                user.getUserId(),
+//                String.valueOf(request.getApplicationId()),
+//                userInfo.getFirstName(),
+//                BigDecimal.valueOf(request.getAmount())
+//        );
+//        sseController.notifyUpdate();
+//        checkForMaturityDateLoan(request.getApplicationId());
+//        return new ApiResponse<>(true, "Payment processed successfully.", null);
+//    }
+
 
     @Transactional
     public ApiResponse<?> processLoanPayment(PaymentAdminRequest request) {
@@ -53,63 +149,30 @@ public class PaymentService {
 
         checkForMaturityDateLoan(request.getApplicationId());
 
+        // Check 1 — fully paid na
         if (user.getLoanRepaymentTally().compareTo(user.getTotalRepayable()) >= 0) {
             return new ApiResponse<>(false, "The loan is already paid", null);
         }
 
         BigDecimal amountPaid = BigDecimal.valueOf(request.getAmount());
-        BigDecimal remaining = amountPaid;
+        BigDecimal remainingBalance = user.getTotalRepayable()
+                .subtract(user.getLoanRepaymentTally())
+                .setScale(2, RoundingMode.HALF_UP);
 
-        while (remaining.compareTo(BigDecimal.ZERO) > 0) {
+        // Check 2 — sobra ng bayad (hanggang 5 lang pede)
+        BigDecimal tolerance = new BigDecimal("5.00");
+        BigDecimal overpayment = amountPaid.subtract(remainingBalance);
 
-            Optional<DueDateSchedule> currentOpt = dueDateScheduleRepository
-                    .findFirstPendingOrPartial(user.getApplicationID());
-
-            if (currentOpt.isEmpty()) break;
-
-            DueDateSchedule current = currentOpt.get();
-            BigDecimal requireAmount = current.getPayment();
-
-            //  Safety check
-            if (requireAmount.compareTo(BigDecimal.ZERO) <= 0) break;
-
-            if (remaining.compareTo(requireAmount) < 0) {
-                // Not enough → PARTIAL
-                BigDecimal shortage = requireAmount.subtract(remaining)
-                        .setScale(2, RoundingMode.HALF_UP);
-
-                current.setStatus(Status.PARTIAL);
-                current.setPayment(shortage);
-                current.setRemainingBalance(shortage); //  track remaining balance
-                dueDateScheduleRepository.save(current);
-                remaining = BigDecimal.ZERO;
-
-            } else if (remaining.compareTo(requireAmount) == 0) {
-                // Exactly enough → PAID
-                long remainingCount = dueDateScheduleRepository
-                        .countPendingOrPartial(current.getApplicationId());
-                if (remainingCount == 1) {
-                    current.setRemainingBalance(BigDecimal.ZERO);
-                }
-                current.setStatus(Status.PAID);
-                dueDateScheduleRepository.save(current);
-                remaining = BigDecimal.ZERO;
-
-            } else {
-                // More than enough → PAID + continue loop
-                long remainingCount = dueDateScheduleRepository
-                        .countPendingOrPartial(current.getApplicationId());
-                if (remainingCount == 1) {
-                    current.setRemainingBalance(BigDecimal.ZERO);
-                }
-                current.setStatus(Status.PAID);
-                dueDateScheduleRepository.save(current);
-                remaining = remaining.subtract(requireAmount)
-                        .setScale(2, RoundingMode.HALF_UP);
-            }
+        if (overpayment.compareTo(tolerance) > 0) {
+            return new ApiResponse<>(
+                    false,
+                    "Payment exceeds the remaining balance by ₱" + overpayment.setScale(2, RoundingMode.HALF_UP)
+                            + ". Remaining balance is ₱" + remainingBalance + ". Maximum allowed overpayment is ₱5.00.",
+                    null
+            );
         }
 
-        // Save LoanPayment transaction
+        //  Save sa ledger
         LoanPayment transaction = new LoanPayment();
         transaction.setLoanId(user.getId());
         transaction.setUserId(user.getUserId());
@@ -117,7 +180,6 @@ public class PaymentService {
         transaction.setPaymentDate(LocalDateTime.now());
         transaction.setPaymentMethod(request.getPaymentMethod());
         transaction.setReferenceNumber(generateRef());
-        transaction.setPaymentMethod(PaymentMethod.CASH);
         String bankRef = request.getBankReference();
         transaction.setBankReference(
                 (bankRef == null || bankRef.trim().isEmpty()) ? null : bankRef
@@ -125,8 +187,24 @@ public class PaymentService {
         transaction.setStatus(Status.PAID);
         loanPaymentRepo.save(transaction);
 
+        // save to db every transaction (loan)
+        Ledger ledger = new Ledger();
+        ledger.setUserId(user.getUserId());
+        ledger.setSavingsId(request.getApplicationId());
+        ledger.setAmount(BigDecimal.valueOf(request.getAmount()));
+        ledger.setDepositDate(LocalDateTime.now());
+        ledger.setReference(transaction.getReferenceNumber());
+        ledger.setCreatedAt(LocalDateTime.now());
+        ledger.setDescription(Description.Loan);
+        ledger.setModeOfPayment(request.getPaymentMethod()); // this will get the payment from front
+        ledgerRepo.save(ledger);
+
+        //  Update tally
         user.setLoanRepaymentTally(user.getLoanRepaymentTally().add(amountPaid));
         userLoanRepo.save(user);
+
+        //  Auto-call — update DueDateSchedule statuses
+        updateDueDateSchedule(user.getApplicationID(), amountPaid);
 
         notificationService.notifyUserPaymentMade(
                 user.getUserId(),
@@ -136,9 +214,57 @@ public class PaymentService {
         );
         sseController.notifyUpdate();
         checkForMaturityDateLoan(request.getApplicationId());
+
         return new ApiResponse<>(true, "Payment processed successfully.", null);
     }
 
+    //  Hiwalay na method — waterfall logic nandito na lang
+    private void updateDueDateSchedule(Long applicationId, BigDecimal amountPaid) {
+        BigDecimal remaining = amountPaid;
+
+        while (remaining.compareTo(BigDecimal.ZERO) > 0) {
+
+            Optional<DueDateSchedule> currentOpt = dueDateScheduleRepository
+                    .findFirstPendingOrPartial(applicationId);
+
+            if (currentOpt.isEmpty()) break;
+
+            DueDateSchedule current = currentOpt.get();
+            BigDecimal requiredAmount = current.getPayment();
+
+            if (requiredAmount.compareTo(BigDecimal.ZERO) <= 0) break;
+
+            if (remaining.compareTo(requiredAmount) < 0) {
+                // PARTIAL
+                BigDecimal shortage = requiredAmount.subtract(remaining)
+                        .setScale(2, RoundingMode.HALF_UP);
+                current.setStatus(Status.PARTIAL);
+                current.setPayment(shortage);
+                current.setRemainingBalance(shortage);
+                dueDateScheduleRepository.save(current);
+                remaining = BigDecimal.ZERO;
+
+            } else if (remaining.compareTo(requiredAmount) == 0) {
+                // EXACTLY PAID
+                long remainingCount = dueDateScheduleRepository
+                        .countPendingOrPartial(applicationId);
+                if (remainingCount == 1) current.setRemainingBalance(BigDecimal.ZERO);
+                current.setStatus(Status.PAID);
+                dueDateScheduleRepository.save(current);
+                remaining = BigDecimal.ZERO;
+
+            } else {
+                // MORE THAN ENOUGH — continue loop
+                long remainingCount = dueDateScheduleRepository
+                        .countPendingOrPartial(applicationId);
+                if (remainingCount == 1) current.setRemainingBalance(BigDecimal.ZERO);
+                current.setStatus(Status.PAID);
+                dueDateScheduleRepository.save(current);
+                remaining = remaining.subtract(requiredAmount)
+                        .setScale(2, RoundingMode.HALF_UP);
+            }
+        }
+    }
     @Transactional
     public void processLoanLogic(String applicationId, BigDecimal amountPaid,
                                  PaymentMethod paymentMethod, String bankReference) {
@@ -322,6 +448,18 @@ public class PaymentService {
         savings.setStatus(Status.PAID);
         userSavingsRepo.save(savings);
 
+        // save to db every transaction (savings)
+        Ledger ledger = new Ledger();
+        ledger.setUserId(userbank.getUserId());
+        ledger.setSavingsId(savingsId);
+        ledger.setAmount(amountPaid);
+        ledger.setDepositDate(LocalDateTime.now());
+        ledger.setReference(savings.getReference());
+        ledger.setCreatedAt(LocalDateTime.now());
+        ledger.setDescription(Description.Savings);
+        ledger.setModeOfPayment(paymentMethod); // this will get the payment from the enum
+        ledgerRepo.save(ledger);
+
         System.out.println("Savings payment processed successfully");
         sseController.notifyUpdate();
     }
@@ -341,7 +479,7 @@ public class PaymentService {
            savings.setAmountDeposit(request.getAmount());
            savings.setUserId(userbank.getUserId());
            savings.setReference(generateRef());
-           savings.setPaymentMethod(PaymentMethod.CASH);
+           savings.setPaymentMethod(request.getPaymentMethod());
            String bankRef = request.getBankReference();
            savings.setBankReference(
                    (bankRef == null || bankRef.trim().isEmpty()) ? null : bankRef
@@ -349,6 +487,20 @@ public class PaymentService {
            savings.setStatus(Status.PAID);
 
            userSavingsRepo.save(savings);
+
+           //for testing
+//           // save to db every transaction (savings)
+//           Ledger ledger = new Ledger();
+//           ledger.setUserId(userbank.getUserId());
+//           ledger.setSavingsId(request.getApplicationId());
+//           ledger.setAmount(BigDecimal.valueOf(request.getAmount()));
+//           ledger.setDepositDate(LocalDateTime.now());
+//           ledger.setReference(savings.getReference());
+//           ledger.setCreatedAt(LocalDateTime.now());
+//           ledger.setDescription(Description.Savings);
+//           ledger.setModeOfPayment(request.getPaymentMethod()); // this will get the payment from front
+//           ledgerRepo.save(ledger);
+
 
 
            return new ApiResponse<>(true, "Savings payment processed successfully.", null);
