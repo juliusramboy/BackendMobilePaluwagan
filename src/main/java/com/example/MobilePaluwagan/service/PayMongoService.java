@@ -31,7 +31,7 @@ public class PayMongoService {
 
     public String createPaymentLink(Long userId, PaymongoRequest request) {
 
-        // ✅ Fix 1 — add colon at the end before encoding
+        //  Fix 1 — add colon at the end before encoding
         String credentials = Base64.getEncoder()
                 .encodeToString((secretKey + ":").getBytes());
 
@@ -39,7 +39,7 @@ public class PayMongoService {
                 .multiply(BigDecimal.valueOf(100))
                 .longValueExact();
 
-        // ✅ Fix 2 — wrap attributes inside "data"
+        //  Fix 2 — wrap attributes inside "data"
         Map<String, Object> attributes = new HashMap<>();
         attributes.put("amount", amountInCentavos);
         attributes.put("description", request.getDescription());
@@ -66,7 +66,7 @@ public class PayMongoService {
                 .bodyToMono(Map.class)
                 .block();
 
-        // ✅ Fix 3 — correct way to extract checkout_url
+        //  Fix 3 — correct way to extract checkout_url
         Map<String, Object> responseData = (Map<String, Object>) response.get("data");
         Map<String, Object> responseAttributes = (Map<String, Object>) responseData.get("attributes");
 
@@ -232,7 +232,7 @@ public class PayMongoService {
                 Map<String, Object> nextAction = (Map<String, Object>) attachResponseAttributes.get("next_action");
                 System.out.println("Next action keys: " + nextAction.keySet());
 
-                // ✅ QRPh — key is "code"
+                //  QRPh — key is "code"
                 if (nextAction.containsKey("code")) {
                     Map<String, Object> code = (Map<String, Object>) nextAction.get("code");
                     System.out.println("Code keys: " + code.keySet());

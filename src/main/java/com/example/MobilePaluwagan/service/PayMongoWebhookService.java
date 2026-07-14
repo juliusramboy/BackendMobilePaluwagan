@@ -90,7 +90,7 @@ public class PayMongoWebhookService {
 //                        referenceNumber
 //                );
 //
-//                System.out.println("Loan payment saved! ✅");
+//                System.out.println("Loan payment saved! ");
 //            } else if ("SAVINGS".equals(payment.getPaymentType())) {
 //
 //                paymentService.processSavingsOnlinePayment(
@@ -279,7 +279,7 @@ public class PayMongoWebhookService {
                     paymentMethod,
                     bankReference
             );
-            System.out.println("Loan payment processed. ✅");
+            System.out.println("Loan payment processed. ");
 
         } else if ("SAVINGS".equals(payment.getPaymentType())) {
             paymentService.processSavingsOnlinePayment(
@@ -288,7 +288,7 @@ public class PayMongoWebhookService {
                     paymentMethod,
                     bankReference
             );
-            System.out.println("Savings payment processed. ✅");
+            System.out.println("Savings payment processed.");
         }
     }
 
@@ -368,7 +368,7 @@ public class PayMongoWebhookService {
                         paymentMethod,
                         referenceNumber
                 );
-                System.out.println("Simulated Loan payment saved! ✅");
+                System.out.println("Simulated Loan payment saved");
             } else if ("SAVINGS".equals(payment.getPaymentType())) {
                 paymentService.processSavingsOnlinePayment(
                         payment.getReferenceId(),
@@ -376,7 +376,7 @@ public class PayMongoWebhookService {
                         paymentMethod,
                         referenceNumber
                 );
-                System.out.println("Simulated Savings payment saved! ✅");
+                System.out.println("Simulated Savings payment saved");
             }
         }
     }

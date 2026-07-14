@@ -9,7 +9,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseCookie; // ✅ ResponseCookie na
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Component;
@@ -25,7 +25,7 @@ public class CustomLogoutHandler implements LogoutHandler {
     @Override
     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
 
-        // Basahin ang access token sa cookie
+        // bumabasa ng access token sa cookie
         String accessToken = null;
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
@@ -40,7 +40,7 @@ public class CustomLogoutHandler implements LogoutHandler {
             return;
         }
 
-        // Hanapin ang token sa DB
+
         Token storedToken = tokenRepository.findByToken(accessToken).orElse(null);
 
         if (storedToken != null) {
@@ -57,7 +57,7 @@ public class CustomLogoutHandler implements LogoutHandler {
             refreshTokenService.deleteByUser(user);
         }
 
-        // ✅ I-delete ang accessToken cookie — ResponseCookie na, maxAge(0) = delete
+        // I-delete ang accessToken cookie — ResponseCookie na, maxAge(0) = delete
         ResponseCookie accessCookie = ResponseCookie.from("accessToken", "")
                 .httpOnly(true)
                 .secure(false)    // true pag prod
@@ -67,7 +67,7 @@ public class CustomLogoutHandler implements LogoutHandler {
                 .build();
         response.addHeader("Set-Cookie", accessCookie.toString());
 
-        // ✅ I-delete ang refresh_token cookie — ResponseCookie na, maxAge(0) = delete
+        //  I-delete ang refresh_token cookie — ResponseCookie na, maxAge(0) = delete
         ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", "")
                 .httpOnly(true)
                 .secure(false)    // true pag prod

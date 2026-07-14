@@ -70,7 +70,7 @@ public class PaymentService {
             DueDateSchedule current = currentOpt.get();
             BigDecimal requireAmount = current.getPayment();
 
-            // ✅ Safety check
+            //  Safety check
             if (requireAmount.compareTo(BigDecimal.ZERO) <= 0) break;
 
             if (remaining.compareTo(requireAmount) < 0) {
@@ -80,7 +80,7 @@ public class PaymentService {
 
                 current.setStatus(Status.PARTIAL);
                 current.setPayment(shortage);
-                current.setRemainingBalance(shortage); // ✅ track remaining balance
+                current.setRemainingBalance(shortage); //  track remaining balance
                 dueDateScheduleRepository.save(current);
                 remaining = BigDecimal.ZERO;
 
@@ -166,7 +166,7 @@ public class PaymentService {
             DueDateSchedule current = currentOpt.get();
             BigDecimal requireAmount = current.getPayment();
 
-            // ✅ Safety check
+            //  Safety check
             if (requireAmount.compareTo(BigDecimal.ZERO) <= 0) break;
 
             if (remaining.compareTo(requireAmount) < 0) {
@@ -322,7 +322,7 @@ public class PaymentService {
         savings.setStatus(Status.PAID);
         userSavingsRepo.save(savings);
 
-        System.out.println("Savings payment processed successfully! ✅");
+        System.out.println("Savings payment processed successfully");
         sseController.notifyUpdate();
     }
 

@@ -12,7 +12,7 @@ import com.example.MobilePaluwagan.repository.VerificationRepo;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;  // ✅ ResponseCookie na, hindi Cookie
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -82,23 +82,23 @@ public class LoginService {
 
                 RefreshToken refreshToken = refreshTokenService.createFreshToken(user);
 
-                // ✅ Access token cookie — ResponseCookie para may SameSite
+                //  Access token cookie — ResponseCookie para may SameSite
                 ResponseCookie accessCookie = ResponseCookie.from("accessToken", jwt)
                         .httpOnly(true)
                         .secure(false)          // false habang local, true pag prod
                         .path("/")
                         .maxAge(60 * 15)   // 24 hours
-                        .sameSite("Lax")        // ✅ kailangan para gumana sa browser
+                        .sameSite("Lax")        //  kailangan para gumana sa browser
                         .build();
                 response.addHeader("Set-Cookie", accessCookie.toString());
 
-                // ✅ Refresh token cookie — ResponseCookie para may SameSite
+                //  Refresh token cookie — ResponseCookie para may SameSite
                 ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken.getToken())
                         .httpOnly(true)
                         .secure(false)               // false habang local, true pag prod
                         .path("/")
                         .maxAge(7 * 24 * 60 * 60)   // 7 days
-                        .sameSite("Lax")             // ✅ kailangan para gumana sa browser
+                        .sameSite("Lax")             //  kailangan para gumana sa browser
                         .build();
                 response.addHeader("Set-Cookie", refreshCookie.toString());
 

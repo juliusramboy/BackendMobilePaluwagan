@@ -57,7 +57,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String username = null;
 
 
-        // ✅ Basahin ang access token sa cookie — hindi na sa Authorization header
+        //  access token sa cookie — hindi na sa Authorization header
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if (cookie.getName().equals("accessToken")) {
@@ -85,7 +85,7 @@ public class JwtFilter extends OncePerRequestFilter {
                     userRepo.save(user);
                 }
 
-                // ✅ Sabihin sa frontend na expired — kailangan mag-call ng /refresh-token
+                // Sabihin sa frontend na expired — kailangan mag-call ng /refresh-token
                 sendExpiredTokenResponse(response);
                 return; // stop — huwag nang ituloy ang request
 

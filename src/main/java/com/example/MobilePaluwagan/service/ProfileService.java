@@ -68,7 +68,7 @@ public class ProfileService {
                            UserPayment.getApplicationID()
                    );
 
-           // ✅ Fix 1 — correct loan balance
+           //  Fix 1 — correct loan balance
            loanBalance = UserPayment.getTotalRepayable()
                    .subtract(UserPayment.getLoanRepaymentTally());
 

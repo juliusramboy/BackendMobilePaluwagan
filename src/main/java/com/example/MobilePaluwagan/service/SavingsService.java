@@ -362,7 +362,7 @@ public class SavingsService {
 
          String savingsId = userBank.getSavingsId();
          BigDecimal targetAmount = userBank.getTargetAmount();
-
+         boolean isOneYear = ChronoUnit.YEARS.between(userBank.getFirstDepositDate(), LocalDateTime.now()) >= 1;
          BigDecimal userTargetAmount = userBank.getTargetAmount();
 
         Pageable pageable = PageRequest.of(page, size);
@@ -407,6 +407,7 @@ public class SavingsService {
         response.setLast(savingsDepositHistoryList.isLast());
         response.setTargetReached(isTargetReached);
         response.setHasWithdraw(withdraw);
+        response.setOneYear(isOneYear);
         response.setAnnualMoney(userAnnual);
 
 
