@@ -12,6 +12,7 @@ import com.example.MobilePaluwagan.repository.UserRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -30,6 +31,7 @@ public class ChatTicketService {
     private final CustomerServiceAIService customerServiceAIService;
     private final UserRepo userRepo;
     private final UserInfoRepo userInfoRepo;
+    private final SimpMessagingTemplate messagingTemplate;
 
 
 
@@ -124,13 +126,31 @@ public Map<String, Object> getMessages(String ticketId) {
     public ChatMessage sendMessage(String ticketId, Long userId, String message, String sentBy) {
         ChatMessage chatMessage = saveMessage(ticketId, userId, message, sentBy);
 
-        if(sentBy.equals("ADMIN")) {
-            ChatTicket ticket = chatTicketRepository.findById(ticketId).orElseThrow();
-            Long userIdOfTicket = ticket.getUserId();
-            sseController.notifyUserNewChatMessage(userIdOfTicket, message, sentBy, ticketId);
-        }else{
-            sseController.notifyAdminNewChatMessage(userId, message, ticketId);
-        }
+        UserInfo senderInfo = userInfoRepo.findByUserId(userId).orElseThrow();
+        String senderName = sentBy.equals("ADMIN")
+                ? "Admin " + senderInfo.getFirstName()
+                : senderInfo.getFirstName() + " " + senderInfo.getLastName();
+
+        ChatMessageResponse payload = ChatMessageResponse.builder()
+                .ticketId(ticketId)
+                .userId(userId)
+                .message(message)
+                .sentBy(sentBy)
+                .createdAt(chatMessage.getCreatedAt())
+                .senderName(senderName)
+                .senderProfileImage(senderInfo.getProfileImage())
+                .build();
+        // para sa frontend sub to kung sino naka sub dto sila lang may convo
+        messagingTemplate.convertAndSend("/topic/chat/" + ticketId, payload);
+
+//        original logic
+//        if(sentBy.equals("ADMIN")) {
+//            ChatTicket ticket = chatTicketRepository.findById(ticketId).orElseThrow();
+//            Long userIdOfTicket = ticket.getUserId();
+//            sseController.notifyUserNewChatMessage(userIdOfTicket, message, sentBy, ticketId);
+//        }else{
+//            sseController.notifyAdminNewChatMessage(userId, message, ticketId);
+//        }
 
         return chatMessage;
     }
@@ -145,6 +165,14 @@ public Map<String, Object> getMessages(String ticketId) {
 
         chatMessageRepository.deleteByTicketId(ticketId);
 
+        // notify user the ticket is closed
+        messagingTemplate.convertAndSend("/topic/chat/" + ticketId,
+                Map.of(
+                        "type", "TICKET_CLOSED",
+                        "message", "Ticket is solved. Admin close the ticket thank you!",
+                        "ticketId", ticketId
+                ));
+
         sseController.notifyUserTicketClosed(ticket.getUserId(), ticketId);
 
         Optional<ChatTicket> nextTicket = chatTicketRepository.findFirstByStatusOrderByCreatedAtAsc(TicketStatus.PENDING);
@@ -157,9 +185,24 @@ public Map<String, Object> getMessages(String ticketId) {
 
             saveMessage(next.getId(), next.getUserId(), next.getInitialMessage(), "USER");
 
-            sseController.notifyUserTicketOpen(ticket.getUserId(), ticketId);
+            // notify the admin for the next ticket
+            messagingTemplate.convertAndSend("/topic/chat/" + next.getId(),
+                    Map.of(
+                            "type", "TICKET_OPEN",
+                            "message", "kinokonect ka na sa admin!",
+                            "ticketId", next.getId()
+                    ));
 
-            sseController.notifyAdminNewChatMessage(next.getUserId(), next.getInitialMessage(), next.getId());
+//            sseController.notifyUserTicketOpen(ticket.getUserId(), ticketId);
+
+            messagingTemplate.convertAndSend("/topic/chat/" + next.getId(),
+                    Map.of(
+                            "type", "NEW_MESSAGE",
+                            "userId", next.getUserId(),
+                            "ticketId", next.getId(),
+                            "message", next.getInitialMessage(),
+                            "sentBy", "USER"
+                    ));
 
             return Map.of(
                     "message", "Ticket closed! Next membro is ready.",

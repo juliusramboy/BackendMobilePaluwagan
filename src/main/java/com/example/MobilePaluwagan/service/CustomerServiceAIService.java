@@ -16,6 +16,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.core.io.Resource;
 
@@ -36,6 +37,7 @@ public class CustomerServiceAIService {
     private final ChatClient groqFallback4ChatClient;
     private final UserInfoRepo userInfoRepo;
     private final SseController sseController;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Value("classpath:prompts/peep-system-prompt.st")
     private Resource peepSystemPrompt;
@@ -57,7 +59,8 @@ public class CustomerServiceAIService {
             ChatTicketRepository chatTicketRepository,
             ChatMessageRepository chatMessageRepository,
             SseController sseController,
-            UserInfoRepo userInfoRepo, SseController sseController1) {
+            UserInfoRepo userInfoRepo, SseController sseController1,
+            SimpMessagingTemplate messagingTemplate) {
         this.groqChatClient = groqChatClient;
         this.groqFallback2ChatClient = groqFallback2ChatClient;
         this.groqFallback3ChatClient = groqFallback3ChatClient;
@@ -68,6 +71,8 @@ public class CustomerServiceAIService {
         this.chatMessageRepository = chatMessageRepository;
         this.userInfoRepo = userInfoRepo;
         this.sseController = sseController1;
+        this.messagingTemplate = messagingTemplate;
+
     }
 
     private String callAI(Resource systemPrompt, String userMessage) {
@@ -208,7 +213,14 @@ public class CustomerServiceAIService {
         ticket.setStatus(TicketStatus.PENDING);
         ticket.setOpenedAt(LocalDateTime.now());
         ticket = chatTicketRepository.save(ticket);
-        sseController.notifyAdminNewChatMessage(userId, message, ticket.getId());
+        messagingTemplate.convertAndSend("/topic/chat/" + ticket.getId(),
+                Map.of(
+                        "type", "NEW_TICKET",
+                        "userId", userId,
+                        "ticketId", ticket.getId(),
+                        "message", message,
+                        "sentBy", "USER"
+                ));
         sseController.notifyAdminNewTicketInQueue(userId, message, ticket.getId());
         saveMessage(ticket.getId(), userId, message, "USER");
 
@@ -251,7 +263,15 @@ public class CustomerServiceAIService {
         // PENDING — nakapila pa lang
         if (ticket.getStatus() == TicketStatus.PENDING) {
             saveMessage(ticket.getId(), userId, message, "USER");
-            sseController.notifyAdminNewChatMessage(userId, message, ticket.getId());
+            messagingTemplate.convertAndSend("/topic/chat/" + ticket.getId(),
+                    Map.of(
+                            "type", "NEW_MESSAGE",
+                            "userId", userId,
+                            "ticketId", ticket.getId(),
+                            "message", message,
+                            "sentBy", "USER"
+                    )
+            );
             return buildResponse(
                     ticket.getId(), userId,
                     "Ang iyong mensahe ay naipadala na sa admin. Maghintay lang sandali!",
@@ -264,7 +284,15 @@ public class CustomerServiceAIService {
 //     OPEN — may admin na, huwag nang mag-respond si Peep
         if (ticket.getStatus() == TicketStatus.OPEN) {
             saveMessage(ticket.getId(), userId, message, "USER");
-            sseController.notifyAdminNewChatMessage(userId, message, ticket.getId());
+            messagingTemplate.convertAndSend("/topic/chat/" + ticket.getId(),
+                    Map.of(
+                            "type", "NEW_MESSAGE",
+                            "userId", userId,
+                            "ticketId", ticket.getId(),
+                            "message", message,
+                            "sentBy", "USER"
+                    )
+            );
             return Map.of(
                     "ticketId", ticket.getId()
             );
