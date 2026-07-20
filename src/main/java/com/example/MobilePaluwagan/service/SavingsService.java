@@ -106,20 +106,20 @@ public class SavingsService {
             ledgerRepo.save(withdrawHistory);
 
             // savings ledger
-            List<Ledger> savingsLedger = savings.stream()
-                    .map(saving -> Ledger.builder()
-                            .savingsId(saving.getSavingsId())
-                            .userId(saving.getUserId())
-                            .amount(BigDecimal.valueOf(saving.getAmountDeposit()))
-                            .depositDate(saving.getDepositDate())
-                            .reference(saving.getReference())
-                            .description(Description.Savings)
-                            .modeOfPayment(saving.getPaymentMethod())
-                            .createdAt(LocalDateTime.now())
-                            .build())
-                    .toList();
-
-            ledgerRepo.saveAll(savingsLedger);
+//            List<Ledger> savingsLedger = savings.stream()
+//                    .map(saving -> Ledger.builder()
+//                            .savingsId(saving.getSavingsId())
+//                            .userId(saving.getUserId())
+//                            .amount(BigDecimal.valueOf(saving.getAmountDeposit()))
+//                            .depositDate(saving.getDepositDate())
+//                            .reference(saving.getReference())
+//                            .description(Description.Savings)
+//                            .modeOfPayment(saving.getPaymentMethod())
+//                            .createdAt(LocalDateTime.now())
+//                            .build())
+//                    .toList();
+//
+//            ledgerRepo.saveAll(savingsLedger);
 
             savingsWithdrawApplicationRepo.delete(withdraw);
             userSavingsRepo.deleteAll(savings);
@@ -168,7 +168,7 @@ public class SavingsService {
 
                 userBankRepo.save(userBank);
             }
-            
+
             BigDecimal addPayment = userBank.getAccountBalance().add(BigDecimal.valueOf(reference.getAmountDeposit()));
 
             Ledger ledgerEntry = Ledger.builder()
