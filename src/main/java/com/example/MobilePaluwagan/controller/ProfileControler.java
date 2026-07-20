@@ -51,10 +51,10 @@ public class ProfileControler {
     public ResponseEntity<LedgerFilterResponse> ledgerFilter(
             Authentication authentication,
             @RequestParam(required = false) String reference,
-            @RequestParam(required = false) PaymentMethod method,
+            @RequestParam(name = "paymentMethod",required = false) PaymentMethod method,
             @RequestParam(required = false) Description description,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size
+            @RequestParam(defaultValue = "10") int size
     ){
         UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
         Long userId = userDetails.userId();
