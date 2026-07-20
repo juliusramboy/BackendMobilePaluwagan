@@ -501,7 +501,8 @@ public class PaymentService {
            ledger.setModeOfPayment(request.getPaymentMethod()); // this will get the payment from front
            ledgerRepo.save(ledger);
 
-
+           System.out.println("Savings payment processed successfully");
+           sseController.notifyUpdate();
 
            return new ApiResponse<>(true, "Savings payment processed successfully.", null);
        }else{

@@ -1,12 +1,12 @@
 package com.example.MobilePaluwagan.controller;
 
 
+import com.example.MobilePaluwagan.dto.Request.LedgerFilterRequest;
 import com.example.MobilePaluwagan.dto.Request.ProfileUpdateRequest;
-import com.example.MobilePaluwagan.dto.Response.AdminMemberListResponse;
-import com.example.MobilePaluwagan.dto.Response.ApiResponse;
-import com.example.MobilePaluwagan.dto.Response.UserProfileResponse;
+import com.example.MobilePaluwagan.dto.Response.*;
 import com.example.MobilePaluwagan.entity.*;
 import com.example.MobilePaluwagan.repository.UserInfoRepo;
+import com.example.MobilePaluwagan.service.LedgerService;
 import com.example.MobilePaluwagan.service.MembersService;
 import com.example.MobilePaluwagan.service.ProfileService;
 import com.example.MobilePaluwagan.service.SupabaseStorageService;
@@ -20,7 +20,9 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -33,6 +35,7 @@ public class ProfileControler {
     private final UserInfoRepo userInfoRepo;
     private final SseController sseController;
     private final MembersService membersService;
+    private final LedgerService ledgerService;
 
     @GetMapping("/info")
     public UserProfileResponse userAllInfo(Authentication authentication){
@@ -42,6 +45,51 @@ public class ProfileControler {
         UserProfileResponse response = profileService.userProfileInfo(userid);
 
         return response;
+    }
+
+    @GetMapping("/ledger/filter")
+    public ResponseEntity<LedgerFilterResponse> ledgerFilter(
+            Authentication authentication,
+            @RequestParam(required = false) String reference,
+            @RequestParam(required = false) PaymentMethod method,
+            @RequestParam(required = false) Description description,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+    ){
+        UserPrinciple userDetails = (UserPrinciple) authentication.getPrincipal();
+        Long userId = userDetails.userId();
+
+        LedgerFilterRequest filter = LedgerFilterRequest.builder()
+                .userId(userId)
+                .reference(reference)
+                .method(method)
+                .description(description)
+                .build();
+
+        Page<Ledger> ledger = ledgerService.filterUserLedger(filter, page, size);
+
+        List<LedgerInfo> ledgerDTO = ledger.getContent()
+                .stream()
+                .map(ledgerService::convertToDTO)
+                .collect(Collectors.toList());
+
+        String message = filter.hasFilters() ?
+                "Successfully retrieved filtered ledger" :
+                "Successfully retrieved all ledger";
+
+        LedgerFilterResponse response = LedgerFilterResponse.builder()
+                .success(true)
+                .message(message)
+                .filters(filter.hasFilters() ? filter : null)
+                .ledger(ledgerDTO)
+                .currentPage(ledger.getNumber())
+                .totalPages(ledger.getTotalPages())
+                .totalElements(ledger.getTotalElements())
+                .last(ledger.isLast())
+                .build();
+
+        return ResponseEntity.ok(response);
+
     }
 
     @GetMapping("/ledger")
