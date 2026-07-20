@@ -168,8 +168,21 @@ public class SavingsService {
 
                 userBankRepo.save(userBank);
             }
-
+            
             BigDecimal addPayment = userBank.getAccountBalance().add(BigDecimal.valueOf(reference.getAmountDeposit()));
+
+            Ledger ledgerEntry = Ledger.builder()
+                    .userId(reference.getUserId())
+                    .savingsId(reference.getSavingsId())
+                    .amount(BigDecimal.valueOf(reference.getAmountDeposit()))
+                    .depositDate(reference.getDepositDate())
+                    .reference(reference.getReference())
+                    .description(Description.Savings)
+                    .modeOfPayment(reference.getPaymentMethod())
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            ledgerRepo.save(ledgerEntry);
+
             userBank.setAccountBalance(addPayment);
             userBankRepo.save(userBank);
             reference.setStatus(Status.PAID);
