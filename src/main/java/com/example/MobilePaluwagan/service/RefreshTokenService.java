@@ -32,6 +32,7 @@ public class RefreshTokenService {
     private final TokenRepository tokenRepository;
     private final JWTService jwtService;
     private final UserRepo userRepo;
+    private final RedisRefreshTokenService redisRefreshTokenService;
 
     @Transactional
     public RefreshToken createFreshToken(User user) {
@@ -63,6 +64,11 @@ public class RefreshTokenService {
         if (refreshToken == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new LoginResponse("No refresh token found. Please log in again."));
+        }
+
+        if (redisRefreshTokenService.isRateLimited(refreshToken)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(new LoginResponse("Refresh token can only be used once every 15 minutes. Please try again later."));
         }
 
         String finalRefreshToken = refreshToken;

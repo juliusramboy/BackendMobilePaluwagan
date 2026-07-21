@@ -65,13 +65,20 @@ public class ProfileControler {
                 .method(method)
                 .description(description)
                 .build();
+        long start = System.currentTimeMillis();
 
         Page<Ledger> ledger = ledgerService.filterUserLedger(filter, page, size);
+
+        System.out.println("DB Query: " + (System.currentTimeMillis() - start) + " ms");
+
+        long mapStart = System.currentTimeMillis();
 
         List<LedgerInfo> ledgerDTO = ledger.getContent()
                 .stream()
                 .map(ledgerService::convertToDTO)
                 .collect(Collectors.toList());
+
+        System.out.println("Mapping: " + (System.currentTimeMillis() - mapStart));
 
         String message = filter.hasFilters() ?
                 "Successfully retrieved filtered ledger" :
