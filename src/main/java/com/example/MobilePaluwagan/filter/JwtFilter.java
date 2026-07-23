@@ -43,7 +43,15 @@ public class JwtFilter extends OncePerRequestFilter {
         String path = request.getServletPath();
         // Ignore JWT logic for this specific public path
         return path.equals("/api/admin/loan/user-loan") ||
-                path.startsWith("/api/auth/") || path.equals("/api/admin/loan/loan-payments") || path.equals("/api/admin/loan/due-dates") ||
+                path.startsWith("/api/auth/") || 
+                path.equals("/api/admin/loan/loan-payments") || 
+                path.equals("/api/admin/loan/due-dates") ||
+                path.equals("/api/loan/updates") ||
+                path.startsWith("/api/mobile/chat/") ||
+                path.startsWith("/api/notifications/") ||
+                path.startsWith("/api/webhook/") ||
+                path.startsWith("/ws/") ||
+                path.startsWith("/images/") ||
                 path.equals("/error");
     }
 

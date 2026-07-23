@@ -65,7 +65,7 @@ public class SseController {
 
         try {
             emitter.send(SseEmitter.event().name("connect").data("Connected!"));
-        } catch (IOException e) {
+        } catch (Exception e) {
             emitters.remove(emitter);
             emitter.completeWithError(e);
         }
@@ -112,7 +112,7 @@ public class SseController {
                 emitter.send(SseEmitter.event()
                         .name("loan-update")
                         .data("SSE is working!"));
-            } catch (IOException e) {
+            } catch (Exception e) {
                 deadEmitters.add(emitter);
                 System.out.println("Failed to send, removed client");
             }
@@ -133,7 +133,7 @@ public class SseController {
                                 "ticketId", ticketId,
                                 "message", message
                         )));
-            } catch (IOException e) {
+            } catch (Exception e) {
                 dead.add(emitter);
             }
         }
