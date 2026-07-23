@@ -622,61 +622,19 @@ public class SavingsService {
     }
 
     public String savingsId () {
-        String prefix = "SID";
-        String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String randomLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        Random random = new Random();
-
-        String letter1 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
-        String letter2 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
-        String letter3 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
-
-        Optional<UserSavings> lastRef = userSavingsRepo.findLastRef();
-
-        int sequence = 1;
-
-        if(lastRef.isPresent()){
-            String lastRefNumber = lastRef.get().getReference();
-            String lastSequence = lastRefNumber.substring(13, 17);
-            sequence = Integer.parseInt(lastSequence) + 1;
-        }
-
-        String sequencePart = String.format("%04d", sequence);
-
-        return prefix + datePart + letter1 + letter2 + sequencePart + letter3;
+        String newId;
+        do {
+            newId = com.example.MobilePaluwagan.util.IdGenerator.generateShortCode("SV-", 8);
+        } while (userBankRepo.findBySavingsId(newId) != null);
+        return newId;
     }
 
     public String generateRef() {
-        String prefix = "REF";
-        String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String randomLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        Random random = new Random();
-
-        String letter1 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
-        String letter2 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
-        String letter3 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
-
-        Optional<UserSavings> lastRef = userSavingsRepo.findLastRef();
-
-        int sequence = 1;
-
-        if(lastRef.isPresent()){
-            String lastRefNumber = lastRef.get().getReference();
-
-            if (lastRefNumber.length() >= 17) {
-                try {
-                    String lastSequence = lastRefNumber.substring(13, 17);
-                    sequence = Integer.parseInt(lastSequence) + 1;
-                } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
-                    System.err.println("Error parsing reference: " + lastRefNumber);
-                    sequence = 1;
-                }
-            }
-        }
-
-        String sequencePart = String.format("%04d", sequence);
-
-        return prefix + datePart + letter1 + letter2 + sequencePart + letter3;
+        String ref;
+        do {
+            ref = com.example.MobilePaluwagan.util.IdGenerator.generateShortCode("SP-", 8);
+        } while (userSavingsRepo.existsByReference(ref));
+        return ref;
     }
 
 }

@@ -179,7 +179,11 @@ public class PaymentService {
         transaction.setAmountPaid(amountPaid);
         transaction.setPaymentDate(LocalDateTime.now());
         transaction.setPaymentMethod(request.getPaymentMethod());
-        transaction.setReferenceNumber(generateRef());
+        String ref;
+        do {
+            ref = com.example.MobilePaluwagan.util.IdGenerator.generateShortCode("LP-", 8);
+        } while (loanPaymentRepo.existsByReferenceNumber(ref));
+        transaction.setReferenceNumber(ref);
         String bankRef = request.getBankReference();
         transaction.setBankReference(
                 (bankRef == null || bankRef.trim().isEmpty()) ? null : bankRef
@@ -338,7 +342,11 @@ public class PaymentService {
         transaction.setAmountPaid(amountPaid);
         transaction.setPaymentDate(LocalDateTime.now());
         transaction.setPaymentMethod(paymentMethod);
-        transaction.setReferenceNumber(generateRef());
+        String ref;
+        do {
+            ref = com.example.MobilePaluwagan.util.IdGenerator.generateShortCode("LP-", 8);
+        } while (loanPaymentRepo.existsByReferenceNumber(ref));
+        transaction.setReferenceNumber(ref);
         transaction.setBankReference(bankReference);
         transaction.setStatus(Status.PAID);
         loanPaymentRepo.save(transaction);
@@ -377,7 +385,7 @@ public class PaymentService {
             Ledger loan = new Ledger();
             loan.setAmount(userLoan.getLoanRepaymentTally());
             loan.setDepositDate(LocalDateTime.now());
-            loan.setReference(generateRef());
+            loan.setReference(com.example.MobilePaluwagan.util.IdGenerator.generateShortCode("LC-", 8));
             loan.setSavingsId(String.valueOf(userLoan.getApplicationID()));
             loan.setUserId(userLoan.getUserId());
             loan.setCreatedAt(LocalDateTime.now());
@@ -440,7 +448,11 @@ public class PaymentService {
         savings.setDepositDate(LocalDateTime.now());
         savings.setAmountDeposit(amountPaid.doubleValue());
         savings.setUserId(userbank.getUserId());
-        savings.setReference(generateRef());
+        String ref;
+        do {
+            ref = com.example.MobilePaluwagan.util.IdGenerator.generateShortCode("SP-", 8);
+        } while (userSavingsRepo.existsByReference(ref));
+        savings.setReference(ref);
         savings.setPaymentMethod(paymentMethod);
         savings.setBankReference(
                 (bankReference == null || bankReference.trim().isEmpty()) ? null : bankReference
@@ -478,7 +490,11 @@ public class PaymentService {
            savings.setDepositDate(LocalDateTime.now());
            savings.setAmountDeposit(request.getAmount());
            savings.setUserId(userbank.getUserId());
-           savings.setReference(generateRef());
+           String ref;
+           do {
+               ref = com.example.MobilePaluwagan.util.IdGenerator.generateShortCode("SP-", 8);
+           } while (userSavingsRepo.existsByReference(ref));
+           savings.setReference(ref);
            savings.setPaymentMethod(request.getPaymentMethod());
            String bankRef = request.getBankReference();
            savings.setBankReference(
@@ -561,36 +577,5 @@ public class PaymentService {
     }
 
 
-    public String generateRef() {
-        String prefix = "REF";
-        String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String randomLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        Random random = new Random();
 
-        String letter1 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
-        String letter2 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
-        String letter3 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
-
-        Optional<LoanPayment> lastRef = loanPaymentRepo.findLastRef();
-
-        int sequence = 1;
-
-        if(lastRef.isPresent()){
-            String lastRefNumber = lastRef.get().getReferenceNumber();
-
-            if (lastRefNumber.length() >= 17) {
-                try {
-                    String lastSequence = lastRefNumber.substring(13, 17);
-                    sequence = Integer.parseInt(lastSequence) + 1;
-                } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
-                    System.err.println("Error parsing reference: " + lastRefNumber);
-                    sequence = 1;
-                }
-            }
-        }
-
-        String sequencePart = String.format("%04d", sequence);
-
-        return prefix + datePart + letter1 + letter2 + sequencePart + letter3;
-    }
 }
