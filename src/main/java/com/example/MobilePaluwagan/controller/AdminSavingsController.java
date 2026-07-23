@@ -1,5 +1,6 @@
 package com.example.MobilePaluwagan.controller;
 
+import com.example.MobilePaluwagan.annotation.Idempotent;
 import com.example.MobilePaluwagan.dto.Request.AdminSavingsStatus;
 import com.example.MobilePaluwagan.dto.Request.PaymentFilterRequestAdmin;
 import com.example.MobilePaluwagan.dto.Request.SavingsResponseAdmin;
@@ -27,6 +28,7 @@ public class AdminSavingsController {
 
 
     @PostMapping("/payment")
+    @Idempotent
     public ResponseEntity<ApiResponse<?>> acceptPendingPayments(@RequestBody AdminSavingsStatus request){
         ApiResponse<?> payment = savingsService.adminAcceptPayment(request);
         return ResponseEntity.ok(payment);
