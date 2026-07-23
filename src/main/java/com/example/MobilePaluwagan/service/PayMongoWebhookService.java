@@ -304,7 +304,8 @@ public class PayMongoWebhookService {
 
             return switch (type) {
                 case "gcash"                -> PaymentMethod.GCASH;
-                case "paymaya", "maya" , "qrph"     -> PaymentMethod.MAYA;
+                case "paymaya", "maya"      -> PaymentMethod.MAYA;
+                case "qrph"                 -> PaymentMethod.QRPH;
                 case "card", "credit_card"  -> PaymentMethod.CARD;
                 default                     -> PaymentMethod.CASH;
             };
@@ -353,10 +354,10 @@ public class PayMongoWebhookService {
             Map<String, Object> source = (Map<String, Object>) firstPaymentAttributes.get("source");
             String paymentType = (String) source.get("type");
 
-            PaymentMethod paymentMethod;
             switch (paymentType) {
                 case "gcash" -> paymentMethod = PaymentMethod.GCASH;
-                case "paymaya", "maya", "qrph" -> paymentMethod = PaymentMethod.MAYA;
+                case "paymaya", "maya" -> paymentMethod = PaymentMethod.MAYA;
+                case "qrph" -> paymentMethod = PaymentMethod.QRPH;
                 case "card", "credit_card" -> paymentMethod = PaymentMethod.CARD;
                 default -> paymentMethod = PaymentMethod.CASH;
             }
