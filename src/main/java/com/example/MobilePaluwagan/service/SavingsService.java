@@ -9,6 +9,9 @@ import com.example.MobilePaluwagan.entity.*;
 import com.example.MobilePaluwagan.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
+import com.example.MobilePaluwagan.util.ReferenceGenerator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -53,6 +56,15 @@ public class SavingsService {
 
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private CacheManager cacheManager;
+
+    private void evictSavingsCache() {
+        if (cacheManager != null && cacheManager.getCache("userSavingsSummary") != null) {
+            cacheManager.getCache("userSavingsSummary").clear();
+        }
+    }
 
     @Transactional
     public ApiResponse<?> adminAcceptPayment(AdminSavingsStatus request) {
@@ -129,6 +141,7 @@ public class SavingsService {
             bank.setHasSavingsDeposit(false);
             userBankRepo.save(bank);
             sseController.notifyUpdate();
+            evictSavingsCache();
             notificationService.notifyUserPaymentMade(bank.getUserId(), userBank.getSavingsId(), info.getFirstName(), bank.getAccountBalance());
             return new ApiResponse<>(true, "Withdrawal processed successfully", null);
         }
@@ -140,6 +153,7 @@ public class SavingsService {
                 SavingsWithdrawApplication withdrawApplication = withdraw.get();
                 savingsWithdrawApplicationRepo.delete(withdrawApplication);
                 sseController.notifyUpdate();
+                evictSavingsCache();
                 notificationService.notifyUserPaymentMade(withdrawApplication.getUserId(), userBank.getSavingsId(), info.getFirstName(), withdrawApplication.getAccountBalance());
                 return new ApiResponse<>(true, "Withdraw Application Rejected", null);
             }
@@ -189,6 +203,7 @@ public class SavingsService {
             userSavingsRepo.save(reference);
             notificationService.notifyUserPaymentMade(reference.getUserId(), userBank.getSavingsId(), info.getFirstName(), BigDecimal.valueOf(reference.getAmountDeposit()));
             sseController.notifyUpdate();
+            evictSavingsCache();
             return new ApiResponse<>(true, "Payment Added to User", null);
 
         }else {
@@ -215,12 +230,13 @@ public class SavingsService {
                 userSavings.setAmountDeposit(depositAmount);
                 userSavings.setDepositDate(depositDateTime);
                 userSavings.setPaymentMethod(PaymentMethod.CASH);
-                userSavings.setReference(generateRef());
+                userSavings.setReference(ReferenceGenerator.generate("S"));
                 userSavings.setStatus(Status.PENDING);
 
                 deposit = userSavingsRepo.save(userSavings);
 
                 sseController.notifyUpdate();
+                evictSavingsCache();
                 notificationService.notifyAdminPaymentMade( user.getSavingsId(), info.getFirstName(), depositAmount, userSavings.getReference());
             UserDepositSavingsResponse responseData = mapToUserSavingsResponse(deposit);
 
@@ -366,6 +382,7 @@ public class SavingsService {
         return userSavings;
     }
 
+    @Cacheable(value = "userSavingsSummary", key = "#userId + '-' + #page + '-' + #size")
     public ApiResponse<SavingsSummaryResponse> savingsAllData(Long userId, int page, int size){
         List<UserSavings> userSavings = userSavingsRepo.findByUserId(userId);
 
@@ -441,7 +458,7 @@ public class SavingsService {
         if (userInfo1 != null) return userInfo1;
 
 
-        userBank.setSavingsId(savingsId());
+        userBank.setSavingsId(ReferenceGenerator.generateSavingsId());
         userBank.setTargetAmount(targetAmount);
         user.setHasSavingsAccount(true);
 
@@ -452,6 +469,7 @@ public class SavingsService {
         userBankRepo.save(userBank);
 
         sseController.notifyUpdate();
+        evictSavingsCache();
 
         return  new ApiResponse<>(
                 true,
@@ -550,7 +568,7 @@ public class SavingsService {
         withdrawApplication.setUserId(user.getUserId());
         withdrawApplication.setTargetAmount(user.getTargetAmount());
         withdrawApplication.setAccountBalance(user.getAccountBalance());
-        withdrawApplication.setReference(generateRef());
+        withdrawApplication.setReference(ReferenceGenerator.generate("W"));
         withdrawApplication.setStatus(Status.WITHDRAW);
 
         savingsWithdrawApplicationRepo.save(withdrawApplication);
@@ -575,6 +593,7 @@ public class SavingsService {
         }
 
         notificationService.notifySavingsWithdraw(user.getSavingsId(),user.getSavingsId(),userInfo.getFirstName());
+        evictSavingsCache();
 
         return new ApiResponse<>(
                 true,
@@ -620,63 +639,6 @@ public class SavingsService {
                 .status(savings.getStatus().name())
                 .build();
     }
-
-    public String savingsId () {
-        String prefix = "SID";
-        String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String randomLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        Random random = new Random();
-
-        String letter1 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
-        String letter2 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
-        String letter3 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
-
-        Optional<UserSavings> lastRef = userSavingsRepo.findLastRef();
-
-        int sequence = 1;
-
-        if(lastRef.isPresent()){
-            String lastRefNumber = lastRef.get().getReference();
-            String lastSequence = lastRefNumber.substring(13, 17);
-            sequence = Integer.parseInt(lastSequence) + 1;
-        }
-
-        String sequencePart = String.format("%04d", sequence);
-
-        return prefix + datePart + letter1 + letter2 + sequencePart + letter3;
-    }
-
-    public String generateRef() {
-        String prefix = "REF";
-        String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String randomLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        Random random = new Random();
-
-        String letter1 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
-        String letter2 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
-        String letter3 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
-
-        Optional<UserSavings> lastRef = userSavingsRepo.findLastRef();
-
-        int sequence = 1;
-
-        if(lastRef.isPresent()){
-            String lastRefNumber = lastRef.get().getReference();
-
-            if (lastRefNumber.length() >= 17) {
-                try {
-                    String lastSequence = lastRefNumber.substring(13, 17);
-                    sequence = Integer.parseInt(lastSequence) + 1;
-                } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
-                    System.err.println("Error parsing reference: " + lastRefNumber);
-                    sequence = 1;
-                }
-            }
-        }
-
-        String sequencePart = String.format("%04d", sequence);
-
-        return prefix + datePart + letter1 + letter2 + sequencePart + letter3;
-    }
-
 }
+
+

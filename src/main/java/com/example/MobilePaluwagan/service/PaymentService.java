@@ -8,12 +8,14 @@ import com.example.MobilePaluwagan.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import com.example.MobilePaluwagan.util.ReferenceGenerator;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -42,6 +44,7 @@ public class PaymentService {
     private final DueDateScheduleRepository dueDateSchedule;
     private final LoanApplicationRepo loanApplicationRepo;
     private final UserLoanRepo loanUserLoanRepo;
+    private final CacheManager cacheManager;
 
     // original logic for payment
 //    @Transactional
@@ -179,7 +182,7 @@ public class PaymentService {
         transaction.setAmountPaid(amountPaid);
         transaction.setPaymentDate(LocalDateTime.now());
         transaction.setPaymentMethod(request.getPaymentMethod());
-        transaction.setReferenceNumber(generateRef());
+        transaction.setReferenceNumber(ReferenceGenerator.generate("L"));
         String bankRef = request.getBankReference();
         transaction.setBankReference(
                 (bankRef == null || bankRef.trim().isEmpty()) ? null : bankRef
@@ -214,6 +217,10 @@ public class PaymentService {
         );
         sseController.notifyUpdate();
         checkForMaturityDateLoan(request.getApplicationId());
+
+        if (cacheManager.getCache("userLoanSummary") != null) {
+            cacheManager.getCache("userLoanSummary").evict(user.getUserId());
+        }
 
         return new ApiResponse<>(true, "Payment processed successfully.", null);
     }
@@ -338,7 +345,7 @@ public class PaymentService {
         transaction.setAmountPaid(amountPaid);
         transaction.setPaymentDate(LocalDateTime.now());
         transaction.setPaymentMethod(paymentMethod);
-        transaction.setReferenceNumber(generateRef());
+        transaction.setReferenceNumber(ReferenceGenerator.generate("L"));
         transaction.setBankReference(bankReference);
         transaction.setStatus(Status.PAID);
         loanPaymentRepo.save(transaction);
@@ -356,6 +363,10 @@ public class PaymentService {
         );
         checkForMaturityDateLoan(String.valueOf(user.getApplicationID()));
         sseController.notifyUpdate();
+
+        if (cacheManager.getCache("userLoanSummary") != null) {
+            cacheManager.getCache("userLoanSummary").evict(user.getUserId());
+        }
     }
 
     private void checkForMaturityDateLoan(String applicationId) {
@@ -377,7 +388,7 @@ public class PaymentService {
             Ledger loan = new Ledger();
             loan.setAmount(userLoan.getLoanRepaymentTally());
             loan.setDepositDate(LocalDateTime.now());
-            loan.setReference(generateRef());
+            loan.setReference(ReferenceGenerator.generate("LC"));
             loan.setSavingsId(String.valueOf(userLoan.getApplicationID()));
             loan.setUserId(userLoan.getUserId());
             loan.setCreatedAt(LocalDateTime.now());
@@ -440,7 +451,7 @@ public class PaymentService {
         savings.setDepositDate(LocalDateTime.now());
         savings.setAmountDeposit(amountPaid.doubleValue());
         savings.setUserId(userbank.getUserId());
-        savings.setReference(generateRef());
+        savings.setReference(ReferenceGenerator.generate("S"));
         savings.setPaymentMethod(paymentMethod);
         savings.setBankReference(
                 (bankReference == null || bankReference.trim().isEmpty()) ? null : bankReference
@@ -462,6 +473,10 @@ public class PaymentService {
 
         System.out.println("Savings payment processed successfully");
         sseController.notifyUpdate();
+
+        if (cacheManager.getCache("userSavingsSummary") != null) {
+            cacheManager.getCache("userSavingsSummary").evict(userbank.getUserId());
+        }
     }
 
     public ApiResponse<?> processSavingsPayment(PaymentAdminRequest request){
@@ -478,7 +493,7 @@ public class PaymentService {
            savings.setDepositDate(LocalDateTime.now());
            savings.setAmountDeposit(request.getAmount());
            savings.setUserId(userbank.getUserId());
-           savings.setReference(generateRef());
+           savings.setReference(ReferenceGenerator.generate("S"));
            savings.setPaymentMethod(request.getPaymentMethod());
            String bankRef = request.getBankReference();
            savings.setBankReference(
@@ -503,6 +518,10 @@ public class PaymentService {
 
            System.out.println("Savings payment processed successfully");
            sseController.notifyUpdate();
+
+           if (cacheManager.getCache("userSavingsSummary") != null) {
+               cacheManager.getCache("userSavingsSummary").evict(userbank.getUserId());
+           }
 
            return new ApiResponse<>(true, "Savings payment processed successfully.", null);
        }else{
@@ -561,36 +580,4 @@ public class PaymentService {
     }
 
 
-    public String generateRef() {
-        String prefix = "REF";
-        String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String randomLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        Random random = new Random();
-
-        String letter1 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
-        String letter2 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
-        String letter3 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
-
-        Optional<LoanPayment> lastRef = loanPaymentRepo.findLastRef();
-
-        int sequence = 1;
-
-        if(lastRef.isPresent()){
-            String lastRefNumber = lastRef.get().getReferenceNumber();
-
-            if (lastRefNumber.length() >= 17) {
-                try {
-                    String lastSequence = lastRefNumber.substring(13, 17);
-                    sequence = Integer.parseInt(lastSequence) + 1;
-                } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
-                    System.err.println("Error parsing reference: " + lastRefNumber);
-                    sequence = 1;
-                }
-            }
-        }
-
-        String sequencePart = String.format("%04d", sequence);
-
-        return prefix + datePart + letter1 + letter2 + sequencePart + letter3;
-    }
 }

@@ -24,4 +24,8 @@ public class RedisIdempotencyService {
 
         return isNewKey != null && isNewKey;
     }
+
+    public void releaseLock(String fingerprint) {
+        redisTemplate.delete("idempotency" + fingerprint);
+    }
 }

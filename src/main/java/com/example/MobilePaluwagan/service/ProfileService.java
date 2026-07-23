@@ -9,6 +9,7 @@ import com.example.MobilePaluwagan.entity.*;
 import com.example.MobilePaluwagan.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -38,6 +39,7 @@ public class ProfileService {
     private final DueDateScheduleRepository dueDateScheduleRepo;
     private final LoanPaymentRepo  loanPaymentRepo;
     private final LedgerRepo  ledgerRepo;
+    private final CacheManager cacheManager;
 
     public AdminProfileResponse userAllInfo(Long userId) {
         UserInfo userInfo = userInfoRepo.findByUserId(userId).orElseThrow(() -> new RuntimeException("User info not found"));
@@ -212,6 +214,17 @@ public class ProfileService {
         }
 
         UserInfo savedUser = userInfoRepo.save(info);
+
+        // Evict cached userDetails and userProfile so authentication and profile remain in sync
+        if (cacheManager.getCache("userDetails") != null) {
+            cacheManager.getCache("userDetails").evict(user.getEmail());
+            if (request.getEmail() != null) {
+                cacheManager.getCache("userDetails").evict(request.getEmail());
+            }
+        }
+        if (cacheManager.getCache("userProfile") != null) {
+            cacheManager.getCache("userProfile").evict(userId);
+        }
 
         sseController.notifyUpdate();
         return new ApiResponse<>(
