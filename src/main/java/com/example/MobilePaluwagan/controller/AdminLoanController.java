@@ -42,6 +42,7 @@ public class AdminLoanController {
 //    public List<LoanPayment> getSpecificPayment(@RequestBody Long applicationId){
 //        return loanService.loanPayments(applicationId);
 //    }
+    // check kung updated na ang code
 
 
     @GetMapping("/details/{applicationId}")
