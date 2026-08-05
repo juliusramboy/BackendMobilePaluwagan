@@ -24,4 +24,5 @@ public class UserDepositSavingsRequest {
     private LocalDate depositDate;
     private String reference;
     private String status;
+
 }
