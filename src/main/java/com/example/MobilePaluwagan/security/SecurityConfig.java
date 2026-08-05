@@ -64,8 +64,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/webhook/**").permitAll()
                 .requestMatchers("/ws/**").permitAll()
                 .requestMatchers("/ws/info/**").permitAll()
-                .requestMatchers("/error").permitAll()
-//                .requestMatchers("/api/cs/ticket/*/subscribe").permitAll()
+                .requestMatchers("/error").permitAll()// this is to check the errors if its the reason for the 401 in the savings
+                .requestMatchers("/api/cs/ticket/*/subscribe").permitAll()
                 .anyRequest().authenticated());
         http.exceptionHandling(ex -> ex .authenticationEntryPoint(jwtAuthenticationEntryPoint));
         http.formLogin(customizer -> withDefaults());
