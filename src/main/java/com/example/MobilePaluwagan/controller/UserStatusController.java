@@ -23,7 +23,7 @@ public class UserStatusController {
         Long userId = userDetails.userId();
 
         StatusResponse status = statusService.getUserStatus(userId);
-
+        //return success msg
         return new ApiResponse<>(true, "Success", status);
     }
 }

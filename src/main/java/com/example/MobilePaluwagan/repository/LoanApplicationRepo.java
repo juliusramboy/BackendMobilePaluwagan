@@ -27,6 +27,7 @@ public interface LoanApplicationRepo extends JpaRepository<LoanApplication, Long
     boolean existsByUserIdAndStatusIn(Long userId, List<Status> statuses);
 
     Optional<LoanApplication> findByApplicationID(Long applicationID);
+    boolean existsByApplicationID(Long applicationID);
 
     boolean existsByUserIdAndStatus(Long userId, Status status);
 

@@ -21,6 +21,7 @@ public interface LoanPaymentRepo extends JpaRepository<LoanPayment, Long> {
     Optional<LoanPayment> findByUserId(Long userId);
     List<LoanPayment> findByLoanId(Long loanId);
     boolean existsByUserIdAndStatus(long userId, Status status);
+    boolean existsByReferenceNumber(String referenceNumber);
     @Query("""
         SELECT new com.example.MobilePaluwagan.dto.Response.UserListPayments( 
             p.amountPaid,
