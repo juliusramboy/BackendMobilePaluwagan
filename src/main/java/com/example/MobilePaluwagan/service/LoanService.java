@@ -248,36 +248,11 @@ public class LoanService {
     }
 
     public String generateRef() {
-        String prefix = "slp";
-        String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String randomLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        Random random = new Random();
-
-        String letter1 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
-        String letter2 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
-        String letter3 = String.valueOf(randomLetters.charAt(random.nextInt(26)));
-
-        Optional<LoanPayment> lastRef = loanPaymentRepo.findLastRef();
-
-        int sequence = 1;
-
-        if(lastRef.isPresent()){
-            String lastRefNumber = lastRef.get().getReferenceNumber();
-
-            if (lastRefNumber.length() >= 17) {
-                try {
-                    String lastSequence = lastRefNumber.substring(13, 17);
-                    sequence = Integer.parseInt(lastSequence) + 1;
-                } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
-                    System.err.println("Error parsing reference: " + lastRefNumber);
-                    sequence = 1;
-                }
-            }
-        }
-
-        String sequencePart = String.format("%04d", sequence);
-
-        return prefix + datePart + letter1 + letter2 + sequencePart + letter3;
+        String ref;
+        do {
+            ref = com.example.MobilePaluwagan.util.IdGenerator.generateShortCode("LP-", 8);
+        } while (loanPaymentRepo.existsByReferenceNumber(ref));
+        return ref;
     }
 
     private ApiResponse<UserDepositSavingsResponse> checkUserDepositInput(Long userId, double depositAmount, LocalDate depositDate) {
@@ -402,7 +377,13 @@ public class LoanService {
 
 
         LoanApplication saveLoan = new LoanApplication();
-        saveLoan.setApplicationID(request.getApplicationId());
+        Long appId = request.getApplicationId();
+        if (appId == null || appId <= 0) {
+            do {
+                appId = com.example.MobilePaluwagan.util.IdGenerator.generateShortNumericId();
+            } while (loanApplicationRepo.existsByApplicationID(appId) || userLoanRepo.existsByApplicationID(appId));
+        }
+        saveLoan.setApplicationID(appId);
         saveLoan.setUserId(user.getId());
 //        System.out.println("userId "+ userId);
 //        System.out.println("user.getID "+ user.getId());
@@ -420,9 +401,9 @@ public class LoanService {
         loanApplicationRepo.save(saveLoan);
         LoanApplication verified = loanApplicationRepo.findById(saveLoan.getId()).orElse(null);
 
-        notificationService.notifyLoanSubmitted(String.valueOf(request.getApplicationId()), userInfo.getFirstName());
+        notificationService.notifyLoanSubmitted(String.valueOf(appId), userInfo.getFirstName());
         sseController.notifyUpdate();
-        return request.getApplicationId();
+        return appId;
     }
 
     private void validateUserCanApplyForLoan(User user) {

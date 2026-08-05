@@ -20,6 +20,7 @@ public interface UserLoanRepo extends JpaRepository<Loan, Long> {
     void deleteByUserId(Long userId);
 
     Loan findByApplicationID(Long applicationID);
+    boolean existsByApplicationID(Long applicationID);
 
     @Query("SELECT SUM(l.totalRepayable) FROM Loan l WHERE l.userId = :userId")
     BigDecimal sumTotalRepayableByUserId(@Param("userId") Long userId);
