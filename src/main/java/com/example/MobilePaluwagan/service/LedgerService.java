@@ -30,7 +30,8 @@ public class LedgerService {
 
     public Page<Ledger> filterUserLedger(LedgerFilterRequest filter, int page, int size)
     {
-        Pageable pageable = PageRequest.of(page, size);
+        int pageIndex = page > 0 ? page - 1 : 0;
+        Pageable pageable = PageRequest.of(pageIndex, size);
         return ledgerRepo.findLedgerByUserIdWithFilters(
                 filter.getUserId(),
                 filter.getReference(),
