@@ -64,4 +64,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                 .body(Map.of("error", ex.getMessage()));
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Object>> handleGeneralException(Exception ex) {
+        ex.printStackTrace();
+        ApiResponse<Object> response = new ApiResponse<>(
+                false,
+                ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred",
+                null
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
 }
