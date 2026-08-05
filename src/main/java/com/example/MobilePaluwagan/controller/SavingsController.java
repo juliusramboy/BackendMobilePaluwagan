@@ -1,6 +1,7 @@
 package com.example.MobilePaluwagan.controller;
 
 import com.example.MobilePaluwagan.annotation.Idempotent;
+import com.example.MobilePaluwagan.annotation.RequiresTransactionToken;
 import com.example.MobilePaluwagan.dto.Request.PaymentFilterRequest;
 import com.example.MobilePaluwagan.dto.Request.PaymongoRequest;
 import com.example.MobilePaluwagan.dto.Request.UserCreateSavingsAccount;
@@ -37,11 +38,13 @@ public class SavingsController {
 
 
     @GetMapping("/savings")
+    @RequiresTransactionToken
     public ResponseEntity<String> dashboard(Principal principal) {
         return ResponseEntity.ok("Welcome to the savingsPanel, " + principal.getName());
     }
 
     @PostMapping("/remit")
+    @RequiresTransactionToken
     @Idempotent
     public ResponseEntity<ApiResponse<UserDepositSavingsResponse>> userDepositSavings(Authentication authentication, @RequestBody UserDepositSavingsRequest request) {
         UserPrinciple user = (UserPrinciple) authentication.getPrincipal();

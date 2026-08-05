@@ -1,6 +1,7 @@
 package com.example.MobilePaluwagan.controller;
 
 import com.example.MobilePaluwagan.annotation.Idempotent;
+import com.example.MobilePaluwagan.annotation.RequiresTransactionToken;
 import com.example.MobilePaluwagan.dto.Request.*;
 import com.example.MobilePaluwagan.dto.Response.*;
 import com.example.MobilePaluwagan.entity.*;
@@ -86,6 +87,7 @@ public class  LoanController {
     }
 
     @PostMapping("loan/remit")
+    @RequiresTransactionToken
     @Idempotent
     public ResponseEntity<ApiResponse<UserDepositSavingsResponse>> userDepositSavings(Authentication authentication, @RequestBody UserDepositSavingsRequest request) {
         UserPrinciple user = (UserPrinciple) authentication.getPrincipal();
