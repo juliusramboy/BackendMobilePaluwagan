@@ -64,6 +64,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/webhook/**").permitAll()
                 .requestMatchers("/ws/**").permitAll()
                 .requestMatchers("/ws/info/**").permitAll()
+                .requestMatchers("/error").permitAll()
 //                .requestMatchers("/api/cs/ticket/*/subscribe").permitAll()
                 .anyRequest().authenticated());
         http.exceptionHandling(ex -> ex .authenticationEntryPoint(jwtAuthenticationEntryPoint));

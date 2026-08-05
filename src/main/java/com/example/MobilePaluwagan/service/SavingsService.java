@@ -374,38 +374,39 @@ public class SavingsService {
         UserBank userBank = userBankRepo.findByUserId(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "userId is not found"));
 
          String savingsId = userBank.getSavingsId();
-         BigDecimal targetAmount = userBank.getTargetAmount();
-         boolean isOneYear = ChronoUnit.YEARS.between(userBank.getFirstDepositDate(), LocalDateTime.now()) >= 1;
-         BigDecimal userTargetAmount = userBank.getTargetAmount();
+         BigDecimal targetAmount = Optional.ofNullable(userBank.getTargetAmount()).orElse(BigDecimal.ZERO);
+         boolean isOneYear = userBank.getFirstDepositDate() != null
+                 && ChronoUnit.YEARS.between(userBank.getFirstDepositDate(), LocalDateTime.now()) >= 1;
+         BigDecimal userTargetAmount = targetAmount;
 
-        Pageable pageable = PageRequest.of(page, size);
-        Page<SavingsDepositHistory> savingsDepositHistoryList = userSavingsRepo
-                .findAllByUserIdAndStatusOrderByDepositDateDesc(userId, Status.PAID, pageable)
-                .map(this::allHistory);
+         Pageable pageable = PageRequest.of(page > 0 ? page - 1 : 0, size);
+         Page<SavingsDepositHistory> savingsDepositHistoryList = userSavingsRepo
+                 .findAllByUserIdAndStatusOrderByDepositDateDesc(userId, Status.PAID, pageable)
+                 .map(this::allHistory);
 
 
-        BigDecimal totalSavings = Optional.ofNullable(userSavingsRepo.sumAllPaidByUserId(userId))
-                .orElse(BigDecimal.ZERO);
+         BigDecimal totalSavings = Optional.ofNullable(userSavingsRepo.sumAllPaidByUserId(userId))
+                 .orElse(BigDecimal.ZERO);
 
-        BigDecimal savingsBase = new BigDecimal("5000");
-        BigDecimal annualBase = new BigDecimal("500");
+         BigDecimal savingsBase = new BigDecimal("5000");
+         BigDecimal annualBase = new BigDecimal("500");
 
-        BigDecimal maxAnnual = targetAmount
-                .divide(savingsBase, 10, RoundingMode.HALF_UP)
-                .multiply(annualBase)
-                .setScale(2, RoundingMode.HALF_UP);
+         BigDecimal maxAnnual = targetAmount.compareTo(BigDecimal.ZERO) > 0 ? targetAmount
+                 .divide(savingsBase, 10, RoundingMode.HALF_UP)
+                 .multiply(annualBase)
+                 .setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
 
-        BigDecimal savingsForAnnual = totalSavings
-                .min(targetAmount)
-                .setScale(2, RoundingMode.HALF_UP);
+         BigDecimal savingsForAnnual = targetAmount.compareTo(BigDecimal.ZERO) > 0 ? totalSavings
+                 .min(targetAmount)
+                 .setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
 
-        BigDecimal userAnnual = savingsForAnnual
-                .divide(savingsBase, 10, RoundingMode.HALF_UP)
-                .multiply(annualBase)
-                .min(maxAnnual)
-                .setScale(2, RoundingMode.HALF_UP);
+         BigDecimal userAnnual = targetAmount.compareTo(BigDecimal.ZERO) > 0 ? savingsForAnnual
+                 .divide(savingsBase, 10, RoundingMode.HALF_UP)
+                 .multiply(annualBase)
+                 .min(maxAnnual)
+                 .setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
 
-        boolean isTargetReached = totalSavings.compareTo(userBank.getTargetAmount()) >= 0;
+         boolean isTargetReached = targetAmount.compareTo(BigDecimal.ZERO) > 0 && totalSavings.compareTo(targetAmount) >= 0;
 
 
 
