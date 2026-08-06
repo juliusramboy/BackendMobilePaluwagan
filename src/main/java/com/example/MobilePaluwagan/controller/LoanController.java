@@ -88,7 +88,6 @@ public class  LoanController {
 
     @PostMapping("loan/remit")
     @RequiresTransactionToken
-    @Idempotent
     public ResponseEntity<ApiResponse<UserDepositSavingsResponse>> userDepositSavings(Authentication authentication, @RequestBody UserDepositSavingsRequest request) {
         UserPrinciple user = (UserPrinciple) authentication.getPrincipal();
         Long userId = user.userId();
