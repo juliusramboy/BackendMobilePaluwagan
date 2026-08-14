@@ -81,7 +81,9 @@ public Map<String, Object> getMessages(String ticketId) {
 
 
     public Map<String, Object> getMessagesUser(Long userId) {
-        Optional<ChatTicket> ticket = chatTicketRepository.findByUserId(userId);
+        Optional<ChatTicket> ticket = chatTicketRepository.findByUserIdAndStatusIn(
+                userId, List.of(TicketStatus.PENDING, TicketStatus.OPEN, TicketStatus.AI_RESPONSE)
+        );
 
         if (ticket.isPresent()) {
             System.out.println("Ticket ID: " + ticket.get().getId());

@@ -151,7 +151,7 @@ public class CustomerServiceAIService {
         }
 
         else if (aiChoice.startsWith("Para sa Admin")){
-            switchToAdminIfExisted(userId);
+            switchToAdminIfExisted(userId, userPrompt);
             return checkIfTicketExist(userPrompt, userId, true);
         }
         return null;
@@ -163,6 +163,7 @@ public class CustomerServiceAIService {
 
         // If for Peep lang — always si Peep, hindi na need i-check kung online ang admin
         if (!forAdmin) {
+            System.out.println("para kay peep");
             String subject = callAI(ticketSubjectPrompt, message);
             ticket.setUserId(userId);
             ticket.setInitialMessage(subject);
@@ -205,6 +206,7 @@ public class CustomerServiceAIService {
             );
         }
 
+        System.out.println("gumamit ng ai dapat");
         // Admin online AND gusto ng user ang admin — PENDING
         String subject = callAI(ticketSubjectPrompt, message);
         ticket.setUserId(userId);
@@ -237,7 +239,10 @@ public class CustomerServiceAIService {
 
 
     @Transactional
-    public void switchToAdminIfExisted(Long userId){
+    public void switchToAdminIfExisted(Long userId, String message){
+        if (!adminStatus.isAnyAdminOnline()) {
+            return;
+        }
         Optional<ChatTicket> existingTicket = chatTicketRepository.findByUserIdAndStatusIn(
                 userId, List.of(TicketStatus.AI_RESPONSE)
         );
@@ -246,6 +251,16 @@ public class CustomerServiceAIService {
             ticket.setStatus(TicketStatus.PENDING);
             ticket.setCreatedAt(LocalDateTime.now()); // reset time para mapunta sa dulo ng queue
             chatTicketRepository.save(ticket);
+
+            messagingTemplate.convertAndSend("/topic/chat/" + ticket.getId(),
+                    Map.of(
+                            "type", "NEW_TICKET",
+                            "userId", userId,
+                            "ticketId", ticket.getId(),
+                            "message", message,
+                            "sentBy", "USER"
+                    ));
+            sseController.notifyAdminNewTicketInQueue(userId, message, ticket.getId());
         }
     }
 
