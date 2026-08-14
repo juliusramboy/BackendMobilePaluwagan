@@ -145,6 +145,16 @@ public Map<String, Object> getMessages(String ticketId) {
         // para sa frontend sub to kung sino naka sub dto sila lang may convo
         messagingTemplate.convertAndSend("/topic/chat/" + ticketId, payload);
 
+        if (sentBy.equals("USER")) {
+            Optional<ChatTicket> ticketOpt = chatTicketRepository.findById(ticketId);
+            if (ticketOpt.isPresent()) {
+                ChatTicket ticket = ticketOpt.get();
+                if (ticket.getStatus() == TicketStatus.AI_RESPONSE) {
+                    customerServiceAIService.processUserReplyForAITicket(ticket, message);
+                }
+            }
+        }
+
 //        original logic
 //        if(sentBy.equals("ADMIN")) {
 //            ChatTicket ticket = chatTicketRepository.findById(ticketId).orElseThrow();

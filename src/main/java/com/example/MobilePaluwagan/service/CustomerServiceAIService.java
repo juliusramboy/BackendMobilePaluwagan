@@ -314,9 +314,12 @@ public class CustomerServiceAIService {
         }
 
         // AI_RESPONSE — si Peep mag-respond
-        saveMessage(ticket.getId(), userId, message, "USER");
+        ChatMessage userMsg = saveMessage(ticket.getId(), userId, message, "USER");
+        broadcastMessage(ticket.getId(), userId, message, "USER", userMsg.getCreatedAt());
+
         String aiResponse = callAI(peepSystemPrompt, message);
-        saveMessage(ticket.getId(), userId, aiResponse, "Peep");
+        ChatMessage aiMsg = saveMessage(ticket.getId(), userId, aiResponse, "Peep");
+        broadcastMessage(ticket.getId(), userId, aiResponse, "Peep", aiMsg.getCreatedAt());
 
         return Map.of(
                 "response", aiResponse,
@@ -402,5 +405,65 @@ public class CustomerServiceAIService {
                 "redirectToAdmin", redirectToAdmin,
                 "ticketId", ticketId
         );
+    }
+
+    public void broadcastMessage(String ticketId, Long userId, String message, String sentBy, LocalDateTime createdAt) {
+        UserInfo senderInfo = userInfoRepo.findByUserId(userId).orElse(null);
+        String senderName = "System";
+        String profileImage = null;
+        if (senderInfo != null) {
+            senderName = sentBy.equals("ADMIN")
+                    ? "Admin " + senderInfo.getFirstName()
+                    : (sentBy.equals("Peep") ? "Peep" : senderInfo.getFirstName() + " " + senderInfo.getLastName());
+            profileImage = senderInfo.getProfileImage();
+        } else if (sentBy.equals("Peep")) {
+            senderName = "Peep";
+        }
+
+        com.example.MobilePaluwagan.dto.Response.ChatMessageResponse payload = com.example.MobilePaluwagan.dto.Response.ChatMessageResponse.builder()
+                .ticketId(ticketId)
+                .userId(userId)
+                .message(message)
+                .sentBy(sentBy)
+                .createdAt(createdAt)
+                .senderName(senderName)
+                .senderProfileImage(profileImage)
+                .build();
+
+        messagingTemplate.convertAndSend("/topic/chat/" + ticketId, payload);
+    }
+
+    @Transactional
+    public void processUserReplyForAITicket(ChatTicket ticket, String message) {
+        Long userId = ticket.getUserId();
+        String aiChoice = chatDesc(message);
+
+        if (aiChoice.startsWith("Para sa Admin") && adminStatus.isAnyAdminOnline()) {
+            // Switch to Admin
+            ticket.setStatus(TicketStatus.PENDING);
+            ticket.setCreatedAt(LocalDateTime.now()); // reset time para mapunta sa dulo ng queue
+            chatTicketRepository.save(ticket);
+
+            // Broadcast the NEW_TICKET update to WebSocket so UI changes state
+            messagingTemplate.convertAndSend("/topic/chat/" + ticket.getId(),
+                    Map.of(
+                            "type", "NEW_TICKET",
+                            "userId", userId,
+                            "ticketId", ticket.getId(),
+                            "message", message,
+                            "sentBy", "USER"
+                    ));
+            sseController.notifyAdminNewTicketInQueue(userId, message, ticket.getId());
+
+            // Send waiting message to user
+            String waitMessage = "Maghintay lang ng sandali, may kausap pa ang admin na miyembro. Ikaw ay nakapila na!";
+            ChatMessage waitMsgObj = saveMessage(ticket.getId(), userId, waitMessage, "Peep");
+            broadcastMessage(ticket.getId(), userId, waitMessage, "Peep", waitMsgObj.getCreatedAt());
+        } else {
+            // Keep talking to Peep (either aiChoice was "Para kay Peep" or no Admin is online)
+            String aiResponse = callAI(peepSystemPrompt, message);
+            ChatMessage aiMsg = saveMessage(ticket.getId(), userId, aiResponse, "Peep");
+            broadcastMessage(ticket.getId(), userId, aiResponse, "Peep", aiMsg.getCreatedAt());
+        }
     }
 }
