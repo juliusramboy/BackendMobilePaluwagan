@@ -163,7 +163,6 @@ public class CustomerServiceAIService {
 
         // If for Peep lang — always si Peep, hindi na need i-check kung online ang admin
         if (!forAdmin) {
-            System.out.println("para kay peep");
             String subject = callAI(ticketSubjectPrompt, message);
             ticket.setUserId(userId);
             ticket.setInitialMessage(subject);
@@ -206,7 +205,6 @@ public class CustomerServiceAIService {
             );
         }
 
-        System.out.println("gumamit ng ai dapat");
         // Admin online AND gusto ng user ang admin — PENDING
         String subject = callAI(ticketSubjectPrompt, message);
         ticket.setUserId(userId);
