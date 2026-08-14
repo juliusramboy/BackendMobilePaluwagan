@@ -40,12 +40,8 @@ public Map<String, Object> getMessages(String ticketId) {
     Optional<ChatTicket> ticket = chatTicketRepository.findById(ticketId);
 
     if (ticket.isPresent()) {
-        System.out.println("Ticket ID: " + ticket.get().getId());
-        System.out.println("Status: " + ticket.get().getStatus());
         List<ChatMessage> messages = chatMessageRepository
                 .findByTicketIdOrderByCreatedAtAsc(ticket.get().getId());
-
-        System.out.println("Messages count: " + messages.size());
         List<ChatMessageResponse> mappedMessages = messages.stream()
                 .map(msg -> {
                     UserInfo info = userInfoRepo.findByUserId(msg.getUserId())
@@ -86,12 +82,8 @@ public Map<String, Object> getMessages(String ticketId) {
         );
 
         if (ticket.isPresent()) {
-            System.out.println("Ticket ID: " + ticket.get().getId());
-            System.out.println("Status: " + ticket.get().getStatus());
             List<ChatMessage> messages = chatMessageRepository
                     .findByTicketIdOrderByCreatedAtAsc(ticket.get().getId());
-
-            System.out.println("Messages count: " + messages.size());
             List<ChatMessageResponse> mappedMessages = messages.stream()
                     .map(msg -> {
                         UserInfo info = userInfoRepo.findByUserId(msg.getUserId())
@@ -126,6 +118,13 @@ public Map<String, Object> getMessages(String ticketId) {
     }
 
     public ChatMessage sendMessage(String ticketId, Long userId, String message, String sentBy) {
+        ChatTicket ticket = chatTicketRepository.findById(ticketId)
+                .orElseThrow(() -> new IllegalArgumentException("Ticket not found."));
+
+        if (ticket.getStatus() == TicketStatus.CLOSED) {
+            throw new IllegalArgumentException("Ticket has already been closed.");
+        }
+
         ChatMessage chatMessage = saveMessage(ticketId, userId, message, sentBy);
 
         UserInfo senderInfo = userInfoRepo.findByUserId(userId).orElseThrow();
@@ -146,12 +145,8 @@ public Map<String, Object> getMessages(String ticketId) {
         messagingTemplate.convertAndSend("/topic/chat/" + ticketId, payload);
 
         if (sentBy.equals("USER")) {
-            Optional<ChatTicket> ticketOpt = chatTicketRepository.findById(ticketId);
-            if (ticketOpt.isPresent()) {
-                ChatTicket ticket = ticketOpt.get();
-                if (ticket.getStatus() == TicketStatus.AI_RESPONSE) {
-                    customerServiceAIService.processUserReplyForAITicket(ticket, message);
-                }
+            if (ticket.getStatus() == TicketStatus.AI_RESPONSE) {
+                customerServiceAIService.processUserReplyForAITicket(ticket, message);
             }
         }
 
